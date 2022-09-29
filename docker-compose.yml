@@ -1,0 +1,48 @@
+version: "3.8"
+
+
+volumes:
+  db_data:
+  pgadmin_data:
+
+
+services:
+  db:
+    image: postgres:latest
+    restart: unless-stopped
+    volumes:
+      - "db_data:/var/lib/postgresql/data"
+    env_file:
+      - .env
+    ports:
+      - "0.0.0.0:5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -d postgres -U postgres -h db -p 5432"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  pgadmin:
+    image: dpage/pgadmin4
+    restart: unless-stopped
+    volumes:
+      - "pgadmin_data:/var/list/pgadmin"
+    env_file:
+      - .env
+    environment:
+      - PGADMIN_LISTEN_PORT=80
+    ports:
+      - "0.0.0.0:8080:80"
+    depends_on:
+      - db
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "0.0.0.0:8000:8000"
+    env_file:
+      - .env
+    depends_on:
+      - db

@@ -1,0 +1,5 @@
+[flake8]
+max-line-length = 120
+extend-ignore = E203, W503, W605, D107,
+exclude = __init__.py, dist, app, .aws-sam, .mypy_cache, .pytest_cache, pgadmin_data, db_data, cdk.out, docs_build, src, ./tests/*, ./docs/*, ./integrations/*, ./AWS/*
+docstring-convention = google
