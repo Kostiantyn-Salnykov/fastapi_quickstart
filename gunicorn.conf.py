@@ -16,4 +16,4 @@ keepalive = 3  # default 2
 timeout = 30  # seconds, default 60
 graceful_timeout = 30  # default
 logconfig_dict = LOGGING_CONFIG
-proc_name = "InstitutionsHostels_Back-end"
+proc_name = "FastAPI_Back-end"
