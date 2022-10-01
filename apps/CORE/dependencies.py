@@ -4,6 +4,8 @@ import urllib.parse
 from fastapi import Query, Request
 from sqlalchemy import Column
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import Session
 from sqlalchemy.sql.elements import UnaryExpression
 
 from apps.CORE.db import Base, async_session_factory, session_factory
@@ -15,7 +17,7 @@ DBModelColumnVar = typing.TypeVar(name="DBModelColumnVar", bound=Column)
 
 
 class BasePagination:
-    def __init__(self):
+    def __init__(self) -> None:
         self.offset = 0
         self.limit = 100
 
@@ -63,12 +65,12 @@ class BasePagination:
 
 
 class BaseSorting:
-    def __init__(self, model: typing.Type[DBModelVar], available_columns: list[DBModelColumnVar] = None):
+    def __init__(self, model: typing.Type[DBModelVar], available_columns: list[DBModelColumnVar] | None = None):
         self.model = model
         self.available_columns = available_columns or []
         self.available_columns_names = [col.key for col in self.available_columns]
 
-    def __call__(self, sorting: list[str] = Query(default=None)):
+    def __call__(self, sorting: list[str] = Query(default=None)) -> list[UnaryExpression]:
         return self.build_sorting(sorting=sorting)
 
     def build_sorting(self, sorting: list[str]) -> list[UnaryExpression]:
@@ -82,7 +84,7 @@ class BaseSorting:
         return result
 
 
-async def get_async_session():
+async def get_async_session() -> typing.AsyncGenerator[AsyncSession, None]:
     """Creates FastAPI dependency for generation of SQLAlchemy AsyncSession.
 
     Yields:
@@ -98,7 +100,7 @@ async def get_async_session():
             await session.close()
 
 
-def get_session():
+def get_session() -> typing.Generator[Session, None, None]:
     """Creates FastAPI dependency for generation of SQLAlchemy Session.
 
     Yields:

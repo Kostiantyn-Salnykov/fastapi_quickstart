@@ -45,7 +45,7 @@ app.add_middleware(middleware_class=ProxyHeadersMiddleware, trusted_hosts=Settin
 
 
 @app.on_event(event_type="startup")
-def enable_logging():
+def enable_logging() -> None:
     setup_logging()
     logger.debug(msg="Logging configuration completed.")
 

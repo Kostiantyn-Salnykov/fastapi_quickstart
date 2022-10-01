@@ -7,7 +7,7 @@ import phonenumbers
 from pydantic import EmailStr
 from pydantic.datetime_parse import parse_datetime
 
-from apps.CORE.utils import as_utc, get_utc_timezone
+from apps.CORE.utils import as_utc, get_timestamp, get_utc_timezone
 
 
 class StrUUID(str):
@@ -48,7 +48,7 @@ class Timestamp(float):
 
     @classmethod
     def to_timestamp(cls, v: datetime.datetime) -> float | int:
-        return round(v.timestamp() * 1000, 3)
+        return get_timestamp(v=v)
 
     @classmethod
     def __modify_schema__(cls, field_schema: dict) -> None:

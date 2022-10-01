@@ -14,9 +14,9 @@ branch_labels = None
 depends_on = None
 
 
-def upgrade():
+def upgrade() -> None:
     op.execute(sqltext="""CREATE EXTENSION IF NOT EXISTS pgcrypto""")
 
 
-def downgrade():
+def downgrade() -> None:
     op.execute(sqltext="""DROP EXTENSION IF EXISTS pgcrypto""")

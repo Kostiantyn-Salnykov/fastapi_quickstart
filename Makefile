@@ -9,6 +9,9 @@ lint:
 isort:
 	poetry run isort . $(args)
 
+mypy:
+	poetry run mypy . $(args)
+
 fmt: black isort lint
 
 # === Test's commands ===

@@ -3,6 +3,8 @@ import functools
 import uuid
 import zoneinfo
 
+import orjson
+
 
 @functools.lru_cache()
 def get_utc_timezone() -> zoneinfo.ZoneInfo:
@@ -30,5 +32,10 @@ def id_v4() -> str:
     return str(uuid.uuid4())
 
 
-def construct_pagination(objects: list, schema, pagination):
-    ...
+def orjson_dumps(v, *, default):
+    # orjson.dumps returns bytes, to match standard json.dumps we need to decode
+    return orjson.dumps(v, default=default).decode()
+
+
+def get_timestamp(v: datetime.datetime) -> float:
+    return round(v.timestamp() * 1000, 3)

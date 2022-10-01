@@ -10,6 +10,7 @@ from pydantic.generics import GenericModel
 
 from apps.CORE.enums import JSENDStatus
 from apps.CORE.types import Timestamp
+from apps.CORE.utils import get_timestamp, orjson_dumps
 
 SchemaVar = TypeVar(name="SchemaVar", bound=BaseModel | None)
 ObjectsVar = TypeVar(name="ObjectsVar", bound=dict[str, None | str | int | float | dict | list])
@@ -32,11 +33,11 @@ class BaseOutSchema(BaseInSchema):
 
         json_encoders = {
             # field type: encoder function
-            datetime.datetime: lambda date_time: round(date_time.timestamp() * 1000, 3),
+            datetime.datetime: get_timestamp,
             datetime.timedelta: lambda time_delta: pydantic.json.timedelta_isoformat(time_delta),
             uuid.UUID: str,
         }
-        json_dumps = orjson.dumps
+        json_dumps = orjson_dumps
         json_loads = orjson.loads
 
 

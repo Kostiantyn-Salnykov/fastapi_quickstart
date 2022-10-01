@@ -22,7 +22,7 @@ class BackendException(Exception):
     def __repr__(self) -> str:
         """Representation for BackendException."""
         return (
-            f"{self.__class__.__name__}(status={self.status}, data={self.data}, message={self.message}, "
+            f'{self.__class__.__name__}(status={self.status}, data={self.data}, message="{self.message}", '
             f"code={self.code})"
         )
 

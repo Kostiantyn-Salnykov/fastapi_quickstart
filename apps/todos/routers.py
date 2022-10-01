@@ -3,6 +3,7 @@ import uuid
 
 from fastapi import APIRouter, Depends, Path, Request
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.sql.elements import UnaryExpression
 
 from apps.CORE.dependencies import BasePagination, BaseSorting, get_async_session
 from apps.CORE.schemas import JSENDOutSchema
@@ -48,7 +49,7 @@ async def list_to_do(
     request: Request,
     session: AsyncSession = Depends(get_async_session),
     pagination: BasePagination = Depends(BasePagination()),
-    sorting=Depends(BaseSorting(model=ToDo, available_columns=[ToDo.created_at, ToDo.title])),
+    sorting: list[UnaryExpression] = Depends(BaseSorting(model=ToDo, available_columns=[ToDo.created_at, ToDo.title])),
 ) -> dict[str, typing.Any]:
     return {
         "data": await to_do_handler.list(session=session, request=request, pagination=pagination, sorting=sorting),
@@ -61,6 +62,6 @@ async def delete_to_do(
     request: Request,
     id: uuid.UUID = Path(),
     session: AsyncSession = Depends(get_async_session),
-):
+) -> JSENDOutSchema:
     await to_do_handler.delete(session=session, request=request, id=id)
     return JSENDOutSchema(data=None, message="ToDo deleted successfully.")

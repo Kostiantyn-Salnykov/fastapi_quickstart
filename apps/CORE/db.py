@@ -17,7 +17,7 @@ class TableNameMixin:
     pattern = re.compile(r"(?<!^)(?=[A-Z])")
 
     @declared_attr
-    def __tablename__(cls):
+    def __tablename__(cls) -> str:
         return cls.pattern.sub("_", cls.__name__).lower()
 
 

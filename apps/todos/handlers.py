@@ -1,7 +1,6 @@
 import uuid
 
 from fastapi import Request, status
-from fastapi.encoders import jsonable_encoder
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from apps.CORE.dependencies import BasePagination
@@ -26,8 +25,7 @@ class ToDoHandler:
     async def update(
         self, *, session: AsyncSession, request: Request, id: uuid.UUID | str, data: ToDoUpdateSchema
     ) -> ToDoOutSchema:
-        values = jsonable_encoder(obj=data, exclude_unset=True)
-        to_do: ToDo = await to_do_service.update(session=session, id=id, values=values)
+        to_do: ToDo = await to_do_service.update(session=session, id=id, obj=data)
         if not to_do:
             raise BackendException(message="ToDo not found.", code=status.HTTP_404_NOT_FOUND)
         return ToDoOutSchema.from_orm(obj=to_do)

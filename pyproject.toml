@@ -19,6 +19,7 @@ uvicorn = {extras = ["standard"], version = "^0.18.3"}
 gunicorn = "^20.1.0"
 psycopg2-binary = "^2.9.3"
 phonenumbers = "^8.12.56"
+httpx = "^0.23.0"
 
 
 [tool.poetry.group.lint.dependencies]
@@ -26,6 +27,7 @@ black = "^22.8.0"
 isort = "^5.10.1"
 flake8 = "^5.0.4"
 xenon = "^0.9.0"
+mypy = "^0.981"
 
 
 [tool.poetry.group.test.dependencies]
@@ -37,6 +39,11 @@ pytest-cov = "^3.0.0"
 pytest-randomly = "^3.12.0"
 pytest-clarity = "^1.0.1"
 Faker = "^15.0.0"
+pydantic-factories = "^1.7.0"
+
+
+[tool.poetry.group.dev.dependencies]
+ipython = "^8.5.0"
 
 [build-system]
 requires = ["poetry-core"]
@@ -76,7 +83,7 @@ markers = [
     'debug: marks tests as debug (deselect with -m "not debug")',
 ]
 #addopts = "--maxfail=1 -rf"
-norecursedirs = ["venv", ".venv", ".env", "migrations", "db_data", "pgadmin_data",]
+norecursedirs = ["venv", ".venv", ".env", "migrations",]
 testpaths = ["tests",]
 python_files = ["test*.py", "*test.py"]
 python_functions = ["*_test", "test_*"]
@@ -88,7 +95,7 @@ log_cli = true
 [tool.coverage.run]
 parallel = true
 branch = true
-source = ["apps", "src",]
+source = ["apps",]
 omit = ["*/.local/*", "*/.idea/*", "*./venv/*", "*/test*", "*__init__*", "*/migrations*" , "**interfaces.py"]
 
 [tool.coverage.report]
@@ -105,7 +112,7 @@ directory = "coverage"
 [tool.mypy]
 python_version = "3.10"
 files = ['*.py', '**/*.py']
-exclude = ["db_data", "pgadmin_data", "docs*", "coverage", "tests"]
+exclude = ["docs*", "coverage", "tests"]
 plugins = ["pydantic.mypy",]
 no_site_packages = true
 follow_imports = "skip"
@@ -116,4 +123,12 @@ warn_unused_ignores = true
 show_error_codes = true
 no_implicit_optional = true
 disallow_untyped_defs = true
+disallow_any_generics = true
+check_untyped_defs = true
 #disallow_any_unimported = true
+
+[tool.pydantic-mypy]
+init_forbid_extra = true
+init_typed = true
+warn_required_dynamic_aliases = true
+warn_untyped_fields = true
