@@ -38,13 +38,11 @@ class ToDoHandler:
         pagination: BasePagination,
         sorting,
         filters: dict | None = None
-    ) -> PaginationOutSchema:
+    ) -> tuple[int, list[ToDo]]:
         total, objects = await to_do_service.list(
             session=session, offset=pagination.offset, limit=pagination.limit, sorting=sorting, filters=filters
         )
-        return BasePagination.get_paginated_response(
-            pagination=pagination, request=request, objects=objects, schema=ToDoOutSchema, total=total
-        )
+        return total, objects
 
     async def delete(self, *, session: AsyncSession, request: Request, id: uuid.UUID | str, safe: bool = False) -> None:
         result = await to_do_service.delete(session=session, id=id)

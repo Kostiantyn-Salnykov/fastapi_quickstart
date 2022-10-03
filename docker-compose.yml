@@ -36,13 +36,13 @@ services:
     depends_on:
       - db
 
-  backend:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    ports:
-      - "0.0.0.0:8000:8000"
-    env_file:
-      - .env
-    depends_on:
-      - db
+#  backend:
+#    build:
+#      context: .
+#      dockerfile: Dockerfile
+#    ports:
+#      - "0.0.0.0:8000:8000"
+#    env_file:
+#      - .env
+#    depends_on:
+#      - db

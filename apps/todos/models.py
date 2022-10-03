@@ -1,4 +1,4 @@
-from sqlalchemy import VARCHAR, Column
+from sqlalchemy import BOOLEAN, VARCHAR, Column
 
 from apps.CORE.db import Base, CreatedUpdatedMixin, UUIDMixin
 from apps.todos.enums import ToDoStatuses

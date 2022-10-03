@@ -43,15 +43,16 @@ class BasePagination:
         objects: list[ObjectsVar],
         schema: SchemaVar,
         total: int,
+        endpoint_name: str,
     ) -> PaginationOutSchema:
         offset, limit = pagination.offset, pagination.limit
         previous_uri = (
-            request.url_for(name="list_to_do") + urllib.parse.urlencode(query=pagination.previous())
+            request.url_for(name=endpoint_name) + "?" + urllib.parse.urlencode(query=pagination.previous())
             if offset > 0
             else None
         )
         next_uri = (
-            request.url_for(name="list_to_do") + urllib.parse.urlencode(query=pagination.next())
+            request.url_for(name=endpoint_name) + "?" + urllib.parse.urlencode(query=pagination.next())
             if total > limit and len(objects)
             else None
         )

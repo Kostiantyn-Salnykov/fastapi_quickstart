@@ -18,12 +18,12 @@ from settings import Settings
 logger = get_logger(name=__name__)
 
 app = FastAPI(
-    debug=True,
+    debug=Settings.DEBUG,
     title="FastAPI Quickstart",
     description="",
     version="0.0.1",
     openapi_url="/openapi.json" if Settings.ENABLE_OPENAPI else None,
-    redoc_url=None,
+    redoc_url=None,  # Redoc disabled
     docs_url="/docs/" if Settings.ENABLE_OPENAPI else None,
     default_response_class=ORJSONResponse,
     responses=Responses.BASE,
