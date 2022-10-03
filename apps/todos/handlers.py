@@ -5,7 +5,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from apps.CORE.dependencies import BasePagination
 from apps.CORE.exceptions import BackendException
-from apps.CORE.schemas import PaginationOutSchema
 from apps.todos.models import ToDo
 from apps.todos.schemas import ToDoCreateSchema, ToDoOutSchema, ToDoUpdateSchema
 from apps.todos.services import to_do_service
