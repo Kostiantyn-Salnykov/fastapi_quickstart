@@ -69,7 +69,7 @@ class Phone(str):
     def validate(cls, v: str) -> str:
         PREFIX = "+"
         if not re.match(r"^\d{8,15}$", v):
-            raise ValueError("Mast be digits")
+            raise ValueError("Must be digits")
         try:
             v = "".join((digit for digit in v if digit.isdigit()))  # format phone (allow only digits)
             v = PREFIX + v  # add prefix to valid parsing
@@ -77,10 +77,10 @@ class Phone(str):
         except phonenumbers.phonenumberutil.NumberParseException as error:
             raise ValueError("Invalid number") from error
         else:
-            if phonenumbers.is_possible_number(parsed_phone):
+            if phonenumbers.is_possible_number(parsed_phone):  # pragma: no cover
                 return v.removeprefix(PREFIX)
 
-        raise ValueError("Impossible number")
+        raise ValueError("Impossible number")  # pragma: no cover
 
     @classmethod
     def __modify_schema__(cls, field_schema: dict) -> None:
