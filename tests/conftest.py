@@ -9,12 +9,12 @@ import psycopg2
 import pytest
 from _pytest.monkeypatch import MonkeyPatch
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
+from pytest_alembic import Config, runner
 from sqlalchemy import create_engine
 from sqlalchemy.engine import URL, Engine
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, create_async_engine
-from sqlalchemy.orm import Session, close_all_sessions, sessionmaker
+from sqlalchemy.orm import Session, sessionmaker
 
-from apps.CORE.db import Base
 from apps.CORE.db import async_session_factory as AsyncSessionFactory  # noqa
 from apps.CORE.db import session_factory as SessionFactory  # noqa
 from apps.CORE.dependencies import get_async_session, get_session
@@ -161,22 +161,31 @@ def faker_seed() -> int:
     return random.randint(0, 100000)
 
 
-@pytest.fixture(scope="session", autouse=True)
-def prepare_database(sync_db_engine: Engine) -> typing.Generator[None, None, None]:
-    """Create tables and extensions, and drop them after all tests."""
-    with sync_db_engine.connect() as conn:
-        # create extensions
-        conn.execute(statement="""CREATE EXTENSION IF NOT EXISTS pgcrypto;""")
+@pytest.fixture(scope="session")
+def alembic_config() -> Config:
+    return Config()
 
-    # create tables from metadata (careful use, can create not all tables)
-    # TODO: Replace with alembic migration run!
-    metadata = Base.metadata
-    metadata.create_all(bind=sync_db_engine)
+
+@pytest.fixture(scope="session")
+def alembic_engine(sync_db_engine: Engine) -> Engine:
+    return sync_db_engine
+
+
+@pytest.fixture(scope="session")
+def alembic_runner(alembic_config: Config, alembic_engine: Engine) -> typing.Generator[runner, None, None]:
+    config = Config.from_raw_config(alembic_config)
+    with runner(config=config, engine=alembic_engine) as alembic_runner:
+        yield alembic_runner
+
+
+@pytest.fixture(scope="session", autouse=True)
+def apply_migrations(
+    create_database: None, alembic_runner: runner, alembic_engine: Engine
+) -> typing.Generator[None, None, None]:
+    """Applies all migrations from base to head."""
+    alembic_runner.migrate_up_to(revision="head")
     yield
-    # close all sessions
-    # close_all_sessions()
-    # drop tables after tests
-    # metadata.drop_all(bind=sync_db_engine)
+    alembic_runner.migrate_down_to(revision="base")
 
 
 @pytest.fixture(scope="session")

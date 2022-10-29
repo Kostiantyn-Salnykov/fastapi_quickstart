@@ -40,6 +40,7 @@ pytest-randomly = "^3.12.0"
 pytest-clarity = "^1.0.1"
 Faker = "^15.0.0"
 pydantic-factories = "^1.7.0"
+pytest-alembic = "^0.8.4"
 
 
 [tool.poetry.group.dev.dependencies]
@@ -90,6 +91,7 @@ python_functions = ["*_test", "test_*"]
 console_output_style = "progress"
 asyncio_mode = "auto"
 log_cli = true
+pytest_alembic_tests_folder = "tests/migrations"
 
 # === Coverage ===
 [tool.coverage.run]

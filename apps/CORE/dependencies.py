@@ -34,7 +34,7 @@ class BasePagination:
         return {"offset": self.offset + self.limit, "limit": self.limit}
 
     def previous(self) -> dict[str, int]:
-        return {"offset": self.offset - self.limit or 0, "limit": self.limit}
+        return {"offset": val if (val := self.offset - self.limit) >= 0 else 0, "limit": self.limit}
 
     @staticmethod
     def get_paginated_response(
@@ -85,7 +85,7 @@ class BaseSorting:
         return result
 
 
-async def get_async_session() -> typing.AsyncGenerator[AsyncSession, None]:
+async def get_async_session() -> typing.AsyncGenerator[AsyncSession, None]:  # pragma: no cover
     """Creates FastAPI dependency for generation of SQLAlchemy AsyncSession.
 
     Yields:

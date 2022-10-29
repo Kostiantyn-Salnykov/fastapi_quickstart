@@ -1,10 +1,12 @@
+import pytest
 from faker import Faker
 from fastapi import status
 from pytest_mock import MockerFixture
 
 from apps.CORE.enums import JSENDStatus
 from apps.CORE.exceptions import BackendException
-from apps.CORE.handlers import backend_exception_handler, validation_exception_handler
+from apps.CORE.handlers import backend_exception_handler, integrity_error_handler, validation_exception_handler
+from settings import Settings
 
 
 def test_backend_exception_handler(faker: Faker, mocker: MockerFixture) -> None:
@@ -36,3 +38,57 @@ def test_validation_exception_handler(faker: Faker, mocker: MockerFixture) -> No
         status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
     )
     assert result == expected_result
+
+
+class TestIntegrityErrorHandler:
+    def test_integrity_error_handler_duplicate(self, faker: Faker, mocker: MockerFixture, monkeypatch) -> None:
+        monkeypatch.setattr(target=Settings, name="DEBUG", value=False)
+        exception_mock = mocker.MagicMock()
+        exception_mock.args = ["duplicate"]
+
+        with pytest.raises(BackendException) as exception_context:
+            integrity_error_handler(error=exception_mock)
+
+        assert str(exception_context.value) == str(BackendException(message="Update error."))
+
+    def test_integrity_error_handler_duplicate_debug(self, faker: Faker, mocker: MockerFixture, monkeypatch) -> None:
+        monkeypatch.setattr(target=Settings, name="DEBUG", value=True)
+        exception_mock = mocker.MagicMock()
+        exception_mock.args = ["duplicate"]
+        expected_message = faker.pystr()
+        exception_mock.orig.args = [f"1\n2\n{expected_message}"]
+
+        with pytest.raises(BackendException) as exception_context:
+            integrity_error_handler(error=exception_mock)
+
+        assert str(exception_context.value) == str(BackendException(message=expected_message))
+
+    def test_integrity_error_handler_other(self, faker: Faker, mocker: MockerFixture, monkeypatch) -> None:
+        monkeypatch.setattr(target=Settings, name="DEBUG", value=False)
+        exception_mock = mocker.MagicMock()
+        exception_mock.args = ["something"]
+
+        with pytest.raises(BackendException) as exception_context:
+            integrity_error_handler(error=exception_mock)
+
+        assert str(exception_context.value) == str(
+            BackendException(
+                status=JSENDStatus.ERROR, message="Internal server error.", code=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+        )
+
+    def test_integrity_error_handler_other_debug(self, faker: Faker, mocker: MockerFixture, monkeypatch) -> None:
+        monkeypatch.setattr(target=Settings, name="DEBUG", value=True)
+        exception_mock = mocker.MagicMock()
+        expected_response = faker.pystr()
+        exception_mock.__str__.return_value = expected_response
+        exception_mock.args = ["something"]
+
+        with pytest.raises(BackendException) as exception_context:
+            integrity_error_handler(error=exception_mock)
+
+        assert str(exception_context.value) == str(
+            BackendException(
+                status=JSENDStatus.ERROR, message=expected_response, code=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+        )

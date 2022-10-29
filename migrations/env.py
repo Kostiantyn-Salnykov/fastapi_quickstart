@@ -63,8 +63,19 @@ def run_migrations_online() -> None:
     and associate a connection with the context.
 
     """
-    with engine.connect() as connection:
-        context.configure(connection=connection, target_metadata=target_metadata)
+    connectable = context.config.attributes.get("connection", None)  # for pytest-alembic
+
+    if connectable is None:  # without pytest-alembic (local / production)
+        connectable = engine
+
+    with connectable.connect() as connection:
+        context.configure(
+            connection=connection,
+            target_metadata=target_metadata,
+            compare_type=True,
+            compare_server_default=True,
+            include_schemas=True,
+        )
 
         with context.begin_transaction():
             context.run_migrations()

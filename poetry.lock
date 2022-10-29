@@ -750,6 +750,19 @@ tomli = ">=1.0.0"
 testing = ["argcomplete", "hypothesis (>=3.56)", "mock", "nose", "pygments (>=2.7.2)", "requests", "xmlschema"]
 
 [[package]]
+name = "pytest-alembic"
+version = "0.8.4"
+description = "A pytest plugin for verifying alembic migrations."
+category = "dev"
+optional = false
+python-versions = ">=3.6,<4"
+
+[package.dependencies]
+alembic = "*"
+pytest = ">=1.0"
+sqlalchemy = "*"
+
+[[package]]
 name = "pytest-asyncio"
 version = "0.19.0"
 description = "Pytest support for asyncio"
@@ -1147,7 +1160,7 @@ requests = ">=2.0,<3.0"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.10"
-content-hash = "2705713b6eb756231d6802e2a79d746430ca0cfdf56ad86fa4db199a55b8fbc7"
+content-hash = "3ae82ea6b76c790922b83e6be7d6ae2838a2c4a51ef2fca9545c55e0c73e4206"
 
 [metadata.files]
 alembic = [
@@ -1768,6 +1781,10 @@ pyparsing = [
 pytest = [
     {file = "pytest-7.1.3-py3-none-any.whl", hash = "sha256:1377bda3466d70b55e3f5cecfa55bb7cfcf219c7964629b967c37cf0bda818b7"},
     {file = "pytest-7.1.3.tar.gz", hash = "sha256:4f365fec2dff9c1162f834d9f18af1ba13062db0c708bf7b946f8a5c76180c39"},
+]
+pytest-alembic = [
+    {file = "pytest-alembic-0.8.4.tar.gz", hash = "sha256:8f24b9c0caa350ce7b34eb0bd728f0e44b1db605c8b5b159531805dec5ba6640"},
+    {file = "pytest_alembic-0.8.4-py3-none-any.whl", hash = "sha256:6d272b4329e8e93c7ee7dc7dda6b2b5ccbd79c8398570c379854edec35daf885"},
 ]
 pytest-asyncio = [
     {file = "pytest-asyncio-0.19.0.tar.gz", hash = "sha256:ac4ebf3b6207259750bc32f4c1d8fcd7e79739edbc67ad0c58dd150b1d072fed"},
