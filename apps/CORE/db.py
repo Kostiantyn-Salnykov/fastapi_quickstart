@@ -74,5 +74,5 @@ NAMING_CONVENTION = {
 Base = declarative_base(cls=TableNameMixin, metadata=MetaData(naming_convention=NAMING_CONVENTION))
 async_engine = create_async_engine(url=Settings.POSTGRES_URL_ASYNC, echo=Settings.POSTGRES_ECHO)
 engine = create_engine(url=Settings.POSTGRES_URL, echo=Settings.POSTGRES_ECHO)
-async_session_factory = sessionmaker(bind=async_engine, class_=AsyncSession, expire_on_commit=False)
-session_factory = sessionmaker(bind=engine, class_=Session, expire_on_commit=False)
+async_session_factory = sessionmaker(bind=async_engine, class_=AsyncSession, expire_on_commit=False, future=True)
+session_factory = sessionmaker(bind=engine, class_=Session, expire_on_commit=False, future=True)

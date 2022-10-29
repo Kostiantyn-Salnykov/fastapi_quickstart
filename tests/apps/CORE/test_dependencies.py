@@ -154,6 +154,7 @@ async def test_get_async_session(mocker: MockerFixture) -> None:
     assert result[0] == await async_session_factory_mock().__aenter__()
 
 
+# TODO: write test
 @pytest.mark.debug()
 def test_get_session(mocker: MockerFixture) -> None:
     session_factory_mock = mocker.patch(

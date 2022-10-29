@@ -1,3 +1,5 @@
+import datetime
+
 from fastapi import APIRouter, FastAPI, status
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
@@ -9,6 +11,7 @@ from apps.CORE.db import async_engine, async_session_factory, engine, session_fa
 from apps.CORE.enums import JSENDStatus
 from apps.CORE.exceptions import BackendException
 from apps.CORE.handlers import backend_exception_handler, validation_exception_handler
+from apps.CORE.managers import TokensManager
 from apps.CORE.responses import Responses
 from apps.CORE.schemas import JSENDOutSchema
 from apps.todos.routers import to_do_router
@@ -27,6 +30,12 @@ app = FastAPI(
     docs_url="/docs/" if Settings.ENABLE_OPENAPI else None,
     default_response_class=ORJSONResponse,
     responses=Responses.BASE,
+)
+
+# State objects
+app.state.tokens_manager = TokensManager(
+    secret_key=Settings.TOKENS_SECRET_KEY,
+    default_token_lifetime=datetime.timedelta(seconds=Settings.TOKENS_ACCESS_LIFETIME_SECONDS),
 )
 
 # Add exception handlers

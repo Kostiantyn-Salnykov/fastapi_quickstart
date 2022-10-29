@@ -32,7 +32,7 @@ def upgrade() -> None:
         sa.Column("status", sa.VARCHAR(length=32), nullable=False),
         sa.PrimaryKeyConstraint("id", name=op.f("pk_to_do")),
     )
-    op.create_index(op.f("ix_to_do_title"), "to_do", ["title"], unique=True)
+    op.create_index(op.f("ix_to_do_title"), "to_do", ["title"], unique=False)
     # ### end Alembic commands ###
 
 

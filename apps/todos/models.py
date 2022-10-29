@@ -5,7 +5,7 @@ from apps.todos.enums import ToDoStatuses
 
 
 class ToDo(Base, UUIDMixin, CreatedUpdatedMixin):
-    title = Column(VARCHAR(length=128), nullable=False, index=True, unique=True)
+    title = Column(VARCHAR(length=128), nullable=False, index=True)
     description = Column(VARCHAR(length=256))
     status = Column(VARCHAR(length=32), default=ToDoStatuses.CREATED.value, nullable=False)
 

@@ -37,6 +37,11 @@ class MainSettings(BaseSettings):
     CORS_ALLOW_HEADERS: list[str] = Field(default=["*"])
     CORS_ALLOW_METHODS: list[str] = Field(default=["*"])
     CORS_ALLOW_ORIGINS: list[str] = Field(default=["*"])
+    # JWT tokens managements settings
+    TOKENS_ACCESS_LIFETIME_SECONDS: int = Field(default=3600)  # 1 HOUR
+    TOKENS_ISSUER: str = Field(default="")
+    TOKENS_REFRESH_LIFETIME_SECONDS: int = Field(default=604800)  # 1 WEEK
+    TOKENS_SECRET_KEY: str = Field(default="TEST")
     # Logging settings
     LOG_LEVEL: int = Field(default=logging.WARNING)
     LOG_USE_COLORS: bool = Field(default=False)

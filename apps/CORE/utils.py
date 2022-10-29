@@ -2,7 +2,7 @@ import datetime
 import functools
 import uuid
 import zoneinfo
-
+from typing import Any
 import orjson
 
 
@@ -32,7 +32,7 @@ def id_v4() -> str:
     return str(uuid.uuid4())
 
 
-def orjson_dumps(v, *, default):
+def orjson_dumps(v: Any, *, default) -> str:
     # orjson.dumps returns bytes, to match standard json.dumps we need to decode
     return orjson.dumps(v, default=default).decode()
 

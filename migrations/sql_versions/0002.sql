@@ -10,7 +10,7 @@ CREATE TABLE to_do (
     CONSTRAINT pk_to_do PRIMARY KEY (id)
 );
 
-CREATE UNIQUE INDEX ix_to_do_title ON to_do (title);
+CREATE INDEX ix_to_do_title ON to_do (title);
 
 UPDATE alembic_version SET version_num='0002' WHERE alembic_version.version_num = '0001';
 
