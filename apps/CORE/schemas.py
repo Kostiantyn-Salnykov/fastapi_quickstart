@@ -81,8 +81,9 @@ class PaginationOutSchema(GenericModel, Generic[ObjectsVar]):
     objects: list[ObjectsVar]
     offset: int = Field(default=0)
     limit: int = Field(default=100)
-    next_uri: AnyHttpUrl | None = Field(default=None, title="Next URI")
-    previous_uri: AnyHttpUrl | None = Field(default=None, title="Previous URI")
+    count: int = Field(default=...)
+    next_uri: AnyHttpUrl | None = Field(default=None, alias="nextURL", title="Next URI")
+    previous_uri: AnyHttpUrl | None = Field(default=None, alias="previousURL", title="Previous URI")
 
     class Config(BaseOutSchema.Config):
         ...

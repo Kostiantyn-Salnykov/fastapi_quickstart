@@ -45,7 +45,7 @@ LOGGING_CONFIG: dict = {
     "formatters": {
         "debug_link_formatter": {
             "()": "loggers.ColorfulFormatter",
-            "fmt": "{levelname} | {message} | {asctime}",
+            "fmt": "{levelname} {message} | {asctime}",
             "style": "{",
             "datefmt": DATE_TIME_FORMAT_ISO_8601,
             "validate": True,

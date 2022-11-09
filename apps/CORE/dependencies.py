@@ -1,6 +1,7 @@
 import typing
 import urllib.parse
 
+import aioredis
 from fastapi import Query, Request
 from sqlalchemy import Column
 from sqlalchemy.exc import IntegrityError
@@ -8,12 +9,16 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
 from sqlalchemy.sql.elements import UnaryExpression
 
-from apps.CORE.db import Base, async_session_factory, session_factory
+from apps.CORE.db import Base, async_session_factory, redis, session_factory
 from apps.CORE.handlers import integrity_error_handler
 from apps.CORE.schemas import ObjectsVar, PaginationOutSchema, SchemaVar
+from loggers import get_logger
 
 DBModelVar = typing.TypeVar(name="DBModelVar", bound=Base)
 DBModelColumnVar = typing.TypeVar(name="DBModelColumnVar", bound=Column)
+
+
+logger = get_logger(name=__name__)
 
 
 class BasePagination:
@@ -60,6 +65,7 @@ class BasePagination:
             objects=(schema.from_orm(obj=obj) for obj in objects),
             offset=offset,
             limit=limit,
+            count=total,
             previous_uri=previous_uri,
             next_uri=next_uri,
         )
@@ -94,6 +100,7 @@ async def get_async_session() -> typing.AsyncGenerator[AsyncSession, None]:  # p
     async with async_session_factory() as session:
         try:
             yield session
+            await session.commit()
         except IntegrityError as error:
             await session.rollback()
             integrity_error_handler(error=error)
@@ -110,8 +117,19 @@ def get_session() -> typing.Generator[Session, None, None]:
     with session_factory() as session:
         try:
             yield session
+            session.commit()
         except IntegrityError as error:
             session.rollback()
             integrity_error_handler(error=error)
         finally:
             session.close()
+
+
+async def get_redis() -> typing.Generator[aioredis.Redis, None, None]:
+    async with redis.client() as conn:
+        try:
+            yield conn
+        except Exception as error:
+            logger.warning(msg=error)
+        finally:
+            await conn.close()

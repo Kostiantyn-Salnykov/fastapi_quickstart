@@ -8,7 +8,7 @@ from sqlalchemy.engine.url import URL
 PROJECT_BASE_DIR = pathlib.Path(__file__).resolve().parent
 
 
-def _build_db_dsn(values: dict, async_dsn: bool = False) -> URL:
+def _build_db_dsn(values: dict[str, str | int | bool], async_dsn: bool = False) -> URL:
     """Factory for PostgreSQL DSN."""
     driver_name = "postgresql"
     if async_dsn:
@@ -39,8 +39,8 @@ class MainSettings(BaseSettings):
     CORS_ALLOW_ORIGINS: list[str] = Field(default=["*"])
     # JWT tokens managements settings
     TOKENS_ACCESS_LIFETIME_SECONDS: int = Field(default=3600)  # 1 HOUR
-    TOKENS_ISSUER: str = Field(default="")
-    TOKENS_REFRESH_LIFETIME_SECONDS: int = Field(default=604800)  # 1 WEEK
+    TOKENS_ISSUER: str = Field(default="FastAPI Quickstart")
+    TOKENS_REFRESH_LIFETIME_SECONDS: int = Field(default=86400)  # 1 DAY
     TOKENS_SECRET_KEY: str = Field(default="TEST")
     # Logging settings
     LOG_LEVEL: int = Field(default=logging.WARNING)
@@ -54,6 +54,16 @@ class MainSettings(BaseSettings):
     POSTGRES_PORT: int = Field(default=5432)
     POSTGRES_URL: PostgresDsn = Field(default=None)
     POSTGRES_URL_ASYNC: PostgresDsn = Field(default=None)
+    # Redis settings
+    REDIS_SECURE: bool = Field(default=True)
+    REDIS_HOST: str = Field(default="0.0.0.0")
+    REDIS_PORT: int = Field(default=6379)
+    REDIS_USER: str = Field(default=None)
+    REDIS_PASSWORD: str = Field(default=None)
+    REDIS_DB: int = Field(default=0)
+    REDIS_DECODE_RESPONSES: bool = Field(default=True)
+    REDIS_ENCODING: str = Field(default="utf-8")
+    REDIS_POOL_MAX_CONNECTIONS: int = Field(default=100)
 
     class Config(BaseSettings.Config):
         extra = Extra.ignore
@@ -62,14 +72,14 @@ class MainSettings(BaseSettings):
         env_nested_delimiter = "__"
 
     @validator("POSTGRES_URL", always=True)
-    def validate_database_url(cls, value: str | None, values: dict) -> URL | str:
+    def validate_database_url(cls, value: str | None, values: dict[str, str | int | bool]) -> URL | str:
         """Construct PostgreSQL DSN."""
         if value is None:
             return _build_db_dsn(values=values)
         return value
 
     @validator("POSTGRES_URL_ASYNC", always=True)
-    def validate_database_url_async(cls, value: str | None, values: dict) -> URL | str:
+    def validate_database_url_async(cls, value: str | None, values: dict[str, str | int | bool]) -> URL | str:
         """Construct async (with asyncpg driver) PostgreSQL DSN."""
         if value is None:
             return _build_db_dsn(values=values, async_dsn=True)

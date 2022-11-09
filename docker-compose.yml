@@ -36,6 +36,20 @@ services:
     depends_on:
       - db
 
+  redis:
+    image: redislabs/redismod:latest
+    restart: unless-stopped
+    ports:
+      - "0.0.0.0:6379:6379"
+
+  redis_insights:
+    image: redislabs/redisinsight:latest
+    restart: unless-stopped
+    ports:
+      - "0.0.0.0:8001:8001"
+    depends_on:
+      - redis
+
 #  backend:
 #    build:
 #      context: .

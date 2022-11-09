@@ -1,6 +1,7 @@
 import re
 import uuid
 
+import aioredis
 from sqlalchemy import TIMESTAMP, Column, MetaData, create_engine, text
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
@@ -76,3 +77,15 @@ async_engine = create_async_engine(url=Settings.POSTGRES_URL_ASYNC, echo=Setting
 engine = create_engine(url=Settings.POSTGRES_URL, echo=Settings.POSTGRES_ECHO)
 async_session_factory = sessionmaker(bind=async_engine, class_=AsyncSession, expire_on_commit=False, future=True)
 session_factory = sessionmaker(bind=engine, class_=Session, expire_on_commit=False, future=True)
+redis = aioredis.Redis(
+    host=Settings.REDIS_HOST,
+    port=Settings.REDIS_PORT,
+    db=Settings.REDIS_DB,
+    password=Settings.REDIS_PASSWORD,
+    encoding=Settings.REDIS_ENCODING,
+    decode_responses=Settings.REDIS_DECODE_RESPONSES,
+    retry_on_timeout=True,
+    max_connections=Settings.REDIS_POOL_MAX_CONNECTIONS,
+    client_name="FastAPI_client",
+    username=Settings.REDIS_USER,
+)

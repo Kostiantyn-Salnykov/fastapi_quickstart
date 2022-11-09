@@ -17,8 +17,10 @@ class AsyncPersistenceHandler(AsyncPersistenceProtocol):
 
     async def save(self, data: SchemaType) -> DBModelType:
         async with async_session_factory() as db_session:
-            return await self._service.create(session=db_session, obj=data)
+            async with db_session.begin():
+                return await self._service.create(session=db_session, obj=data)
 
     async def save_many(self, data: list[SchemaType]) -> list[DBModelType]:
         async with async_session_factory() as db_session:
-            return await self._service.create_many(session=db_session, objs=data)
+            async with db_session.begin():
+                return await self._service.create_many(session=db_session, objs=data)

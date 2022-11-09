@@ -11,7 +11,7 @@ from apps.todos.handlers import to_do_handler
 from apps.todos.models import ToDo
 from apps.todos.schemas import ToDoCreateSchema, ToDoListOutSchema, ToDoOutSchema, ToDoUpdateSchema
 
-to_do_router = APIRouter(prefix="/to_do", tags=["ToDo"])
+to_do_router = APIRouter(prefix="/todos", tags=["todos"])
 
 
 @to_do_router.post(path="/", response_model=JSENDOutSchema[ToDoOutSchema])
