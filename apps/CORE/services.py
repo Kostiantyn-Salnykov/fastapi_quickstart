@@ -1,28 +1,26 @@
 """Basic CRUD for services."""
-import uuid
-from typing import Type, TypeVar
+from typing import Type, TypeAlias
 
 from fastapi.encoders import jsonable_encoder
-from pydantic import BaseModel
 from sqlalchemy import delete, func, select, update
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.engine import ChunkedIteratorResult, CursorResult
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.sql.elements import UnaryExpression
 
-from apps.CORE.db import Base
+from apps.CORE.types import ModelType, SchemaType, StrOrUUID
+from apps.CORE.utils import to_db_encoder
 
-ModelType = TypeVar("ModelType", bound=Base)
-CreateSchemaType = TypeVar("CreateSchemaType", bound=BaseModel)
-UpdateSchemaType = TypeVar("UpdateSchemaType", bound=BaseModel)
+NoneModelType: TypeAlias = ModelType | None
+NoneModelTypeList: TypeAlias = list[ModelType] | None
 
 
 class AsyncCRUDBase:
     def __init__(self, *, model: Type[ModelType]):
         self.model = model
 
-    async def create(self, *, session: AsyncSession, obj: CreateSchemaType, unique: bool = False) -> ModelType:
-        obj_in_data = jsonable_encoder(obj=obj, exclude_unset=True, by_alias=False)
+    async def create(self, *, session: AsyncSession, obj: SchemaType, unique: bool = False) -> ModelType:
+        obj_in_data = to_db_encoder(obj=obj)
         insert_statement = insert(self.model).values(**obj_in_data).returning(self.model)
         statement = select(self.model).from_statement(insert_statement).execution_options(populate_existing=True)
         result: ChunkedIteratorResult = await session.execute(statement=statement)
@@ -32,25 +30,21 @@ class AsyncCRUDBase:
         return data
 
     async def create_many(
-        self, *, session: AsyncSession, objs: list[CreateSchemaType], unique: bool = False
-    ) -> list[ModelType] | None:
-        insert_statement = (
-            insert(self.model)
-            .values([jsonable_encoder(obj=obj, exclude_unset=True, by_alias=False) for obj in objs])
-            .returning(self.model)
-        )
+        self, *, session: AsyncSession, objs: list[SchemaType], unique: bool = False
+    ) -> NoneModelTypeList:
+        insert_statement = insert(self.model).values([to_db_encoder(obj=obj) for obj in objs]).returning(self.model)
         statement = select(self.model).from_statement(insert_statement).execution_options(populate_existing=True)
         result: ChunkedIteratorResult = await session.execute(statement=statement)
         await session.flush()
         result.unique() if unique else ...
-        data: list[ModelType] | None = result.scalars().all()
+        data: NoneModelTypeList = result.scalars().all()
         return data
 
-    async def read(self, *, session: AsyncSession, id: str | uuid.UUID, unique: bool = False) -> ModelType | None:
+    async def read(self, *, session: AsyncSession, id: StrOrUUID, unique: bool = False) -> NoneModelType:
         statement = select(self.model).where(self.model.id == id)
         result: ChunkedIteratorResult = await session.execute(statement=statement)
         result.unique() if unique else ...
-        data: ModelType | None = result.scalar_one_or_none()
+        data: NoneModelType = result.scalar_one_or_none()
         return data
 
     async def list(
@@ -79,7 +73,7 @@ class AsyncCRUDBase:
         objects: list[ModelType] = select_result.scalars().all()
         return total, objects
 
-    async def update(self, *, session: AsyncSession, id: str | uuid.UUID, obj: UpdateSchemaType) -> ModelType | None:
+    async def update(self, *, session: AsyncSession, id: StrOrUUID, obj: SchemaType) -> NoneModelType:
         values = jsonable_encoder(obj=obj, exclude_unset=True, by_alias=False)
         update_statement = (
             update(self.model)
@@ -93,10 +87,10 @@ class AsyncCRUDBase:
         )
         result: ChunkedIteratorResult = await session.execute(statement=statement)
         await session.flush()
-        data: ModelType | None = result.scalar_one_or_none()
+        data: NoneModelType = result.scalar_one_or_none()
         return data
 
-    async def delete(self, *, session: AsyncSession, id: str | uuid.UUID) -> CursorResult:
+    async def delete(self, *, session: AsyncSession, id: StrOrUUID) -> CursorResult:
         delete_statement = delete(self.model).where(self.model.id == id)
         result: CursorResult = await session.execute(statement=delete_statement)
         await session.flush()

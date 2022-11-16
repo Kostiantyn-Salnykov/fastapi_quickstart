@@ -3,20 +3,16 @@ import urllib.parse
 
 import aioredis
 from fastapi import Query, Request
-from sqlalchemy import Column
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
 from sqlalchemy.sql.elements import UnaryExpression
 
-from apps.CORE.db import Base, async_session_factory, redis, session_factory
+from apps.CORE.db import async_session_factory, redis, session_factory
 from apps.CORE.handlers import integrity_error_handler
-from apps.CORE.schemas import ObjectsVar, PaginationOutSchema, SchemaVar
+from apps.CORE.schemas import ObjectsVar, PaginationOutSchema
+from apps.CORE.types import ModelColumnVar, ModelType, SchemaType
 from loggers import get_logger
-
-DBModelVar = typing.TypeVar(name="DBModelVar", bound=Base)
-DBModelColumnVar = typing.TypeVar(name="DBModelColumnVar", bound=Column)
-
 
 logger = get_logger(name=__name__)
 
@@ -30,7 +26,7 @@ class BasePagination:
         self,
         offset: int = Query(default=0, ge=0, description="Number of records to skip."),
         limit: int = Query(default=100, ge=1, lt=1000, description="Number of records to return per request."),
-    ):
+    ) -> "BasePagination":
         self.offset = offset
         self.limit = limit
         return self
@@ -46,7 +42,7 @@ class BasePagination:
         pagination: "BasePagination",
         request: Request,
         objects: list[ObjectsVar],
-        schema: SchemaVar,
+        schema: SchemaType,
         total: int,
         endpoint_name: str,
     ) -> PaginationOutSchema:
@@ -72,7 +68,7 @@ class BasePagination:
 
 
 class BaseSorting:
-    def __init__(self, model: typing.Type[DBModelVar], available_columns: list[DBModelColumnVar] | None = None):
+    def __init__(self, model: typing.Type[ModelType], available_columns: list[ModelColumnVar] | None = None):
         self.model = model
         self.available_columns = available_columns or []
         self.available_columns_names = [col.key for col in self.available_columns]
@@ -125,7 +121,7 @@ def get_session() -> typing.Generator[Session, None, None]:
             session.close()
 
 
-async def get_redis() -> typing.Generator[aioredis.Redis, None, None]:
+async def get_redis() -> typing.AsyncGenerator[aioredis.Redis, None]:
     async with redis.client() as conn:
         try:
             yield conn

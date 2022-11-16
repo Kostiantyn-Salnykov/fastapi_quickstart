@@ -6,17 +6,17 @@ import pytest
 from faker import Faker
 from pytest_mock import MockerFixture
 
-from apps.CORE.utils import as_utc, get_timestamp, get_utc_timezone, id_v1, id_v4, orjson_dumps, utc_now
+from apps.CORE.utils import as_utc, get_timestamp, get_utc_timezone, id_v1, id_v4, orjson_dumps, proxy_func, utc_now
 
 
-def test_get_utc_timezone():
+def test_get_utc_timezone() -> None:
     result = get_utc_timezone()
 
     assert result == zoneinfo.ZoneInfo(key="UTC")
     assert isinstance(result, zoneinfo.ZoneInfo)
 
 
-def test_utc_now(faker: Faker, mocker: MockerFixture):
+def test_utc_now(faker: Faker, mocker: MockerFixture) -> None:
     expected_datetime: datetime.datetime = faker.date_time(tzinfo=zoneinfo.ZoneInfo(key="UTC"))
     date_time_mock = mocker.patch("apps.CORE.utils.datetime")
     date_time_mock.datetime.now.return_value = expected_datetime
@@ -27,7 +27,7 @@ def test_utc_now(faker: Faker, mocker: MockerFixture):
     assert result.tzinfo == zoneinfo.ZoneInfo(key="UTC")
 
 
-def test_as_utc(faker: Faker):
+def test_as_utc(faker: Faker) -> None:
     input_date_time = faker.date_time(tzinfo=zoneinfo.ZoneInfo(key=faker.timezone()))
 
     result = as_utc(date_time=input_date_time)
@@ -36,7 +36,7 @@ def test_as_utc(faker: Faker):
     assert result.tzinfo == zoneinfo.ZoneInfo(key="UTC")
 
 
-def test_id_v1(mocker: MockerFixture):
+def test_id_v1(mocker: MockerFixture) -> None:
     expected_uuid = uuid.uuid1()
     uuid_mock = mocker.patch("apps.CORE.utils.uuid")
     uuid_mock.uuid1.return_value = expected_uuid
@@ -47,7 +47,7 @@ def test_id_v1(mocker: MockerFixture):
     assert uuid.UUID(result).time == expected_uuid.time
 
 
-def test_id_v4(mocker: MockerFixture):
+def test_id_v4(mocker: MockerFixture) -> None:
     expected_uuid = uuid.uuid1()
     uuid_mock = mocker.patch("apps.CORE.utils.uuid")
     uuid_mock.uuid4.return_value = expected_uuid
@@ -70,16 +70,24 @@ def test_id_v4(mocker: MockerFixture):
         (None, "null"),
     ),
 )
-def test_orjson_dumps(data, expected_result):
+def test_orjson_dumps(data, expected_result) -> None:
     result = orjson_dumps(v=data, default=None)
 
     assert isinstance(result, str)
     assert result == expected_result
 
 
-def test_get_timestamp(faker: Faker):
+def test_get_timestamp(faker: Faker) -> None:
     date_time = faker.date_time()
 
     result = get_timestamp(v=date_time)
 
     assert result == round(date_time.timestamp() * 1000, 3)
+
+
+def test_proxy_func(faker: Faker) -> None:
+    data = faker.pydict()
+
+    result = proxy_func(x=data)
+
+    assert result == data

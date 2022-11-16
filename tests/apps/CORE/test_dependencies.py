@@ -5,7 +5,7 @@ from pytest_mock import MockerFixture
 from sqlalchemy.exc import IntegrityError
 
 from apps.CORE.db import Base
-from apps.CORE.dependencies import BasePagination, BaseSorting, get_async_session, get_session
+from apps.CORE.dependencies import BasePagination, BaseSorting, get_async_session, get_redis, get_session
 
 
 class TestBasePagination:
@@ -167,3 +167,11 @@ def test_get_session(mocker: MockerFixture) -> None:
     result.test()
 
     print(True)
+
+
+@pytest.mark.debug()
+async def test_get_redis() -> None:
+    redis = await anext(get_redis())
+    result = await redis.ping()
+
+    assert result is True

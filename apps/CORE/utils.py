@@ -1,10 +1,12 @@
 import datetime
 import functools
+import typing
 import uuid
 import zoneinfo
 from typing import Any
 
 import orjson
+from fastapi.encoders import jsonable_encoder
 
 
 @functools.lru_cache()
@@ -40,3 +42,19 @@ def orjson_dumps(v: Any, *, default) -> str:
 
 def get_timestamp(v: datetime.datetime) -> float:
     return round(v.timestamp() * 1000, 3)
+
+
+def proxy_func(x: typing.Any) -> typing.Any:
+    return x
+
+
+encodings_dict: dict[typing.Any, typing.Callable[[typing.Any], typing.Any]] = {
+    datetime.datetime: proxy_func,
+    datetime.date: proxy_func,
+}
+to_db_encoder = functools.partial(
+    jsonable_encoder,
+    exclude_unset=True,
+    by_alias=False,
+    custom_encoder=encodings_dict,
+)

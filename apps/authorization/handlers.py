@@ -2,6 +2,7 @@ import uuid
 
 from fastapi import Request, status
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.sql.elements import UnaryExpression
 
 from apps.authorization.models import Group, Permission, Role
 from apps.authorization.schemas import (
@@ -51,7 +52,7 @@ class GroupsHandler:
         request: Request,
         session: AsyncSession,
         pagination: BasePagination,
-        sorting,
+        sorting: list[UnaryExpression],
         filters: dict | None = None
     ) -> tuple[int, list[Group]]:
         objects: list[Group]

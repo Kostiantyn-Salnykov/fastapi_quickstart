@@ -26,6 +26,7 @@ def _build_db_dsn(values: dict[str, str | int | bool], async_dsn: bool = False) 
 class MainSettings(BaseSettings):
     # Back-end settings
     DEBUG: bool = Field(default=False)
+    SHOW_SETTINGS: bool = Field(default=False)
     ENABLE_OPENAPI: bool = Field(default=False)
     HOST: str = Field(default="0.0.0.0")
     PORT: int = Field(default=8000)
@@ -93,7 +94,7 @@ def get_settings() -> MainSettings:
 
 Settings: MainSettings = get_settings()
 
-if Settings.DEBUG:
+if Settings.DEBUG and Settings.SHOW_SETTINGS:
     import pprint  # noqa
 
     pprint.pprint(Settings.dict())

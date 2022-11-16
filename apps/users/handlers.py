@@ -27,7 +27,7 @@ from settings import Settings
 
 
 class UsersHandler:
-    def __init__(self):
+    def __init__(self) -> None:
         self.passwords_manager = PasswordsManager()
 
     async def create_user(self, *, request: Request, session: AsyncSession, data: UserCreateSchema) -> UserOutSchema:
@@ -35,7 +35,7 @@ class UsersHandler:
             **data.dict(by_alias=True, exclude={"password"}),
             password_hash=self.passwords_manager.make_password(password=data.password),
         )
-        user = await users_service.create(session=session, obj=create_to_db)
+        user: User = await users_service.create(session=session, obj=create_to_db)
         return UserOutSchema.from_orm(obj=user)  # type: ignore
 
     async def update_user(self, *, request: Request, session: AsyncSession, data: UserUpdateSchema) -> UserOutSchema:

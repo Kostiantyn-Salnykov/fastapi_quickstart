@@ -38,9 +38,9 @@ class TestBackendException:
         assert exception.data == fake_data
         assert exception.message == fake_message
         assert exception.code == code
-        return (
+        assert (
             exception.__repr__()
-            == f'{BackendException.__class__.__name__}(status={exception.status}, data={exception.data}, message="'
+            == f'{BackendException.__name__}(status={exception.status}, data={exception.data}, message="'
             f'{exception.message}", code={exception.code})'
         )
 
@@ -48,9 +48,9 @@ class TestBackendException:
         message = faker.pystr()
         exception = BackendException(message=message)
 
-        return (
+        assert (
             exception.__str__()
-            == f'{BackendException.__class__.__name__}(status={exception.status}, data={exception.data}, message="'
+            == f'{BackendException.__name__}(status={exception.status}, data={exception.data}, message="'
             f'{exception.message}", code={exception.code})'
         )
 

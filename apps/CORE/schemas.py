@@ -1,6 +1,6 @@
 import datetime
 import uuid
-from typing import Generic, TypeVar
+from typing import Generic, TypeAlias
 
 import orjson
 import pydantic.json
@@ -9,11 +9,10 @@ from pydantic import AnyHttpUrl, BaseModel, Field
 from pydantic.generics import GenericModel
 
 from apps.CORE.enums import JSENDStatus
-from apps.CORE.types import Timestamp
+from apps.CORE.types import ObjectsVar, SchemaType, Timestamp
 from apps.CORE.utils import get_timestamp, orjson_dumps
 
-SchemaVar = TypeVar(name="SchemaVar", bound=BaseModel)
-ObjectsVar = TypeVar(name="ObjectsVar", bound=dict[str, None | str | int | float | dict | list])
+StrOrNone: TypeAlias = str | None
 
 
 class BaseInSchema(BaseModel):
@@ -41,28 +40,28 @@ class BaseOutSchema(BaseInSchema):
         json_loads = orjson.loads
 
 
-class JSENDOutSchema(GenericModel, Generic[SchemaVar]):
+class JSENDOutSchema(GenericModel, Generic[SchemaType]):
     status: JSENDStatus = Field(default=JSENDStatus.SUCCESS)
-    data: SchemaVar
-    message: str
+    data: SchemaType = Field(default=...)
+    message: str = Field(default=...)
     code: int = Field(default=http_status.HTTP_200_OK)
 
 
 class JSENDFailOutSchema(JSENDOutSchema):
     status: JSENDStatus = Field(default=JSENDStatus.FAIL)
-    data: str | None
+    data: StrOrNone = Field(default=None)
 
 
 class JSENDErrorOutSchema(JSENDOutSchema):
     status: JSENDStatus = Field(default=JSENDStatus.ERROR)
-    data: str | None
+    data: StrOrNone = Field(default=None)
 
 
 class UnprocessableEntityOutSchema(BaseOutSchema):
     location: list[str] = Field(example=["body", "field_1"])
     message: str = Field(example="Field required.")
     type: str = Field(example="value_error.missing")
-    context: str | None
+    context: StrOrNone = Field(default=None)
 
 
 class CreatedAtOutSchema(BaseModel):

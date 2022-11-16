@@ -23,6 +23,7 @@ httpx = "^0.23.0"
 bcrypt = "^4.0.1"
 PyJWT = "^2.6.0"
 aioredis = {extras = ["hiredis"], version = "^2.0.1"}
+typer = {extras = ["all"], version = "^0.7.0"}
 
 
 [tool.poetry.group.lint.dependencies]

@@ -1,15 +1,11 @@
-from typing import TypeVar
-
 from fastapi import Depends, Request, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from fastapi.security.utils import get_authorization_scheme_param
 
 from apps.authorization.enums import PermissionActions
 from apps.authorization.exceptions import PermissionException
-from apps.CORE.db import Base
 from apps.CORE.exceptions import BackendException
-
-ModelType = TypeVar("ModelType", bound=Base)
+from apps.CORE.types import ModelType
 
 
 class NewHTTPBearer(HTTPBearer):

@@ -39,7 +39,7 @@ def _get_root_handler() -> list[str]:
     return result
 
 
-LOGGING_CONFIG: dict = {
+LOGGING_CONFIG: dict[str, typing.Any] = {
     "version": 1,
     "disable_existing_loggers": False,
     "formatters": {
@@ -84,16 +84,9 @@ LOGGING_CONFIG: dict = {
     },
     "root": {"level": Settings.LOG_LEVEL, "handlers": _get_root_handler()},
     "loggers": {
-        "gunicorn": {
-            "level": "WARNING",
-            "handlers": ["default_handler"],
-            "propagate": False,
-        },
-        "uvicorn": {
-            "level": "WARNING",
-            "handlers": ["default_handler"],
-            "propagate": False,
-        },
+        "asyncio": {"level": "WARNING", "handlers": ["default_handler"], "propagate": False},
+        "gunicorn": {"level": "WARNING", "handlers": ["default_handler"], "propagate": False},
+        "uvicorn": {"level": "WARNING", "handlers": ["default_handler"], "propagate": False},
         "local": {"level": "DEBUG", "handlers": ["debug_handler"], "propagate": False},
     },
 }

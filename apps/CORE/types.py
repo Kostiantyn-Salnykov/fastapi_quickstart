@@ -4,10 +4,18 @@ import typing
 import uuid
 
 import phonenumbers
-from pydantic import EmailStr
+from pydantic import BaseModel, EmailStr
 from pydantic.datetime_parse import parse_datetime
+from sqlalchemy import Column
 
+from apps.CORE.db import Base
 from apps.CORE.utils import as_utc, get_timestamp, get_utc_timezone
+
+StrOrUUID: typing.TypeAlias = str | uuid.UUID
+ModelType = typing.TypeVar("ModelType", bound=Base)
+SchemaType = typing.TypeVar("SchemaType", bound=BaseModel)
+ModelColumnVar = typing.TypeVar("ModelColumnVar", bound=Column)
+ObjectsVar = typing.TypeVar("ObjectsVar", bound=dict[str, None | str | int | float | dict | list])
 
 
 class StrUUID(str):

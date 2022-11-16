@@ -162,7 +162,7 @@ app.include_router(router=roles_router, prefix=API_PREFIX)
 app.include_router(router=permissions_router, prefix=API_PREFIX)
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # pragma: no cover
     # Use this for debugging purposes only
     import uvicorn
 

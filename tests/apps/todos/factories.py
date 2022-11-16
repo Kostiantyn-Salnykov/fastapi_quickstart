@@ -1,11 +1,9 @@
-from pydantic_factories import ModelFactory
-
 from apps.todos.models import ToDo
 from apps.todos.schemas import ToDoCreateSchema
-from tests.bases import AsyncPersistenceHandler
+from tests.bases import AsyncPersistenceHandler, BaseFactory
 
 
-class ToDoFactory(ModelFactory):
+class ToDoFactory(BaseFactory):
     """ToDoFactory based on Faker and Pydantic."""
 
     __model__ = ToDoCreateSchema

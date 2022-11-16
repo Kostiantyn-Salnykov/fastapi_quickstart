@@ -34,7 +34,7 @@ class UserUpdateSchema(BaseInSchema):
             ValueError: In case when user didn't provide `old_password` but provide `new_password`
         """
         if values.get("new_password") is not None and values.get("old_password") is None:
-            raise ValueError("You should provide old password to setup new one")
+            raise ValueError("You should provide old password to set up new one.")
         return values
 
     @root_validator()
@@ -45,11 +45,11 @@ class UserUpdateSchema(BaseInSchema):
             ValueError: In case when user didn't provide `new_password` but provide `old_password`
         """
         if values.get("old_password") is not None and values.get("new_password") is None:
-            raise ValueError("It makes no sense to send the old password without sending the new one")
+            raise ValueError("It makes no sense to send the old password without sending the new one.")
         return values
 
 
-class UserToDBBaseSchema(BaseOutSchema):
+class UserToDBBaseSchema(BaseInSchema):
     id: uuid.UUID | None
     first_name: str | None = Field(default=None, title="First name", max_length=128, alias="firstName", example="John")
     last_name: str | None = Field(default=None, title="Last name", max_length=128, alias="lastName", example="Doe")
@@ -61,7 +61,7 @@ class UserToDBBaseSchema(BaseOutSchema):
 
 
 class UserCreateToDBSchema(UserToDBBaseSchema):
-    password_hash: str = Field(default=None, max_length=1024)
+    password_hash: str = Field(max_length=1024)
 
 
 class UserOutSchema(BaseOutSchema):
