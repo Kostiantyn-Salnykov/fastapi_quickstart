@@ -1,11 +1,12 @@
 import pytest
 from faker import Faker
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from pytest_mock import MockerFixture
 from sqlalchemy.exc import IntegrityError
 
 from apps.CORE.db import Base
 from apps.CORE.dependencies import BasePagination, BaseSorting, get_async_session, get_redis, get_session
+from apps.CORE.schemas import BaseOutSchema
 
 
 class TestBasePagination:
@@ -92,19 +93,19 @@ class TestBasePagination:
 
 class TestBaseSorting:
     def test__init__(self, mocker: MockerFixture) -> None:
-        model = mocker.MagicMock(spec=Base)
+        model, schema = mocker.MagicMock(spec=Base), mocker.MagicMock(spec=BaseOutSchema)
         columns = [mocker.MagicMock(key="field1"), mocker.MagicMock(key="field2")]
 
-        sorting = BaseSorting(model=model, available_columns=columns)
+        sorting = BaseSorting(model=model, available_columns=columns, schema=schema)
 
         assert sorting.model == model
         assert sorting.available_columns == columns
         assert sorting.available_columns_names == [col.key for col in columns]
 
     def test__init__default(self, mocker: MockerFixture) -> None:
-        model = mocker.MagicMock(spec=Base)
+        model, schema = mocker.MagicMock(spec=Base), mocker.MagicMock(spec=BaseOutSchema)
 
-        sorting = BaseSorting(model=model)
+        sorting = BaseSorting(model=model, schema=schema)
 
         assert sorting.model == model
         assert sorting.available_columns == []
@@ -112,7 +113,7 @@ class TestBaseSorting:
 
     def test__call__(self, faker: Faker, mocker: MockerFixture) -> None:
         build_sorting_mock = mocker.patch.object(target=BaseSorting, attribute="build_sorting")
-        sorting = BaseSorting(model=mocker.MagicMock(spec=Base))
+        sorting = BaseSorting(model=mocker.MagicMock(spec=Base), schema=mocker.MagicMock(spec=BaseOutSchema))
         sorting_in = faker.pylist(value_types=[str])
 
         result = sorting(sorting=sorting_in)
@@ -121,11 +122,18 @@ class TestBaseSorting:
         assert result == build_sorting_mock(sorting=sorting_in)
 
     def test_build_sorting(self, faker: Faker, mocker: MockerFixture) -> None:
-        model = mocker.MagicMock(autospec=True)
+        model, schema = mocker.MagicMock(autospec=True), mocker.MagicMock(autospec=True)
+        mocker.patch.object(
+            target=BaseSorting,
+            attribute="collect_aliases",
+            return_value={"included": "included", "field2": "field2", "field3": "field3"},
+        )
         model.included = mocker.MagicMock(key="included")
         model.field2 = mocker.MagicMock(key="field2")
         model.field3 = mocker.MagicMock(key="field3")
-        sorting_instance = BaseSorting(model=model, available_columns=[model.included, model.field2, model.field3])
+        sorting_instance = BaseSorting(
+            model=model, available_columns=[model.included, model.field2, model.field3], schema=schema
+        )
         sorting = ["-included  ", "   field2", "    +field3   ", "not_included1", "-not_included2"]
 
         result = sorting_instance.build_sorting(sorting=sorting)
@@ -133,14 +141,25 @@ class TestBaseSorting:
         assert result == [model.included.desc(), model.field2.asc(), model.field3.asc()]
 
     def test_build_sorting_default(self, faker: Faker, mocker: MockerFixture) -> None:
-        model = mocker.MagicMock(autospec=True)
+        model, schema = mocker.MagicMock(autospec=True), mocker.MagicMock(autospec=True)
+        mocker.patch.object(target=BaseSorting, attribute="collect_aliases", return_value={})
         model.created_at = mocker.MagicMock(key="created_at")
-        sorting_instance = BaseSorting(model=model, available_columns=[model.created_at])
+        sorting_instance = BaseSorting(model=model, available_columns=[model.created_at], schema=schema)
 
         result = sorting_instance.build_sorting(sorting=None)  # no sorting at all
 
         # produces `-created_at` if it inside `available_columns` and exists at `Model(Base)` level
         assert result == [model.created_at.desc()]
+
+    def test_collect_aliases(self, mocker: MockerFixture) -> None:
+        class TestSchema(BaseOutSchema):
+            title: str = Field(alias="t")
+            f2: str = Field()
+
+        expected_result = {"t": "title"}
+        result = BaseSorting(model=mocker.MagicMock(autospec=True), schema=TestSchema).collect_aliases()
+
+        assert result == expected_result
 
 
 async def test_get_async_session(mocker: MockerFixture) -> None:
@@ -169,7 +188,6 @@ def test_get_session(mocker: MockerFixture) -> None:
     print(True)
 
 
-@pytest.mark.debug()
 async def test_get_redis() -> None:
     redis = await anext(get_redis())
     result = await redis.ping()

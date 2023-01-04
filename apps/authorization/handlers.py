@@ -2,7 +2,7 @@ import uuid
 
 from fastapi import Request, status
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.sql.elements import UnaryExpression
+from sqlalchemy.sql.elements import BinaryExpression, UnaryExpression
 
 from apps.authorization.models import Group, Permission, Role
 from apps.authorization.schemas import (
@@ -53,7 +53,7 @@ class GroupsHandler:
         session: AsyncSession,
         pagination: BasePagination,
         sorting: list[UnaryExpression],
-        filters: dict | None = None
+        filters: list[BinaryExpression] | None = None
     ) -> tuple[int, list[Group]]:
         objects: list[Group]
         return await groups_service.list(
@@ -94,8 +94,8 @@ class RolesHandler:
         request: Request,
         session: AsyncSession,
         pagination: BasePagination,
-        sorting,
-        filters: dict | None = None
+        sorting: list[UnaryExpression],
+        filters: list[BinaryExpression] | None = None
     ) -> tuple[int, list[Role]]:
         objects: list[Role]
         return await roles_service.list(
@@ -123,8 +123,8 @@ class PermissionsHandler:
         request: Request,
         session: AsyncSession,
         pagination: BasePagination,
-        sorting,
-        filters: dict | None = None
+        sorting: list[UnaryExpression],
+        filters: list[BinaryExpression] | None = None
     ) -> tuple[int, list[Permission]]:
         objects: list[Permission]
         total, objects = await permissions_service.list(

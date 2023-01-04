@@ -6,7 +6,7 @@ from sqlalchemy import delete, func, select, update
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.engine import ChunkedIteratorResult, CursorResult
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.sql.elements import UnaryExpression
+from sqlalchemy.sql.elements import BinaryExpression, UnaryExpression
 
 from apps.CORE.types import ModelType, SchemaType, StrOrUUID
 from apps.CORE.utils import to_db_encoder
@@ -54,18 +54,19 @@ class AsyncCRUDBase:
         sorting: list[UnaryExpression],
         offset: int = 0,
         limit: int = 100,
-        filters: dict | None = None,  # TODO: Add dynamic filtering system
+        filters: list[BinaryExpression] | None = None,
         unique: bool = False
     ) -> tuple[int, list[ModelType]]:
         select_statement = select(self.model)
         if filters:
-            select_statement = select_statement.filter_by(**filters)
+            select_statement = select_statement.where(*filters)
         select_statement = (
             select_statement.order_by(*sorting).offset(offset).limit(limit).execution_options(populate_existing=True)
         )
+        count_statement = select(func.count(self.model.id)).select_from(self.model).where(*filters or {})
 
         async with session.begin_nested():
-            count_result: ChunkedIteratorResult = await session.execute(statement=select(func.count(self.model.id)))
+            count_result: ChunkedIteratorResult = await session.execute(statement=count_statement)
             select_result: ChunkedIteratorResult = await session.execute(statement=select_statement)
 
         total: int = count_result.scalar()  # number of counted results.
@@ -73,7 +74,9 @@ class AsyncCRUDBase:
         objects: list[ModelType] = select_result.scalars().all()
         return total, objects
 
-    async def update(self, *, session: AsyncSession, id: StrOrUUID, obj: SchemaType) -> NoneModelType:
+    async def update(
+        self, *, session: AsyncSession, id: StrOrUUID, obj: SchemaType, unique: bool = False
+    ) -> NoneModelType:
         values = jsonable_encoder(obj=obj, exclude_unset=True, by_alias=False)
         update_statement = (
             update(self.model)
@@ -87,11 +90,12 @@ class AsyncCRUDBase:
         )
         result: ChunkedIteratorResult = await session.execute(statement=statement)
         await session.flush()
+        result.unique() if unique else ...  # Logic for M2M joins
         data: NoneModelType = result.scalar_one_or_none()
         return data
 
-    async def delete(self, *, session: AsyncSession, id: StrOrUUID) -> CursorResult:
-        delete_statement = delete(self.model).where(self.model.id == id)
+    async def delete(self, *, session: AsyncSession, id: StrOrUUID, owner_id: StrOrUUID) -> CursorResult:
+        delete_statement = delete(self.model).where(self.model.id == id, self.model.owner_id == owner_id)
         result: CursorResult = await session.execute(statement=delete_statement)
         await session.flush()
         return result

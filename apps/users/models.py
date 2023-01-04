@@ -1,6 +1,8 @@
 from sqlalchemy import VARCHAR, Column
+from sqlalchemy.orm import relationship
 from starlette.authentication import BaseUser
 
+from apps.authorization.models import Group, Permission, Role
 from apps.CORE.db import Base, CreatedUpdatedMixin, UUIDMixin
 from apps.users.enums import UsersStatuses
 
@@ -11,6 +13,10 @@ class User(Base, UUIDMixin, CreatedUpdatedMixin, BaseUser):
     email = Column(VARCHAR(length=256), nullable=False, index=True, unique=True)
     password_hash = Column(VARCHAR(length=1024), nullable=False)
     status = Column(VARCHAR(length=64), default=UsersStatuses.UNCONFIRMED.value, nullable=False)
+
+    groups = relationship(Group, secondary="group_user", back_populates="users")
+    roles = relationship(Role, secondary="role_user", back_populates="users")
+    permissions = relationship(Permission, secondary="permission_user", back_populates="users")
 
     def __repr__(self) -> str:
         return f'{self.__class__.__name__}(email="{self.email}", password_hash="...", status="{self.status}")'

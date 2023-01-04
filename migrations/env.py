@@ -4,12 +4,20 @@ from logging.config import fileConfig
 
 from alembic import context
 
-from apps.authorization.models import Group, GroupRole, Permission, Role, RolePermission  # noqa
-from apps.CORE.db import Base, engine
-
 # You should import models explicitly to this file, to allow autogenerate migrations.
-from apps.todos.models import ToDo  # noqa
+from apps.authorization.models import (  # noqa
+    Group,
+    GroupRole,
+    GroupUser,
+    Permission,
+    PermissionUser,
+    Role,
+    RolePermission,
+    RoleUser,
+)
+from apps.CORE.db import Base, engine
 from apps.users.models import User  # noqa
+from apps.wishmaster.models import Category, Tag, Wish, WishList, WishTag  # noqa
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

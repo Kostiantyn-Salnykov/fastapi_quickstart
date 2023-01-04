@@ -19,3 +19,30 @@ class TokenAudience(str, enum.Enum):
     # CONFIRMATION = "confirmation"
     # RESET_PASSWORD = "reset_password"
     # DELETE_ACCOUNT = "delete_account"
+
+
+class FOps(str, enum.Enum):
+    """Enum for Filter Operations (FOps)."""
+
+    # Operations
+    EQUAL = "="
+    NOT_EQUAL = "!="
+    GREATER = ">"
+    LESS = "<"
+    GREATER_OR_EQUAL = ">="
+    LESS_OR_EQUAL = "<="
+    IN = "in"
+    NOT_IN = "notin"
+    LIKE = "like"
+    ILIKE = "ilike"
+    STARTSWITH = "startswith"
+    ENDSWITH = "endswith"
+    ISNULL = "isnull"
+    NOT_NULL = "notnull"
+    # Aliases
+    EQ = EQUAL
+    NE = NOT_EQUAL
+    G = GREATER
+    GE = GREATER_OR_EQUAL
+    L = LESS
+    LE = LESS_OR_EQUAL

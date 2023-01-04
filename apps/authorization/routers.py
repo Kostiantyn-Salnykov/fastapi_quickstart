@@ -31,7 +31,7 @@ async def create_group(
     request: Request,
     session: AsyncSession = Depends(get_async_session),
     data: GroupCreateSchema = Body(),
-) -> JSENDOutSchema:
+) -> JSENDOutSchema[GroupOutSchema]:
     return JSENDOutSchema[GroupOutSchema](
         data=await groups_handler.create_group(request=request, session=session, data=data),
         message="Group object created successfully.",
@@ -44,7 +44,7 @@ async def list_groups(
     session: AsyncSession = Depends(get_async_session),
     pagination: BasePagination = Depends(BasePagination()),
     sorting: list[UnaryExpression] = Depends(
-        BaseSorting(model=Group, available_columns=[Group.created_at, Group.name])
+        BaseSorting(model=Group, schema=GroupOutSchema, available_columns=[Group.created_at, Group.name])
     ),
 ) -> dict[str, typing.Any]:
     total, groups = await groups_handler.list_groups(
@@ -70,7 +70,7 @@ async def read_group(
     request: Request,
     session: AsyncSession = Depends(get_async_session),
     id: uuid.UUID = Path(),
-) -> JSENDOutSchema:
+) -> JSENDOutSchema[GroupOutSchema]:
     return JSENDOutSchema[GroupOutSchema](
         data=await groups_handler.read_group(request=request, session=session, id=id), message="Group details."
     )
@@ -81,7 +81,9 @@ async def list_roles(
     request: Request,
     session: AsyncSession = Depends(get_async_session),
     pagination: BasePagination = Depends(BasePagination()),
-    sorting: list[UnaryExpression] = Depends(BaseSorting(model=Role, available_columns=[Role.created_at, Role.name])),
+    sorting: list[UnaryExpression] = Depends(
+        BaseSorting(model=Role, schema=RoleOutSchema, available_columns=[Role.created_at, Role.name])
+    ),
 ) -> dict[str, typing.Any]:
     total, roles = await roles_handler.list_roles(
         session=session, request=request, pagination=pagination, sorting=sorting
@@ -100,7 +102,9 @@ async def list_roles(
 
 
 @roles_router.get(path="/{id}/", name="read_role", response_model=JSENDOutSchema[RoleOutSchema])
-async def read_role(request: Request, session: AsyncSession = Depends(get_async_session), id: uuid.UUID = Path()):
+async def read_role(
+    request: Request, session: AsyncSession = Depends(get_async_session), id: uuid.UUID = Path()
+) -> JSENDOutSchema[RoleOutSchema]:
     return JSENDOutSchema[RoleOutSchema](
         data=await roles_handler.read_role(request=request, session=session, id=id), message="Role details."
     )
@@ -109,7 +113,7 @@ async def read_role(request: Request, session: AsyncSession = Depends(get_async_
 @roles_router.post(path="/", name="create_role", response_model=JSENDOutSchema[RoleOutSchema])
 async def create_role(
     request: Request, session: AsyncSession = Depends(get_async_session), data: RoleCreateSchema = Body()
-):
+) -> JSENDOutSchema[RoleOutSchema]:
     return JSENDOutSchema[RoleOutSchema](
         data=await roles_handler.create_role(request=request, session=session, data=data),
         message="Role object created successfully.",
@@ -122,7 +126,11 @@ async def list_permissions(
     session: AsyncSession = Depends(get_async_session),
     pagination: BasePagination = Depends(BasePagination()),
     sorting: list[UnaryExpression] = Depends(
-        BaseSorting(model=Permission, available_columns=[Permission.created_at, Permission.object_name])
+        BaseSorting(
+            model=Permission,
+            schema=PermissionOutSchema,
+            available_columns=[Permission.created_at, Permission.object_name],
+        )
     ),
 ) -> dict[str, typing.Any]:
     total, permissions = await permissions_handler.list_permissions(
@@ -135,14 +143,16 @@ async def list_permissions(
             objects=permissions,
             schema=PermissionOutSchema,
             total=total,
-            endpoint_name="list_permission",
+            endpoint_name="list_permissions",
         ),
         "message": "Paginated list of Permission objects.",
     }
 
 
 @permissions_router.get(path="/{id}/", name="read_permission", response_model=JSENDOutSchema[PermissionOutSchema])
-async def read_permission(request: Request, session: AsyncSession = Depends(get_async_session), id: uuid.UUID = Path()):
+async def read_permission(
+    request: Request, session: AsyncSession = Depends(get_async_session), id: uuid.UUID = Path()
+) -> JSENDOutSchema[PermissionOutSchema]:
     return JSENDOutSchema[PermissionOutSchema](
         data=await permissions_handler.read_permission(request=request, session=session, id=id),
         message="Permission details.",

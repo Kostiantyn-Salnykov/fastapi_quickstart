@@ -1,11 +1,12 @@
 import datetime
+import typing
 import uuid
 from typing import Generic, TypeAlias
 
 import orjson
 import pydantic.json
 from fastapi import status as http_status
-from pydantic import AnyHttpUrl, BaseModel, Field
+from pydantic import AnyHttpUrl, BaseModel, Field, validator
 from pydantic.generics import GenericModel
 
 from apps.CORE.enums import JSENDStatus
@@ -42,7 +43,7 @@ class BaseOutSchema(BaseInSchema):
 
 class JSENDOutSchema(GenericModel, Generic[SchemaType]):
     status: JSENDStatus = Field(default=JSENDStatus.SUCCESS)
-    data: SchemaType = Field(default=...)
+    data: SchemaType | None = Field(default=None)
     message: str = Field(default=...)
     code: int = Field(default=http_status.HTTP_200_OK)
 
@@ -80,12 +81,21 @@ class PaginationOutSchema(GenericModel, Generic[ObjectsVar]):
     objects: list[ObjectsVar]
     offset: int = Field(default=0)
     limit: int = Field(default=100)
-    count: int = Field(default=...)
+    count: int | None = Field(
+        default=0, alias="responseCount", description="Number of objects returned in this response."
+    )
+    total_count: int = Field(
+        default=..., alias="totalCount", description="Numbed of objects counted inside db for this query."
+    )
     next_uri: AnyHttpUrl | None = Field(default=None, alias="nextURL", title="Next URI")
     previous_uri: AnyHttpUrl | None = Field(default=None, alias="previousURL", title="Previous URI")
 
     class Config(BaseOutSchema.Config):
         ...
+
+    @validator("count", always=True)
+    def validate_count(cls, v: int | None, values: dict[str, typing.Any]) -> int:
+        return v or len(values.get("objects", 0))
 
 
 class JSENDPaginationOutSchema(JSENDOutSchema):

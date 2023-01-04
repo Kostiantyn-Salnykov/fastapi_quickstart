@@ -2,19 +2,32 @@ import uuid
 from typing import Type
 
 from sqlalchemy import select
-from sqlalchemy.engine import ChunkedIteratorResult
+from sqlalchemy.dialects.postgresql import insert
+from sqlalchemy.engine import ChunkedIteratorResult, CursorResult
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import contains_eager
 
 from apps.authorization.models import Group, Permission, Role
 from apps.CORE.services import AsyncCRUDBase, ModelType
+from apps.CORE.utils import to_db_encoder
 from apps.users.enums import UsersStatuses
 from apps.users.models import User
+from apps.users.schemas import UserCreateSchema
 
 
 class UsersService(AsyncCRUDBase):
     def __init__(self, model: Type[ModelType]) -> None:
         self.model = model
+
+    async def create(self, *, session: AsyncSession, obj: UserCreateSchema, unique: bool = False) -> User:
+        obj.status = UsersStatuses.CONFIRMED  # Automatically activates User!!!
+        obj_in_data = to_db_encoder(obj=obj)
+        async with session.begin_nested():
+            statement = insert(self.model).values(**obj_in_data)
+            result: CursorResult = await session.execute(statement=statement)
+            inserted_id: uuid.UUID = result.inserted_primary_key[0]
+            user: User = await self.get_with_authorization(session=session, id=inserted_id)
+        return user
 
     async def get_with_authorization(self, *, session: AsyncSession, id: uuid.UUID) -> User | None:
         statement = (

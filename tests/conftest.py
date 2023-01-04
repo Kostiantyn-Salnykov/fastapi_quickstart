@@ -158,7 +158,7 @@ def faker_seed() -> int:
     Returns:
         Random generated integer from 0 up to 100000.
     """
-    return random.randint(0, 100000)
+    return random.seed(version=3)
 
 
 @pytest.fixture(scope="session")

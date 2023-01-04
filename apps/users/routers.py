@@ -25,9 +25,10 @@ async def create_user(
     request: Request,
     data: UserCreateSchema,
     session: AsyncSession = Depends(get_async_session),
-) -> UserOutSchema:
+) -> JSENDOutSchema[UserOutSchema]:
     """Creates new user."""
-    return await users_handler.create_user(request=request, session=session, data=data)
+    data = await users_handler.create_user(request=request, session=session, data=data)
+    return JSENDOutSchema[UserOutSchema](data=data, message="Created User's details.")
 
 
 @users_router.get(
@@ -36,9 +37,9 @@ async def create_user(
     response_model=JSENDOutSchema[UserOutSchema],
     status_code=status.HTTP_200_OK,
 )
-async def whoami(request: Request) -> JSENDOutSchema | None:
+async def whoami(request: Request) -> JSENDOutSchema[UserOutSchema]:
     """Gets information about user from authorization."""
-    return JSENDOutSchema[UserOutSchema](data=request.user, message="User's data from authorization.")  # type: ignore
+    return JSENDOutSchema[UserOutSchema](data=request.user, message="User's data from authorization.")
 
 
 @tokens_router.post(
@@ -46,7 +47,7 @@ async def whoami(request: Request) -> JSENDOutSchema | None:
 )
 async def login(
     request: Request, data: LoginSchema, session: AsyncSession = Depends(get_async_session)
-) -> JSENDOutSchema:
+) -> JSENDOutSchema[LoginOutSchema]:
     return JSENDOutSchema[LoginOutSchema](
         data=await users_handler.login(request=request, session=session, data=data),
         message="Tokens to authenticate user for working with API.",
@@ -56,7 +57,7 @@ async def login(
 @tokens_router.put(path="/refresh/", name="refresh", response_model=JSENDOutSchema[LoginOutSchema])
 async def refresh(
     request: Request, data: TokenRefreshSchema, session: AsyncSession = Depends(get_async_session)
-) -> JSENDOutSchema:
+) -> JSENDOutSchema[LoginOutSchema]:
     return JSENDOutSchema[LoginOutSchema](
         data=await users_handler.refresh(request=request, session=session, data=data),
         message="Tokens to authenticate user for working with API.",

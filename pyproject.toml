@@ -87,7 +87,12 @@ skip_glob = []
 markers = [
     'debug: marks tests as debug (deselect with -m "not debug")',
 ]
-#addopts = "--maxfail=1 -rf"
+#addopts = """\
+#--maxfail=1
+#-rf
+#--test-alembic
+#--randomly-dont-reset-seed
+#"""
 norecursedirs = ["venv", ".venv", ".env", "migrations",]
 testpaths = ["tests",]
 python_files = ["test*.py", "*test.py"]

@@ -245,7 +245,7 @@ idna = ">=2.0.0"
 
 [[package]]
 name = "exceptiongroup"
-version = "1.0.2"
+version = "1.0.4"
 description = "Backport of PEP 654 (exception groups)"
 category = "dev"
 optional = false
@@ -346,11 +346,11 @@ tornado = ["tornado (>=0.2)"]
 
 [[package]]
 name = "h11"
-version = "0.12.0"
+version = "0.14.0"
 description = "A pure-Python, bring-your-own-I/O implementation of HTTP/1.1"
 category = "main"
 optional = false
-python-versions = ">=3.6"
+python-versions = ">=3.7"
 
 [[package]]
 name = "hiredis"
@@ -362,16 +362,16 @@ python-versions = ">=3.6"
 
 [[package]]
 name = "httpcore"
-version = "0.15.0"
+version = "0.16.1"
 description = "A minimal low-level HTTP client."
 category = "main"
 optional = false
 python-versions = ">=3.7"
 
 [package.dependencies]
-anyio = ">=3.0.0,<4.0.0"
+anyio = ">=3.0,<5.0"
 certifi = "*"
-h11 = ">=0.11,<0.13"
+h11 = ">=0.13,<0.15"
 sniffio = ">=1.0.0,<2.0.0"
 
 [package.extras]
@@ -391,7 +391,7 @@ test = ["Cython (>=0.29.24,<0.30.0)"]
 
 [[package]]
 name = "httpx"
-version = "0.23.0"
+version = "0.23.1"
 description = "The next generation HTTP client."
 category = "main"
 optional = false
@@ -399,7 +399,7 @@ python-versions = ">=3.7"
 
 [package.dependencies]
 certifi = "*"
-httpcore = ">=0.15.0,<0.16.0"
+httpcore = ">=0.15.0,<0.17.0"
 rfc3986 = {version = ">=1.3,<2", extras = ["idna2008"]}
 sniffio = "*"
 
@@ -491,7 +491,7 @@ testing = ["Django (<3.1)", "colorama", "docopt", "pytest (<7.0.0)"]
 
 [[package]]
 name = "Mako"
-version = "1.2.3"
+version = "1.2.4"
 description = "A super-fast templating language that borrows the best ideas from the existing templating languages."
 category = "main"
 optional = false
@@ -1436,8 +1436,8 @@ email-validator = [
     {file = "email_validator-1.3.0.tar.gz", hash = "sha256:553a66f8be2ec2dea641ae1d3f29017ab89e9d603d4a25cdaac39eefa283d769"},
 ]
 exceptiongroup = [
-    {file = "exceptiongroup-1.0.2-py3-none-any.whl", hash = "sha256:c22f11ec6a10d2b453871c5c5fe887436c4d1961324ce9090f2ca6ddc4180c27"},
-    {file = "exceptiongroup-1.0.2.tar.gz", hash = "sha256:a31cd183c3dea02e617aab5153588d5f7258a77b51f0ef41b3815ae8a0d0f695"},
+    {file = "exceptiongroup-1.0.4-py3-none-any.whl", hash = "sha256:542adf9dea4055530d6e1279602fa5cb11dab2395fa650b8674eaec35fc4a828"},
+    {file = "exceptiongroup-1.0.4.tar.gz", hash = "sha256:bd14967b79cd9bdb54d97323216f8fdf533e278df937aa2a90089e7d6e06e5ec"},
 ]
 executing = [
     {file = "executing-1.2.0-py2.py3-none-any.whl", hash = "sha256:0314a69e37426e3608aada02473b4161d4caf5a4b244d1d0c48072b8fee7bacc"},
@@ -1525,8 +1525,8 @@ gunicorn = [
     {file = "gunicorn-20.1.0.tar.gz", hash = "sha256:e0a968b5ba15f8a328fdfd7ab1fcb5af4470c28aaf7e55df02a99bc13138e6e8"},
 ]
 h11 = [
-    {file = "h11-0.12.0-py3-none-any.whl", hash = "sha256:36a3cb8c0a032f56e2da7084577878a035d3b61d104230d4bd49c0c6b555a9c6"},
-    {file = "h11-0.12.0.tar.gz", hash = "sha256:47222cb6067e4a307d535814917cd98fd0a57b6788ce715755fa2b6c28b56042"},
+    {file = "h11-0.14.0-py3-none-any.whl", hash = "sha256:e3fe4ac4b851c468cc8363d500db52c2ead036020723024a109d37346efaa761"},
+    {file = "h11-0.14.0.tar.gz", hash = "sha256:8f19fbbe99e72420ff35c00b27a34cb9937e902a8b810e2c88300c6f0a3b699d"},
 ]
 hiredis = [
     {file = "hiredis-2.0.0-cp36-cp36m-macosx_10_9_x86_64.whl", hash = "sha256:b4c8b0bc5841e578d5fb32a16e0c305359b987b850a06964bd5a62739d688048"},
@@ -1572,8 +1572,8 @@ hiredis = [
     {file = "hiredis-2.0.0.tar.gz", hash = "sha256:81d6d8e39695f2c37954d1011c0480ef7cf444d4e3ae24bc5e89ee5de360139a"},
 ]
 httpcore = [
-    {file = "httpcore-0.15.0-py3-none-any.whl", hash = "sha256:1105b8b73c025f23ff7c36468e4432226cbb959176eab66864b8e31c4ee27fa6"},
-    {file = "httpcore-0.15.0.tar.gz", hash = "sha256:18b68ab86a3ccf3e7dc0f43598eaddcf472b602aba29f9aa6ab85fe2ada3980b"},
+    {file = "httpcore-0.16.1-py3-none-any.whl", hash = "sha256:8d393db683cc8e35cc6ecb02577c5e1abfedde52b38316d038932a84b4875ecb"},
+    {file = "httpcore-0.16.1.tar.gz", hash = "sha256:3d3143ff5e1656a5740ea2f0c167e8e9d48c5a9bbd7f00ad1f8cff5711b08543"},
 ]
 httptools = [
     {file = "httptools-0.5.0-cp310-cp310-macosx_10_9_universal2.whl", hash = "sha256:8f470c79061599a126d74385623ff4744c4e0f4a0997a353a44923c0b561ee51"},
@@ -1619,8 +1619,8 @@ httptools = [
     {file = "httptools-0.5.0.tar.gz", hash = "sha256:295874861c173f9101960bba332429bb77ed4dcd8cdf5cee9922eb00e4f6bc09"},
 ]
 httpx = [
-    {file = "httpx-0.23.0-py3-none-any.whl", hash = "sha256:42974f577483e1e932c3cdc3cd2303e883cbfba17fe228b0f63589764d7b9c4b"},
-    {file = "httpx-0.23.0.tar.gz", hash = "sha256:f28eac771ec9eb4866d3fb4ab65abd42d38c424739e80c08d8d20570de60b0ef"},
+    {file = "httpx-0.23.1-py3-none-any.whl", hash = "sha256:0b9b1f0ee18b9978d637b0776bfd7f54e2ca278e063e3586d8f01cda89e042a8"},
+    {file = "httpx-0.23.1.tar.gz", hash = "sha256:202ae15319be24efe9a8bd4ed4360e68fde7b38bcc2ce87088d416f026667d19"},
 ]
 idna = [
     {file = "idna-3.4-py3-none-any.whl", hash = "sha256:90b77e79eaa3eba6de819a0c442c0b4ceefc341a7a2ab77d7562bf49f425c5c2"},
@@ -1643,8 +1643,8 @@ jedi = [
     {file = "jedi-0.18.1.tar.gz", hash = "sha256:74137626a64a99c8eb6ae5832d99b3bdd7d29a3850fe2aa80a4126b2a7d949ab"},
 ]
 Mako = [
-    {file = "Mako-1.2.3-py3-none-any.whl", hash = "sha256:c413a086e38cd885088d5e165305ee8eed04e8b3f8f62df343480da0a385735f"},
-    {file = "Mako-1.2.3.tar.gz", hash = "sha256:7fde96466fcfeedb0eed94f187f20b23d85e4cb41444be0e542e2c8c65c396cd"},
+    {file = "Mako-1.2.4-py3-none-any.whl", hash = "sha256:c97c79c018b9165ac9922ae4f32da095ffd3c4e6872b45eded42926deea46818"},
+    {file = "Mako-1.2.4.tar.gz", hash = "sha256:d60a3903dc3bb01a18ad6a89cdbe2e4eadc69c0bc8ef1e3773ba53d44c3f7a34"},
 ]
 mando = [
     {file = "mando-0.6.4-py2.py3-none-any.whl", hash = "sha256:4ce09faec7e5192ffc3c57830e26acba0fd6cd11e1ee81af0d4df0657463bd1c"},

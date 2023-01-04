@@ -16,13 +16,13 @@ fmt: black isort lint
 
 # === Test's commands ===
 test:
-	poetry run pytest --test-alembic $(args)
+	poetry run pytest --test-alembic --randomly-dont-reset-seed $(args)
 
 test_cov:
-	poetry run pytest --test-alembic --cov $(args)
+	poetry run pytest --test-alembic --randomly-dont-reset-seed --cov $(args)
 
 test_cov_html:
-	poetry run pytest --test-alembic --cov --cov-report=html
+	poetry run pytest --test-alembic --randomly-dont-reset-seed --cov --cov-report=html
 
 pre: fmt test_cov
 

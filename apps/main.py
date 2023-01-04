@@ -20,8 +20,8 @@ from apps.CORE.handlers import backend_exception_handler, validation_exception_h
 from apps.CORE.managers import TokensManager
 from apps.CORE.responses import Responses
 from apps.CORE.schemas import JSENDOutSchema
-from apps.todos.routers import to_do_router
 from apps.users.routers import register_router, tokens_router, users_router
+from apps.wishmaster.routers import wish_router, wishlist_router
 from loggers import get_logger, setup_logging
 from settings import Settings
 
@@ -153,7 +153,8 @@ async def healthcheck() -> ORJSONResponse:
 API_PREFIX = "/api/v1"
 # Include routers:
 app.include_router(router=api_router, prefix=API_PREFIX)
-app.include_router(router=to_do_router, prefix=API_PREFIX)
+app.include_router(router=wishlist_router, prefix=API_PREFIX)
+app.include_router(router=wish_router, prefix=API_PREFIX)
 app.include_router(router=register_router, prefix=API_PREFIX)
 app.include_router(router=users_router, prefix=API_PREFIX)
 app.include_router(router=tokens_router, prefix=API_PREFIX)

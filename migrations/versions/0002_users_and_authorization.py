@@ -1,8 +1,8 @@
-"""authorization
+"""Users and Authorization
 
-Revision ID: 0004
-Revises: 0003
-Create Date: 2022-11-04 07:44:03.549679+00:00
+Revision ID: 0002
+Revises: 0001
+Create Date: 2022-11-19 10:22:33.425529+00:00
 
 """
 import sqlalchemy as sa
@@ -10,8 +10,8 @@ from alembic import op
 from sqlalchemy.dialects import postgresql
 
 # revision identifiers, used by Alembic.
-revision = "0004"
-down_revision = "0003"
+revision = "0002"
+down_revision = "0001"
 branch_labels = None
 depends_on = None
 
@@ -58,6 +58,23 @@ def upgrade():
         sa.PrimaryKeyConstraint("id", name=op.f("pk_role")),
     )
     op.create_index(op.f("ix_role_name"), "role", ["name"], unique=True)
+    op.create_table(
+        "user",
+        sa.Column("id", postgresql.UUID(as_uuid=True), server_default=sa.text("gen_random_uuid()"), nullable=False),
+        sa.Column(
+            "created_at", sa.TIMESTAMP(timezone=True), server_default=sa.text("CURRENT_TIMESTAMP"), nullable=False
+        ),
+        sa.Column(
+            "updated_at", sa.TIMESTAMP(timezone=True), server_default=sa.text("CURRENT_TIMESTAMP"), nullable=False
+        ),
+        sa.Column("first_name", sa.VARCHAR(length=128), nullable=False),
+        sa.Column("last_name", sa.VARCHAR(length=128), nullable=False),
+        sa.Column("email", sa.VARCHAR(length=256), nullable=False),
+        sa.Column("password_hash", sa.VARCHAR(length=1024), nullable=False),
+        sa.Column("status", sa.VARCHAR(length=64), nullable=False),
+        sa.PrimaryKeyConstraint("id", name=op.f("pk_user")),
+    )
+    op.create_index(op.f("ix_user_email"), "user", ["email"], unique=True)
     op.create_table(
         "group_role",
         sa.Column(
@@ -167,6 +184,8 @@ def downgrade():
     op.drop_table("permission_user")
     op.drop_table("group_user")
     op.drop_table("group_role")
+    op.drop_index(op.f("ix_user_email"), table_name="user")
+    op.drop_table("user")
     op.drop_index(op.f("ix_role_name"), table_name="role")
     op.drop_table("role")
     op.drop_table("permission")

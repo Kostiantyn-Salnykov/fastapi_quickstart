@@ -3,7 +3,7 @@ import uuid
 from sqlalchemy import select
 from sqlalchemy.engine import ChunkedIteratorResult
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.sql.elements import UnaryExpression
+from sqlalchemy.sql.elements import BinaryExpression, UnaryExpression
 
 from apps.authorization.models import Group, GroupRole, Permission, Role, RolePermission
 from apps.authorization.schemas import CreateGroupRoleSchema, CreateRolePermissionSchema
@@ -21,7 +21,7 @@ class GroupsService(AsyncCRUDBase):
         sorting: list[UnaryExpression],
         offset: int = 0,
         limit: int = 100,
-        filters: dict | None = None,  # TODO: Add dynamic filtering system
+        filters: list[BinaryExpression] | None = None,  # TODO: Add dynamic filtering system
         unique: bool = False
     ) -> tuple[int, list[Group]]:
         return await super().list(
@@ -50,7 +50,7 @@ class RolesService(AsyncCRUDBase):
         sorting: list[UnaryExpression],
         offset: int = 0,
         limit: int = 100,
-        filters: dict | None = None,  # TODO: Add dynamic filtering system
+        filters: list[BinaryExpression] | None = None,  # TODO: Add dynamic filtering system
         unique: bool = False
     ) -> tuple[int, list[Role]]:
         return await super().list(
