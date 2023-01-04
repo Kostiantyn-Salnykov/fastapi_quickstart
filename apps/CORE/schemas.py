@@ -1,12 +1,11 @@
 import datetime
-import typing
 import uuid
 from typing import Generic, TypeAlias
 
 import orjson
 import pydantic.json
 from fastapi import status as http_status
-from pydantic import AnyHttpUrl, BaseModel, Field, validator
+from pydantic import AnyHttpUrl, BaseModel, Field
 from pydantic.generics import GenericModel
 
 from apps.CORE.enums import JSENDStatus
@@ -17,6 +16,8 @@ StrOrNone: TypeAlias = str | None
 
 
 class BaseInSchema(BaseModel):
+    """Base schema for schemas that will be used in request validations."""
+
     class Config:
         """Schema configuration."""
 
@@ -28,6 +29,8 @@ class BaseInSchema(BaseModel):
 
 
 class BaseOutSchema(BaseInSchema):
+    """Base schema for schemas that will be used in responses."""
+
     class Config(BaseInSchema.Config):
         """Schema configuration."""
 
@@ -42,6 +45,8 @@ class BaseOutSchema(BaseInSchema):
 
 
 class JSENDOutSchema(GenericModel, Generic[SchemaType]):
+    """JSEND schema with 'success' status."""
+
     status: JSENDStatus = Field(default=JSENDStatus.SUCCESS)
     data: SchemaType | None = Field(default=None)
     message: str = Field(default=...)
@@ -49,16 +54,22 @@ class JSENDOutSchema(GenericModel, Generic[SchemaType]):
 
 
 class JSENDFailOutSchema(JSENDOutSchema):
+    """JSEND schema with 'fail' status (validation errors, client errors)."""
+
     status: JSENDStatus = Field(default=JSENDStatus.FAIL)
     data: StrOrNone = Field(default=None)
 
 
 class JSENDErrorOutSchema(JSENDOutSchema):
+    """JSEND schema with 'error' status (server errors)."""
+
     status: JSENDStatus = Field(default=JSENDStatus.ERROR)
     data: StrOrNone = Field(default=None)
 
 
 class UnprocessableEntityOutSchema(BaseOutSchema):
+    """Schema that uses in pydantic validation errors."""
+
     location: list[str] = Field(example=["body", "field_1"])
     message: str = Field(example="Field required.")
     type: str = Field(example="value_error.missing")
@@ -66,43 +77,66 @@ class UnprocessableEntityOutSchema(BaseOutSchema):
 
 
 class CreatedAtOutSchema(BaseModel):
+    """Schema with `createdAt` Timestamp field."""
+
     created_at: Timestamp = Field(title="Created at", alias="createdAt")
 
 
 class UpdatedAtOutSchema(BaseModel):
+    """Schema with `updatedAt` Timestamp field."""
+
     updated_at: Timestamp = Field(title="Updated at", alias="updatedAt")
 
 
 class CreatedUpdatedOutSchema(CreatedAtOutSchema, UpdatedAtOutSchema):
+    """Schema with `createdAt` and `updatedAt` Timestamp fields."""
+
     ...
 
 
 class PaginationOutSchema(GenericModel, Generic[ObjectsVar]):
+    """Generic OurSchema that uses for pagination."""
+
     objects: list[ObjectsVar]
     offset: int = Field(default=0)
     limit: int = Field(default=100)
     count: int | None = Field(
-        default=0, alias="responseCount", description="Number of objects returned in this response."
+        default=0, alias="objectsCount", description="Number of objects returned in this response."
     )
     total_count: int = Field(
         default=..., alias="totalCount", description="Numbed of objects counted inside db for this query."
     )
     next_uri: AnyHttpUrl | None = Field(default=None, alias="nextURL", title="Next URI")
     previous_uri: AnyHttpUrl | None = Field(default=None, alias="previousURL", title="Previous URI")
+    page: int = Field(default=1, title="Page", description="Current page (depends on offset, limit).")
+    pages: int = Field(
+        default=..., title="Pages", description="Total number of pages (depends on limit and total number of records)."
+    )
 
     class Config(BaseOutSchema.Config):
-        ...
+        """
+        `allow_population_by_field_name` used only for remove lint error from PyCharm
+        (by default it applies from BaseOutSchema.Config inheritance).
 
-    @validator("count", always=True)
-    def validate_count(cls, v: int | None, values: dict[str, typing.Any]) -> int:
-        return v or len(values.get("objects", 0))
+        It also can be defined as:
+        ```python
+        class Config(BaseOutSchema.Config):
+            ...
+        ```
+        """
+
+        allow_population_by_field_name = True
 
 
 class JSENDPaginationOutSchema(JSENDOutSchema):
+    """Cover PaginationOutSchema with JSEND structure."""
+
     data: PaginationOutSchema
 
 
 class TokenPayloadSchema(BaseOutSchema):
+    """Base JWT token payloads."""
+
     iat: Timestamp
     aud: str
     exp: Timestamp

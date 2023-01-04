@@ -1,3 +1,4 @@
+import math
 import typing
 import urllib.parse
 
@@ -43,6 +44,7 @@ class BasePagination:
     def previous(self) -> dict[str, int]:
         return {"offset": val if (val := self.offset - self.limit) >= 0 else 0, "limit": self.limit}
 
+    # TODO: Simplify usage of this method directly from Depends pagination.
     @staticmethod
     def get_paginated_response(
         pagination: "BasePagination",
@@ -51,7 +53,7 @@ class BasePagination:
         schema: typing.Type[SchemaType],
         total: int,
         endpoint_name: str,
-    ) -> PaginationOutSchema:
+    ) -> PaginationOutSchema[SchemaType]:
         offset, limit = pagination.offset, pagination.limit
         # FIXME: Check logic for previous_uri & next_uri
         previous_uri = (
@@ -65,12 +67,15 @@ class BasePagination:
             else None
         )
         return PaginationOutSchema[schema](
-            objects=(schema.from_orm(obj=obj) for obj in objects),
+            objects=(schema.from_orm(obj=obj) for obj in objects),  # type: ignore
             offset=offset,
             limit=limit,
+            count=len(objects),
             total_count=total,
             previous_uri=previous_uri,
             next_uri=next_uri,
+            page=int(math.floor(offset / limit) + 1),  # calculate current page.
+            pages=int(math.ceil(total / limit)),  # calculate total numbed of pages.
         )
 
 

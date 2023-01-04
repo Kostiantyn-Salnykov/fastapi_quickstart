@@ -1,4 +1,3 @@
-import typing
 import uuid
 
 from fastapi import APIRouter, Body, Depends, Path, Request, status
@@ -46,12 +45,12 @@ async def list_groups(
     sorting: list[UnaryExpression] = Depends(
         BaseSorting(model=Group, schema=GroupOutSchema, available_columns=[Group.created_at, Group.name])
     ),
-) -> dict[str, typing.Any]:
+) -> GroupListOutSchema:
     total, groups = await groups_handler.list_groups(
         session=session, request=request, pagination=pagination, sorting=sorting
     )
-    return {
-        "data": BasePagination.get_paginated_response(
+    return GroupListOutSchema(
+        data=BasePagination.get_paginated_response(
             pagination=pagination,
             request=request,
             objects=groups,
@@ -59,8 +58,8 @@ async def list_groups(
             total=total,
             endpoint_name="list_groups",
         ),
-        "message": "Paginated list of Group objects.",
-    }
+        message="Paginated list of Group objects.",
+    )
 
 
 @groups_router.get(
@@ -84,12 +83,12 @@ async def list_roles(
     sorting: list[UnaryExpression] = Depends(
         BaseSorting(model=Role, schema=RoleOutSchema, available_columns=[Role.created_at, Role.name])
     ),
-) -> dict[str, typing.Any]:
+) -> RoleListOutSchema:
     total, roles = await roles_handler.list_roles(
         session=session, request=request, pagination=pagination, sorting=sorting
     )
-    return {
-        "data": BasePagination.get_paginated_response(
+    return RoleListOutSchema(
+        data=BasePagination.get_paginated_response(
             pagination=pagination,
             request=request,
             objects=roles,
@@ -97,8 +96,8 @@ async def list_roles(
             total=total,
             endpoint_name="list_roles",
         ),
-        "message": "Paginated list of Role objects.",
-    }
+        message="Paginated list of Role objects.",
+    )
 
 
 @roles_router.get(path="/{id}/", name="read_role", response_model=JSENDOutSchema[RoleOutSchema])
@@ -132,12 +131,12 @@ async def list_permissions(
             available_columns=[Permission.created_at, Permission.object_name],
         )
     ),
-) -> dict[str, typing.Any]:
+) -> PermissionListOutSchema:
     total, permissions = await permissions_handler.list_permissions(
         session=session, request=request, pagination=pagination, sorting=sorting
     )
-    return {
-        "data": BasePagination.get_paginated_response(
+    return PermissionListOutSchema(
+        data=BasePagination.get_paginated_response(
             pagination=pagination,
             request=request,
             objects=permissions,
@@ -145,8 +144,8 @@ async def list_permissions(
             total=total,
             endpoint_name="list_permissions",
         ),
-        "message": "Paginated list of Permission objects.",
-    }
+        message="Paginated list of Permission objects.",
+    )
 
 
 @permissions_router.get(path="/{id}/", name="read_permission", response_model=JSENDOutSchema[PermissionOutSchema])

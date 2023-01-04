@@ -1,12 +1,10 @@
-from sqlalchemy import distinct, func, select
+from sqlalchemy import func, select
 from sqlalchemy.engine import ChunkedIteratorResult
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import aliased, contains_eager, joinedload, selectinload, subqueryload
+from sqlalchemy.orm import joinedload
 from sqlalchemy.sql.elements import BinaryExpression, UnaryExpression
 
 from apps.CORE.services import AsyncCRUDBase
-from apps.CORE.types import StrOrUUID
-from apps.users.models import User
 from apps.wishmaster.models import Category, Tag, Wish, WishList
 
 
