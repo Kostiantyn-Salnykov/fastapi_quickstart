@@ -9,13 +9,13 @@ packages = [{include = "fastapi_quickstart"}]
 
 [tool.poetry.dependencies]
 python = "^3.10"
-fastapi = {extras = ["standard"], version = "^0.85.0"}
-asyncpg = "^0.26.0"
+fastapi = {extras = ["standard"], version = "^0.88.0"}
+asyncpg = "^0.27.0"
 SQLAlchemy = {extras = ["asyncio"], version = "^1.4.41"}
 pydantic = {extras = ["dotenv", "email"], version = "^1.10.2"}
 alembic = "^1.8.1"
 orjson = "^3.8.0"
-uvicorn = {extras = ["standard"], version = "^0.18.3"}
+uvicorn = {extras = ["standard"], version = "^0.20.0"}
 gunicorn = "^20.1.0"
 psycopg2-binary = "^2.9.3"
 phonenumbers = "^8.12.56"
@@ -45,6 +45,7 @@ pytest-clarity = "^1.0.1"
 Faker = "^15.0.0"
 pydantic-factories = "^1.7.0"
 pytest-alembic = "^0.8.4"
+factory-boy = "^3.2.1"
 
 
 [tool.poetry.group.dev.dependencies]
@@ -107,14 +108,14 @@ pytest_alembic_tests_folder = "tests/migrations"
 parallel = true
 branch = true
 source = ["apps",]
-omit = ["*/.local/*", "*/.idea/*", "*./venv/*", "*/test*", "*__init__*", "*/migrations*" , "**interfaces.py"]
+omit = ["*/*.local/*", "*/*.idea*/*", "*/*.venv*/*", "*/*test*", "*__init__*", "*/*migrations*" , "*/*interfaces.py"]
 
 [tool.coverage.report]
 #show_missing = true
 ignore_errors = true
 sort = "-Cover"
 precision = 2
-omit = ["*/.local/*", "*/.idea/*", "*./venv/*", "*/test*", "*__init__*", "*/migrations*", "**interfaces.py"]
+omit = ["*/*.local/*", "*/*.idea*/*", "*/*.venv*/*", "*/*test*", "*__init__*", "*/*migrations*" , "*/*interfaces.py"]
 exclude_lines = ["pragma: no cover", "if __name__ = .__main__.:"]
 
 [tool.coverage.html]

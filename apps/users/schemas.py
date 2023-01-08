@@ -1,4 +1,5 @@
 import datetime
+import typing
 import uuid
 
 from pydantic import Field, root_validator
@@ -27,7 +28,7 @@ class UserUpdateSchema(BaseInSchema):
     )
 
     @root_validator()
-    def validate_new_password(cls, values: dict) -> dict:
+    def validate_new_password(cls, values: dict[str, typing.Any]) -> dict[str, typing.Any]:
         """Validate `new_password` field.
 
         Raises:
@@ -38,7 +39,7 @@ class UserUpdateSchema(BaseInSchema):
         return values
 
     @root_validator()
-    def validate_old_password(cls, values: dict) -> dict:
+    def validate_old_password(cls, values: dict[str, typing.Any]) -> dict[str, typing.Any]:
         """Validate `old_password` field.
 
         Raises:

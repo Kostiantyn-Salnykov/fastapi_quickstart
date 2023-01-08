@@ -26,6 +26,7 @@ class StrUUID(str):
 
     @classmethod
     def validate(cls, v) -> str:
+        """Validate UUID object and convert it to string."""
         if isinstance(v, uuid.UUID):
             return str(v)
 
@@ -56,6 +57,7 @@ class Timestamp(float):
 
     @classmethod
     def to_timestamp(cls, v: datetime.datetime) -> float | int:
+        """Convert datetime value to timestamp float."""
         return get_timestamp(v=v)
 
     @classmethod
@@ -69,24 +71,24 @@ class Timestamp(float):
 
 class Phone(str):
     @classmethod
-    def __get_validators__(cls):
+    def __get_validators__(cls) -> typing.Generator[typing.Callable[[str], str], None, None]:
         """Run validate class method."""
         yield cls.validate
 
     @classmethod
     def validate(cls, v: str) -> str:
-        PREFIX = "+"
+        prefix = "+"
         if not re.match(r"^\d{8,15}$", v):
             raise ValueError("Must be digits")
         try:
             v = "".join((digit for digit in v if digit.isdigit()))  # format phone (allow only digits)
-            v = PREFIX + v  # add prefix to valid parsing
+            v = prefix + v  # add prefix to valid parsing
             parsed_phone = phonenumbers.parse(number=v)
         except phonenumbers.phonenumberutil.NumberParseException as error:
             raise ValueError("Invalid number") from error
         else:
             if phonenumbers.is_possible_number(parsed_phone):  # pragma: no cover
-                return v.removeprefix(PREFIX)
+                return v.removeprefix(prefix)
 
         raise ValueError("Impossible number")  # pragma: no cover
 
@@ -105,7 +107,7 @@ class Email(EmailStr):
     """Lowercase version of Pydantic EmailStr field type."""
 
     @classmethod
-    def __get_validators__(cls) -> typing.Generator[typing.Callable, None, None]:
+    def __get_validators__(cls) -> typing.Generator[typing.Callable[[str], str], None, None]:
         """Add extra validator to Pydantic EmailStr field."""
         yield from super().__get_validators__()
         yield cls.lowercase

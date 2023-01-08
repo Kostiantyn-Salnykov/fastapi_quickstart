@@ -35,26 +35,28 @@ def id_v4() -> str:
     return str(uuid.uuid4())
 
 
-def orjson_dumps(v: Any, *, default) -> str:
+def orjson_dumps(v: Any, *, default: typing.Any) -> str:
     # orjson.dumps returns bytes, to match standard json.dumps we need to decode
-    return orjson.dumps(v, default=default).decode()
+    return orjson.dumps(v, default=default).decode(encoding="utf-8")
 
 
 def get_timestamp(v: datetime.datetime) -> float:
+    """Extract timestamp from datetime object and round for 3 decimal digits."""
     return round(v.timestamp() * 1000, 3)
 
 
 def proxy_func(x: typing.Any) -> typing.Any:
+    """Function that proxies value back (doing nothing)."""
     return x
 
 
 encodings_dict: dict[typing.Any, typing.Callable[[typing.Any], typing.Any]] = {
-    datetime.datetime: proxy_func,
-    datetime.date: proxy_func,
+    datetime.datetime: proxy_func,  # don't transform datetime object.
+    datetime.date: proxy_func,  # don't transform date objects.
 }
 to_db_encoder = functools.partial(
     jsonable_encoder,
     exclude_unset=True,
     by_alias=False,
-    custom_encoder=encodings_dict,
+    custom_encoder=encodings_dict,  # override `jsonable_encoder` default behaviour.
 )

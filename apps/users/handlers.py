@@ -25,6 +25,8 @@ from apps.users.schemas import (
 from apps.users.services import users_service
 from settings import Settings
 
+__all__ = ("users_handler",)
+
 
 class UsersHandler:
     def __init__(self) -> None:

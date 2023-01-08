@@ -75,8 +75,7 @@ class TestBasePagination:
         total = faker.pyint(min_value=limit + 1, max_value=limit + 10000)
         endpoint_name = faker.pystr()
 
-        response = BasePagination.get_paginated_response(
-            pagination=pagination,
+        response = pagination.paginate(
             request=request,
             objects=objects,
             schema=schema,
@@ -87,8 +86,8 @@ class TestBasePagination:
         assert response.objects == [schema.from_orm(obj) for obj in objects]
         assert response.offset == offset
         assert response.limit == limit
-        assert response.previous_uri == f"{domain}?offset={offset-limit}&limit={limit}"
-        assert response.next_uri == f"{domain}?offset={offset+limit}&limit={limit}"
+        assert response.previous_url == f"{domain}?offset={offset-limit}&limit={limit}"
+        assert response.next_url is None
 
 
 class TestBaseSorting:

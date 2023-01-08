@@ -9,17 +9,34 @@ from apps.users.services import users_service
 
 
 class JWTTokenBackend(AuthenticationBackend):
+    """Authorization Back-end that parse and retrieve user from authorization headers token."""
+
     def __init__(self, scheme_prefix: str = "Bearer"):
         self.scheme_prefix_lower = scheme_prefix.lower()
 
-    def get_token_from_header(self, authorization: str) -> str:
+    def get_token_from_header(self, *, authorization: str) -> str:
+        """
+        Parse token and check schema from `Authorization` header value.
+
+        Keyword Args:
+            authorization(str): value of `Authorization` header.
+
+        Returns:
+            jwt_token(str): Parsed string value of JWT token.
+
+        Raises:
+            BackendException: In case of header parse error.
+            BackendException: In case of invalid schema.
+        """
         try:
+            # parse schema and token
             scheme, jwt_token = authorization.split()
         except Exception:
             raise BackendException(
                 message="Could not parse Authorization scheme and token.", code=status.HTTP_401_UNAUTHORIZED
             )
         else:
+            # check schema
             if scheme.lower() != self.scheme_prefix_lower:
                 raise BackendException(
                     message=f"Authorization scheme {scheme} is not suppoerted.", code=status.HTTP_401_UNAUTHORIZED
@@ -27,6 +44,24 @@ class JWTTokenBackend(AuthenticationBackend):
             return jwt_token
 
     async def authenticate(self, conn: HTTPConnection) -> tuple[AuthCredentials | None, BaseUser | None] | None:
+        """
+        1) Reads `Authorization` header.
+        2) Parse check schema and parse JWT code.
+        3) Validate JWT code and retrieve user's `id` from it.
+        4) Try to get user from DB (should be active).
+        5) Provide `request.auth` and `request.user` to HTTPConnection (Request).
+
+        Args:
+            conn (HTTPConnection): ASGI Request instance (Starlette or FastAPI).
+
+        Returns:
+            - (None): In case `Authorization` header is missing.
+            - (tuple[AuthCredentials, None]): In case of user not found or user not active.
+            - (tuple[AuthCredentials, User]): In case of user found and active.
+
+        Raises:
+            AuthenticationError: In case invalid JWT token value.
+        """
         if "Authorization" not in conn.headers:
             return None
 

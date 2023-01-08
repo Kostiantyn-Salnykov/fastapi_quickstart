@@ -32,7 +32,7 @@ class AuthorizationManager:
                         continue
                     yield table
 
-    def _generate_permissions_variants(self) -> Generator[tuple[str, str], None, None]:
+    def _generate_permissions_variants(self) -> Generator[tuple[str, PermissionActions], None, None]:
         for table_name in self._get_table_names():
             for action in PermissionActions:
                 yield table_name, action

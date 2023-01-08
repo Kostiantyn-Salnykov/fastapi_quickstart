@@ -8,6 +8,8 @@ from apps.CORE.schemas import JSENDOutSchema
 from apps.users.handlers import users_handler
 from apps.users.schemas import LoginOutSchema, LoginSchema, TokenRefreshSchema, UserCreateSchema, UserOutSchema
 
+__all__ = ("register_router", "users_router", "tokens_router")
+
 register_router = APIRouter(prefix="/users", tags=["users"])
 users_router = APIRouter(
     prefix="/users",

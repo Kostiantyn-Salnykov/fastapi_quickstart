@@ -101,7 +101,7 @@ def get_logger(name: str | None = "local") -> logging.Logger:
     """Get logger instance by name.
 
     Args:
-        name(str): Name of logger
+        name (str): Name of logger
 
     Returns:
         logging.Logger: Instance of logging.Logger

@@ -2,10 +2,12 @@ from fastapi import status
 
 from apps.CORE.schemas import JSENDErrorOutSchema, JSENDFailOutSchema, JSENDOutSchema, UnprocessableEntityOutSchema
 
-__all__ = ["Responses"]
+__all__ = ("Responses",)
 
 
 class Responses:
+    """Default responses for FastAPI routers."""
+
     BASE = {
         status.HTTP_422_UNPROCESSABLE_ENTITY: {"model": JSENDOutSchema[list[UnprocessableEntityOutSchema]]},
         status.HTTP_500_INTERNAL_SERVER_ERROR: {"model": JSENDErrorOutSchema},

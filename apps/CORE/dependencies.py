@@ -26,6 +26,7 @@ logger = get_logger(name=__name__)
 
 class BasePagination:
     def __init__(self) -> None:
+        """Initializer for BasePagination. Also, setup default values."""
         self.offset = 0
         self.limit = 100
 
@@ -34,6 +35,7 @@ class BasePagination:
         offset: int = Query(default=0, ge=0, description="Number of records to skip."),
         limit: int = Query(default=100, ge=1, le=1000, description="Number of records to return per request."),
     ) -> "BasePagination":
+        """Callable `Depends` class usage."""
         self.offset = offset
         self.limit = limit
         return self
@@ -44,38 +46,34 @@ class BasePagination:
     def previous(self) -> dict[str, int]:
         return {"offset": val if (val := self.offset - self.limit) >= 0 else 0, "limit": self.limit}
 
-    # TODO: Simplify usage of this method directly from Depends pagination.
-    @staticmethod
-    def get_paginated_response(
-        pagination: "BasePagination",
+    def paginate(
+        self,
         request: Request,
         objects: list[ObjectsVar],
         schema: typing.Type[SchemaType],
         total: int,
         endpoint_name: str,
     ) -> PaginationOutSchema[SchemaType]:
-        offset, limit = pagination.offset, pagination.limit
-        # FIXME: Check logic for previous_uri & next_uri
-        previous_uri = (
-            request.url_for(name=endpoint_name) + "?" + urllib.parse.urlencode(query=pagination.previous())
-            if offset > 0
+        previous_url = (
+            request.url_for(name=endpoint_name) + "?" + urllib.parse.urlencode(query=self.previous())
+            if self.offset > 0
             else None
         )
-        next_uri = (
-            request.url_for(name=endpoint_name) + "?" + urllib.parse.urlencode(query=pagination.next())
-            if len(objects) == limit
+        next_url = (
+            request.url_for(name=endpoint_name) + "?" + urllib.parse.urlencode(query=self.next())
+            if len(objects) == self.limit
             else None
         )
         return PaginationOutSchema[schema](
             objects=(schema.from_orm(obj=obj) for obj in objects),  # type: ignore
-            offset=offset,
-            limit=limit,
+            offset=self.offset,
+            limit=self.limit,
             count=len(objects),
             total_count=total,
-            previous_uri=previous_uri,
-            next_uri=next_uri,
-            page=int(math.floor(offset / limit) + 1),  # calculate current page.
-            pages=int(math.ceil(total / limit)),  # calculate total numbed of pages.
+            previous_url=previous_url,
+            next_url=next_url,
+            page=int(math.floor(self.offset / self.limit) + 1),  # calculate current page.
+            pages=int(math.ceil(total / self.limit)),  # calculate total numbed of pages.
         )
 
 

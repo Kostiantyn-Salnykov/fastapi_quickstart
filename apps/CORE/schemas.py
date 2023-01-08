@@ -106,8 +106,8 @@ class PaginationOutSchema(GenericModel, Generic[ObjectsVar]):
     total_count: int = Field(
         default=..., alias="totalCount", description="Numbed of objects counted inside db for this query."
     )
-    next_uri: AnyHttpUrl | None = Field(default=None, alias="nextURL", title="Next URI")
-    previous_uri: AnyHttpUrl | None = Field(default=None, alias="previousURL", title="Previous URI")
+    next_url: AnyHttpUrl | None = Field(default=None, alias="nextURL", title="Next URL")
+    previous_url: AnyHttpUrl | None = Field(default=None, alias="previousURL", title="Previous URL")
     page: int = Field(default=1, title="Page", description="Current page (depends on offset, limit).")
     pages: int = Field(
         default=..., title="Pages", description="Total number of pages (depends on limit and total number of records)."

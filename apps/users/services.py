@@ -14,6 +14,8 @@ from apps.users.enums import UsersStatuses
 from apps.users.models import User
 from apps.users.schemas import UserCreateSchema
 
+__all__ = ("users_service",)
+
 
 class UsersService(AsyncCRUDBase):
     def __init__(self, model: Type[ModelType]) -> None:

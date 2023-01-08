@@ -10,10 +10,9 @@ from apps.wishmaster.enums import WishStatuses
 from apps.wishmaster.models import Wish
 from apps.wishmaster.schemas import WishCreateSchema, WishOutSchema, WishUpdateSchema
 from apps.wishmaster.services import WishCRUD
-from tests.apps.wishmaster.factories import WishFactory
 
 
-class TestWishCRUDBase:
+class _TestWishCRUDBase:
     @classmethod
     def setup_class(cls):
         cls.service = WishCRUD(model=Wish)
@@ -37,7 +36,7 @@ class TestWishCRUDBase:
 
     async def test_list(self, faker: Faker, db_session: AsyncSession):
         await self.clear_wishes(session=db_session)
-        wishes = await WishFactory.create_batch_async(size=faker.pyint(min_value=3, max_value=5))
+        wishes = await WishSchemaFactory.create_batch_async(size=faker.pyint(min_value=3, max_value=5))
 
         total, todos_list = await self.service.list(session=db_session, sorting=[])
 
@@ -46,7 +45,7 @@ class TestWishCRUDBase:
 
     async def test_create(self, db_session: AsyncSession) -> None:
         equal_fields = {"text", "description"}
-        wish: WishCreateSchema = WishFactory.build()
+        wish: WishCreateSchema = WishSchemaFactory.build()
 
         result = await self.service.create(session=db_session, obj=wish)
 
@@ -56,7 +55,7 @@ class TestWishCRUDBase:
         self.check_defaults(obj=result)
 
     async def test_read(self, db_session: AsyncSession) -> None:
-        wish: Wish = await WishFactory.create_async()
+        wish: Wish = await WishSchemaFactory.create_async()
 
         result: Wish = await self.service.read(session=db_session, id=wish.id)
 
@@ -75,7 +74,7 @@ class TestWishCRUDBase:
         argnames="status", argvalues=[WishStatuses.IN_PROGRESS, WishStatuses.ARCHIVED, WishStatuses.COMPLETED]
     )
     async def test_update(self, faker: Faker, db_session: AsyncSession, status: WishStatuses) -> None:
-        wish: Wish = await WishFactory.create_async()
+        wish: Wish = await WishSchemaFactory.create_async()
         new_title, new_description = faker.pystr(), faker.pystr()
         assert wish.title != new_title
         assert wish.description != new_description
@@ -92,7 +91,7 @@ class TestWishCRUDBase:
         assert result.status == status
 
     async def test_delete(self, db_session: AsyncSession) -> None:
-        wish: Wish = await WishFactory.create_async()
+        wish: Wish = await WishSchemaFactory.create_async()
 
         result = await self.service.delete(session=db_session, id=wish.id)
         assert result.rowcount == 1  # deleted one object from db

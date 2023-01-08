@@ -1,27 +1,24 @@
-import typing
-import uuid
-
-from pydantic_factories import PostGenerated, Use
+import factory
 
 from apps.CORE.managers import PasswordsManager
 from apps.users.models import User
-from apps.users.schemas import UserCreateToDBSchema
-from tests.bases import AsyncPersistenceHandler, BaseFactory
+from tests.bases import BaseModelFactory
+
+__all__ = ("UserFactory",)
+
 
 passwords_manager = PasswordsManager()
 DEFAULT_PASSWORD = "12345678"
 
 
-def make_password(name: str, values: dict[str, typing.Any], **kwargs: str) -> str:
-    return passwords_manager.make_password(password=kwargs.get("password", DEFAULT_PASSWORD))
+class UserFactory(BaseModelFactory):
+    first_name = factory.Faker("first_name")
+    last_name = factory.Faker("last_name")
+    email = factory.Faker("email")
+    password = factory.Faker("pystr", min_chars=8)
+    password_hash = factory.LazyAttribute(function=lambda obj: passwords_manager.make_password(password=obj.password))
 
-
-class UserFactory(BaseFactory):
-    """UserFactory based on Faker and Pydantic."""
-
-    id = Use(fn=uuid.uuid4)
-    password_hash: str = PostGenerated(fn=make_password, password=DEFAULT_PASSWORD)
-
-    __model__ = UserCreateToDBSchema
-    __allow_none_optionals__ = False  # Factory will generate all fields (even for Optional fields)
-    __async_persistence__ = AsyncPersistenceHandler(model=User)
+    class Meta:
+        model = User
+        exclude = ("password",)
+        sqlalchemy_get_or_create = ("email",)

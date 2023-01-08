@@ -50,7 +50,7 @@ async def list_groups(
         session=session, request=request, pagination=pagination, sorting=sorting
     )
     return GroupListOutSchema(
-        data=BasePagination.get_paginated_response(
+        data=BasePagination.paginate(
             pagination=pagination,
             request=request,
             objects=groups,
@@ -88,7 +88,7 @@ async def list_roles(
         session=session, request=request, pagination=pagination, sorting=sorting
     )
     return RoleListOutSchema(
-        data=BasePagination.get_paginated_response(
+        data=BasePagination.paginate(
             pagination=pagination,
             request=request,
             objects=roles,
@@ -136,7 +136,7 @@ async def list_permissions(
         session=session, request=request, pagination=pagination, sorting=sorting
     )
     return PermissionListOutSchema(
-        data=BasePagination.get_paginated_response(
+        data=BasePagination.paginate(
             pagination=pagination,
             request=request,
             objects=permissions,

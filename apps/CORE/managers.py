@@ -19,6 +19,7 @@ class PasswordsManager:
     @staticmethod
     def make_password(*, password: str) -> str:
         """
+        Hashing string password value and returns password hash.
 
         Args:
             password (str): Password raw value.
@@ -36,6 +37,7 @@ class PasswordsManager:
     @staticmethod
     def check_password(*, password: str, password_hash: str) -> bool:
         """
+        Check password and password hash then returns boolean result.
 
         Args:
             password (str): Raw password to check.
@@ -60,6 +62,7 @@ class PasswordsManager:
     @staticmethod
     def generate_password(*, length: int = 8) -> str:
         """
+        Randomly generates password specified length.
 
         Args:
             length (int): Number of generated characters for password.

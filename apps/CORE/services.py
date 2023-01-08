@@ -19,7 +19,7 @@ class AsyncCRUDBase:
     def __init__(self, *, model: Type[ModelType]):
         self.model = model
 
-    async def create(self, *, session: AsyncSession, obj: SchemaType, unique: bool = False) -> ModelType:
+    async def create(self, *, session: AsyncSession, obj: SchemaType, unique: bool = True) -> ModelType:
         obj_in_data = to_db_encoder(obj=obj)
         insert_statement = insert(self.model).values(**obj_in_data).returning(self.model)
         statement = select(self.model).from_statement(insert_statement).execution_options(populate_existing=True)
@@ -30,7 +30,7 @@ class AsyncCRUDBase:
         return data
 
     async def create_many(
-        self, *, session: AsyncSession, objs: list[SchemaType], unique: bool = False
+        self, *, session: AsyncSession, objs: list[SchemaType], unique: bool = True
     ) -> NoneModelTypeList:
         insert_statement = insert(self.model).values([to_db_encoder(obj=obj) for obj in objs]).returning(self.model)
         statement = select(self.model).from_statement(insert_statement).execution_options(populate_existing=True)

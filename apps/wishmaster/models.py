@@ -19,6 +19,7 @@ class WishList(Base, UUIDMixin, CreatedUpdatedMixin):
         back_populates="wishlist",
         order_by="desc(Wish.priority), desc(Wish.created_at)",
     )
+    owner = relationship(User, cascade="all, delete", backref="wishlists")
 
     def __repr__(self) -> str:
         return f'{self.__class__.__name__}(title="{self.title}")'
@@ -26,7 +27,7 @@ class WishList(Base, UUIDMixin, CreatedUpdatedMixin):
 
 class Category(Base, UUIDMixin, CreatedUpdatedMixin):
     title = Column(VARCHAR(length=128), nullable=False, index=True)
-    owner_id = Column(ForeignKey(column="user.id", **CASCADES))
+    owner_id = Column(ForeignKey(column="user.id", **CASCADES), nullable=False)
 
     owner = relationship(User, backref="categories")
 

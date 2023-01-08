@@ -89,7 +89,7 @@ async def list_wishlists(
         session=session, request=request, pagination=pagination, sorting=sorting, filters=filters
     )
     return {
-        "data": BasePagination.get_paginated_response(
+        "data": BasePagination.paginate(
             pagination=pagination,
             request=request,
             objects=wishlists,
@@ -198,7 +198,7 @@ async def list_wishes(
         session=session, request=request, pagination=pagination, sorting=sorting, filters=filters
     )
     return {
-        "data": BasePagination.get_paginated_response(
+        "data": BasePagination.paginate(
             pagination=pagination,
             request=request,
             objects=wishes,
