@@ -1,10 +1,22 @@
 from apps.authorization.models import (
-    Group, Permission, Role, RolePermission, GroupRole, PermissionUser, RoleUser,
+    Group,
+    GroupRole,
     GroupUser,
+    Permission,
+    PermissionUser,
+    Role,
+    RolePermission,
+    RoleUser,
 )
 from tests.apps.authorization.factories import (
-    GroupFactory, PermissionFactory, RoleFactory, RolePermissionFactory,
-    GroupRoleFactory, PermissionUserFactory, RoleUserFactory, GroupUserFactory,
+    GroupFactory,
+    GroupRoleFactory,
+    GroupUserFactory,
+    PermissionFactory,
+    PermissionUserFactory,
+    RoleFactory,
+    RolePermissionFactory,
+    RoleUserFactory,
 )
 from tests.bases import BaseModelFactory
 

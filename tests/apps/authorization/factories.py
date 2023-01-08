@@ -5,7 +5,16 @@ import factory
 
 from apps.authorization.enums import PermissionActions
 from apps.authorization.managers import AuthorizationManager
-from apps.authorization.models import Group, GroupRole, Permission, Role, RolePermission, PermissionUser, RoleUser, GroupUser
+from apps.authorization.models import (
+    Group,
+    GroupRole,
+    GroupUser,
+    Permission,
+    PermissionUser,
+    Role,
+    RolePermission,
+    RoleUser,
+)
 from tests.bases import BaseModelFactory
 
 

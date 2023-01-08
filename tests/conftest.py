@@ -22,9 +22,12 @@ from settings import Settings
 from tests.apps.authorization.factories import (
     GroupFactory,
     GroupRoleFactory,
+    GroupUserFactory,
     PermissionFactory,
+    PermissionUserFactory,
     RoleFactory,
-    RolePermissionFactory, PermissionUserFactory, RoleUserFactory, GroupUserFactory,
+    RolePermissionFactory,
+    RoleUserFactory,
 )
 from tests.apps.users.factories import UserFactory
 from tests.apps.wishmaster.factories import CategoryFactory, TagFactory, WishFactory, WishListFactory, WishTagFactory
