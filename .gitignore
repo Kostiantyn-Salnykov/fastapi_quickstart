@@ -129,3 +129,6 @@ dmypy.json
 .pyre/
 .idea
 .pytest_cache
+
+# Redis
+/redis/data/

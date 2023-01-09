@@ -37,10 +37,16 @@ services:
       - db
 
   redis:
-    image: redislabs/redismod:latest
+    build:
+      context: redis
+      dockerfile: Dockerfile
     restart: unless-stopped
+    command: /data/usr/local/etc/redis/redis.conf
     ports:
       - "0.0.0.0:6379:6379"
+    volumes:
+      - "./redis/data:/data"
+      - "./redis/redis.conf:/data/usr/local/etc/redis/redis.conf"
 
   redis_insights:
     image: redislabs/redisinsight:latest

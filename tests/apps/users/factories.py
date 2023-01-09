@@ -18,6 +18,16 @@ class UserFactory(BaseModelFactory):
     password = factory.Faker("pystr", min_chars=8)
     password_hash = factory.LazyAttribute(function=lambda obj: passwords_manager.make_password(password=obj.password))
 
+    groups = factory.RelatedFactoryList(
+        factory="tests.apps.authorization.factories.GroupUserFactory", factory_related_name="user", size=0
+    )
+    roles = factory.RelatedFactoryList(
+        factory="tests.apps.authorization.factories.RoleUserFactory", factory_related_name="user", size=0
+    )
+    permissions = factory.RelatedFactoryList(
+        factory="tests.apps.authorization.factories.PermissionUserFactory", factory_related_name="user", size=0
+    )
+
     class Meta:
         model = User
         exclude = ("password",)

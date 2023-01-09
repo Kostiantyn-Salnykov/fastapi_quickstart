@@ -88,4 +88,9 @@ redis = aioredis.Redis(
     max_connections=Settings.REDIS_POOL_MAX_CONNECTIONS,
     client_name="FastAPI_client",
     username=Settings.REDIS_USER,
+    ssl=Settings.REDIS_SECURE,
+    # ssl_keyfile=PROJECT_BASE_DIR / "redis/certs/redis.key",
+    # ssl_certfile=PROJECT_BASE_DIR / "redis/certs/redis.crt",
+    # ssl_cert_reqs="required",
+    # ssl_ca_certs=PROJECT_BASE_DIR / "redis/certs/ca.crt",
 )

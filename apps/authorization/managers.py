@@ -22,22 +22,21 @@ class AuthorizationManager:
         self.excluded_table_names = ["alembic_version"]
         self._engine = engine
 
-    def _get_table_names(self, engine: Engine = None) -> Generator[str, None, None]:
+    def get_db_table_names(self, engine: Engine = None) -> Generator[str, None, None]:
         inspector = inspect(subject=engine or self._engine)
         current_schema = str(Base.metadata.schema or "public")
         for schema in inspector.get_schema_names():
             if str(schema) == current_schema:
                 for table in inspector.get_table_names(schema=schema):
-                    if table in self.excluded_table_names:
-                        continue
-                    yield table
+                    if table not in self.excluded_table_names:
+                        yield table
 
     def _generate_permissions_variants(self) -> Generator[tuple[str, PermissionActions], None, None]:
-        for table_name in self._get_table_names():
+        for table_name in self.get_db_table_names():
             for action in PermissionActions:
                 yield table_name, action
 
-    async def create_permissions(self, session: AsyncSession) -> None:
+    async def create_object_permissions(self, session: AsyncSession) -> None:
         logger.debug(msg="Creating permissions for all models...")
         upsert_statement = (
             insert(Permission)
@@ -51,7 +50,7 @@ class AuthorizationManager:
         logger.debug(msg="Permissions created successfully.")
 
     async def create_superuser_permissions(self, session: AsyncSession) -> list[Permission]:
-        logger.debug(msg="Creating permissions...")
+        logger.debug(msg="Creating permissions for superusers...")
         async with session.begin_nested():
             permissions = [
                 Permission(id=uuid.uuid4(), object_name=self._superuser_object_name, action=action)
@@ -69,7 +68,7 @@ class AuthorizationManager:
         return result
 
     async def setup_superusers(self, session: AsyncSession) -> None:
-        logger.debug(msg="Creating superuser Group, Role, Permissions...")
+        logger.debug(msg="Creating Permissions, Role, Group for superusers...")
         permissions = await self.create_superuser_permissions(session=session)
 
         role: Role = Role(id=uuid.uuid4(), name="Superuser", permissions=permissions)

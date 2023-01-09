@@ -22,6 +22,13 @@ class PermissionFactory(BaseModelFactory):
     object_name = factory.Faker("pystr", max_chars=128)
     action = factory.Faker("word", ext_word_list=list(PermissionActions))
 
+    roles = factory.RelatedFactoryList(
+        factory="tests.apps.authorization.factories.RolePermissionFactory", factory_related_name="permission", size=0
+    )
+    users = factory.RelatedFactoryList(
+        factory="tests.apps.authorization.factories.PermissionUserFactory", factory_related_name="permission", size=0
+    )
+
     class Meta:
         model = Permission
         sqlalchemy_get_or_create = ("object_name", "action")
@@ -32,7 +39,7 @@ class PermissionFactory(BaseModelFactory):
     ) -> Permission:
         session = cls._meta.sqlalchemy_session
         am = AuthorizationManager(engine=session.bind)
-        permissions: list[str] = [table for table in am._get_table_names()]
+        permissions: list[str] = [table for table in am.get_db_table_names()]
         kwargs["object_name"] = random.choice(permissions)
         return super(BaseModelFactory, cls)._create(model_class=model_class, *args, **kwargs)
 
@@ -52,7 +59,14 @@ class RolePermissionFactory(BaseModelFactory):
 
 class RoleFactory(BaseModelFactory):
     name = factory.Faker("pystr", max_chars=128)
-    permissions = factory.RelatedFactoryList(factory=RolePermissionFactory, factory_related_name="role", size=2)
+
+    groups = factory.RelatedFactoryList(
+        factory="tests.apps.authorization.factories.GroupRoleFactory", factory_related_name="roles", size=0
+    )
+    permissions = factory.RelatedFactoryList(factory=RolePermissionFactory, factory_related_name="role", size=1)
+    users = factory.RelatedFactoryList(
+        factory="tests.apps.authorization.factories.RoleUserFactory", factory_related_name="role", size=0
+    )
 
     class Meta:
         model = Role
@@ -74,7 +88,11 @@ class GroupRoleFactory(BaseModelFactory):
 
 class GroupFactory(BaseModelFactory):
     name = factory.Faker("pystr", max_chars=256)
+
     roles = factory.RelatedFactoryList(factory=GroupRoleFactory, factory_related_name="group", size=1)
+    users = factory.RelatedFactoryList(
+        factory="tests.apps.authorization.factories.GroupUserFactory", factory_related_name="group", size=0
+    )
 
     class Meta:
         model = Group

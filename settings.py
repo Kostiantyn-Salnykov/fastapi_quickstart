@@ -60,7 +60,7 @@ class MainSettings(BaseSettings):
     REDIS_HOST: str = Field(default="0.0.0.0")
     REDIS_PORT: int = Field(default=6379)
     REDIS_USER: str = Field(default=None)
-    REDIS_PASSWORD: str = Field(default=None)
+    REDIS_PASSWORD: str = Field(default="redis")
     REDIS_DB: int = Field(default=0)
     REDIS_DECODE_RESPONSES: bool = Field(default=True)
     REDIS_ENCODING: str = Field(default="utf-8")

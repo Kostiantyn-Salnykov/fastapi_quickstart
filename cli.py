@@ -32,20 +32,23 @@ authorization_commands.add_typer(typer_instance=permissions_commands)
 authorization_commands.add_typer(typer_instance=superusers_commands)
 # app
 # --> auth
-# --> --> permissions
-# --> --> superusers
+# --|--> permissions
+# --|--|--> setup (`poetry run python cli.py auth permissions setup`)
+# --|--> superusers
+# --|--|--> setup (`poetry run python cli.py auth superusers setup`)
+# --|--|--> create (`poetry run python cli.py auth superusers create`)
 
 
-@permissions_commands.command(name="create", help="Creates Permissions for all models.")
+@permissions_commands.command(name="setup", help="Creates Permissions for all models.")
 @make_async
-async def create_permissions() -> None:
+async def setup_permissions() -> None:
     async with async_session_factory() as session:
-        await auth_manager.create_permissions(session=session)
+        await auth_manager.create_object_permissions(session=session)
 
 
 @superusers_commands.command(name="setup", help="Creates superusers Permissions, 'Superusers' Group, 'Superuser' Role.")
 @make_async
-async def create_superusers_group() -> None:
+async def setup_superusers() -> None:
     async with async_session_factory() as session:
         await auth_manager.setup_superusers(session=session)
 
