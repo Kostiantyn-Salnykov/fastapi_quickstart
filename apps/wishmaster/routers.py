@@ -40,7 +40,7 @@ async def create_wishlist(
     request: Request, data: WishListCreateSchema, session: AsyncSession = Depends(get_async_session)
 ) -> JSENDOutSchema[WishListOutSchema]:
     return JSENDOutSchema[WishListOutSchema](
-        data=await wishlist_handler.create(session=session, request=request, data=data),
+        data=await wishlist_handler.create(session=session, request=request, values=data),
         message="Created WishList details.",
     )
 
@@ -89,8 +89,7 @@ async def list_wishlists(
         session=session, request=request, pagination=pagination, sorting=sorting, filters=filters
     )
     return {
-        "data": BasePagination.paginate(
-            pagination=pagination,
+        "data": pagination.paginate(
             request=request,
             objects=wishlists,
             schema=WishListWithWishesOutSchema,
@@ -137,7 +136,7 @@ async def create_wish(
     session: AsyncSession = Depends(get_async_session),
 ) -> JSENDOutSchema[WishOutSchema]:
     return JSENDOutSchema[WishOutSchema](
-        data=await wish_handler.create(session=session, request=request, data=data),
+        data=await wish_handler.create(session=session, request=request, values=data),
         message="Created Wish details.",
     )
 
@@ -198,8 +197,7 @@ async def list_wishes(
         session=session, request=request, pagination=pagination, sorting=sorting, filters=filters
     )
     return {
-        "data": BasePagination.paginate(
-            pagination=pagination,
+        "data": pagination.paginate(
             request=request,
             objects=wishes,
             schema=WishOutSchema,

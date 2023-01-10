@@ -1,6 +1,7 @@
 import uuid
 
 from fastapi import Request, status
+from sqlalchemy.engine import CursorResult
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.sql.elements import BinaryExpression, UnaryExpression
 
@@ -23,8 +24,21 @@ from apps.wishmaster.services import wish_service, wishlist_service
 
 
 class WishHandler:
+    async def read_or_not_found(self, *, session: AsyncSession, id: uuid.UUID | str) -> Wish:
+        wish: Wish | None = await wish_service.read(session=session, id=id)
+        if not wish:
+            raise BackendException(message="Wish not found.", code=status.HTTP_404_NOT_FOUND)
+        return wish
+
+    async def read_wishlist_or_not_found(self, *, session: AsyncSession, id: uuid.UUID | str) -> WishList:
+        wishlist: WishList | None = await wishlist_service.read(session=session, id=id)
+        if not wishlist:
+            raise BackendException(message="WishList not found.", code=status.HTTP_404_NOT_FOUND)
+        return wishlist
+
     async def create(self, *, session: AsyncSession, request: Request, data: WishCreateSchema) -> WishOutSchema:
         obj = WishCreateToDBSchema(**data.dict(exclude={"tags"}, exclude_unset=True))
+        await self.read_wishlist_or_not_found(session=session, id=obj.wishlist_id)
         async with session.begin_nested():
             wish: Wish = Wish(**to_db_encoder(obj=obj))
             if data.tags:
@@ -35,9 +49,7 @@ class WishHandler:
         return WishOutSchema.from_orm(obj=wish)
 
     async def read(self, *, session: AsyncSession, request: Request, id: uuid.UUID | str) -> WishOutSchema:
-        wish: Wish = await wish_service.read(session=session, id=id, unique=True)
-        if not wish:
-            raise BackendException(message="Wish not found.", code=status.HTTP_404_NOT_FOUND)
+        wish: Wish = await self.read_or_not_found(session=session, id=id)
         return WishOutSchema.from_orm(obj=wish)
 
     async def update(
@@ -45,18 +57,11 @@ class WishHandler:
     ) -> WishOutSchema:
         obj = WishUpdateToDBSchema(**data.dict(exclude={"tags"}, exclude_unset=True))
         async with session.begin_nested():
-            # wish: Wish | None = await wish_service.update(session=session, id=id, obj=obj, unique=True)
-            wish: Wish | None = await session.get(entity=Wish, ident=id, populate_existing=True)
-            update_dict = to_db_encoder(obj=obj)
-            for k, v in update_dict.items():
-                setattr(wish, "k", v)
+            wish: Wish = await wish_service.update(session=session, id=id, obj=obj)
             if data.tags:
                 tags = {Tag(title=tag) for tag in data.tags}
                 wish.tags.update(tags)
-            session.add(instance=wish)
-        if not wish:
-            raise BackendException(message="Wish not found.", code=status.HTTP_404_NOT_FOUND)
-        return WishOutSchema.from_orm(obj=wish)
+            return WishOutSchema.from_orm(obj=wish)
 
     async def list(
         self,
@@ -80,7 +85,7 @@ class WishHandler:
         return total, wishes
 
     async def delete(self, *, session: AsyncSession, request: Request, id: uuid.UUID | str, safe: bool = False) -> None:
-        result = await wish_service.delete(session=session, id=id)
+        result: CursorResult = await wish_service.delete(session=session, id=id)
         if not result.rowcount and not safe:
             raise BackendException(message="Wish not found.", code=status.HTTP_404_NOT_FOUND)
         return None

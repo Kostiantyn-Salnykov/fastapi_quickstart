@@ -27,10 +27,10 @@ def upgrade():
         sa.Column(
             "updated_at", sa.TIMESTAMP(timezone=True), server_default=sa.text("CURRENT_TIMESTAMP"), nullable=False
         ),
-        sa.Column("name", sa.VARCHAR(length=256), nullable=False),
+        sa.Column("title", sa.VARCHAR(length=256), nullable=False),
         sa.PrimaryKeyConstraint("id", name=op.f("pk_group")),
     )
-    op.create_index(op.f("ix_group_name"), "group", ["name"], unique=True)
+    op.create_index(op.f("ix_group_title"), "group", ["title"], unique=True)
     op.create_table(
         "permission",
         sa.Column("id", postgresql.UUID(as_uuid=True), server_default=sa.text("gen_random_uuid()"), nullable=False),
@@ -54,10 +54,10 @@ def upgrade():
         sa.Column(
             "updated_at", sa.TIMESTAMP(timezone=True), server_default=sa.text("CURRENT_TIMESTAMP"), nullable=False
         ),
-        sa.Column("name", sa.VARCHAR(length=128), nullable=False),
+        sa.Column("title", sa.VARCHAR(length=128), nullable=False),
         sa.PrimaryKeyConstraint("id", name=op.f("pk_role")),
     )
-    op.create_index(op.f("ix_role_name"), "role", ["name"], unique=True)
+    op.create_index(op.f("ix_role_title"), "role", ["title"], unique=True)
     op.create_table(
         "user",
         sa.Column("id", postgresql.UUID(as_uuid=True), server_default=sa.text("gen_random_uuid()"), nullable=False),
@@ -186,9 +186,9 @@ def downgrade():
     op.drop_table("group_role")
     op.drop_index(op.f("ix_user_email"), table_name="user")
     op.drop_table("user")
-    op.drop_index(op.f("ix_role_name"), table_name="role")
+    op.drop_index(op.f("ix_role_title"), table_name="role")
     op.drop_table("role")
     op.drop_table("permission")
-    op.drop_index(op.f("ix_group_name"), table_name="group")
+    op.drop_index(op.f("ix_group_title"), table_name="group")
     op.drop_table("group")
     # ### end Alembic commands ###

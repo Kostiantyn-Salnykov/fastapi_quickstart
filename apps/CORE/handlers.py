@@ -1,7 +1,7 @@
 from fastapi import Request, status
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import ORJSONResponse
-from sqlalchemy.exc import IntegrityError
+from sqlalchemy.exc import IntegrityError, NoResultFound
 
 from apps.CORE.enums import JSENDStatus
 from apps.CORE.exceptions import BackendException
@@ -60,7 +60,7 @@ def integrity_error_handler(error: IntegrityError) -> None:
     Handler for IntegrityError (SQLAlchemy error).
 
     Args:
-        error (IntegrityError): Error that Pydantic raises (in case of validation error).
+        error (IntegrityError): Error that SQLAlchemy raises (in case of SQL query error).
 
     Raises:
         BackendException: Actually proxies these errors to `backend_exception_handler`.
@@ -74,3 +74,20 @@ def integrity_error_handler(error: IntegrityError) -> None:
             code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             status=JSENDStatus.ERROR,
         )
+
+
+def no_result_found_error_handler(error: NoResultFound) -> None:
+    """
+    Handler for NoResultFound (SQLAlchemy error).
+
+    Args:
+        error (NoResultFound): Error that SQLAlchemy raises (in case of scalar_one() error).
+
+    Raises:
+        BackendException: Actually proxies these errors to `backend_exception_handler`.
+    """
+    raise BackendException(
+        message="Not found.",
+        code=status.HTTP_404_NOT_FOUND,
+        status=JSENDStatus.FAIL,
+    )

@@ -4,11 +4,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload
 from sqlalchemy.sql.elements import BinaryExpression, UnaryExpression
 
-from apps.CORE.services import AsyncCRUDBase
+from apps.CORE.repositories import BaseCoreRepository
 from apps.wishmaster.models import Category, Tag, Wish, WishList
 
 
-class WishCRUD(AsyncCRUDBase):
+class WishCRUD(BaseCoreRepository):
     async def list(
         self,
         *,
@@ -45,7 +45,7 @@ class WishCRUD(AsyncCRUDBase):
         return total, objects
 
 
-class WishListCRUD(AsyncCRUDBase):
+class WishListCRUD(BaseCoreRepository):
     async def list(
         self,
         *,
@@ -58,7 +58,7 @@ class WishListCRUD(AsyncCRUDBase):
     ) -> tuple[int, list[WishList]]:
         select_statement = (
             select(self.model)
-            .join(Wish, onclause=WishList.id == Wish.wishlist_id, isouter=True)
+            .outerjoin(Wish, onclause=WishList.id == Wish.wishlist_id)
             .options(joinedload(WishList.wishes))
         )
         if filters:
@@ -66,7 +66,6 @@ class WishListCRUD(AsyncCRUDBase):
         select_statement = (
             select_statement.order_by(*sorting).offset(offset).limit(limit).execution_options(populate_existing=True)
         )
-        print(select_statement)
         count_statement = select(func.count(self.model.id)).select_from(self.model).where(*filters or {})
 
         async with session.begin_nested():
@@ -79,11 +78,11 @@ class WishListCRUD(AsyncCRUDBase):
         return total, objects
 
 
-class TagCRUD(AsyncCRUDBase):
+class TagCRUD(BaseCoreRepository):
     ...
 
 
-class CategoryCRUD(AsyncCRUDBase):
+class CategoryCRUD(BaseCoreRepository):
     ...
 
 

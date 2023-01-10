@@ -7,7 +7,7 @@ import factory
 from pydantic_factories import AsyncPersistenceProtocol, ModelFactory, PostGenerated
 
 from apps.CORE.db import Base, async_session_factory
-from apps.CORE.services import AsyncCRUDBase
+from apps.CORE.repositories import BaseCoreRepository
 from apps.CORE.types import ModelType, SchemaType
 from apps.CORE.utils import utc_now
 
@@ -15,7 +15,7 @@ from apps.CORE.utils import utc_now
 class AsyncPersistenceHandler(AsyncPersistenceProtocol):
     def __init__(self, model: Type[Base]):
         self._model = model
-        self._service = AsyncCRUDBase(model=self._model)
+        self._service = BaseCoreRepository(model=self._model)
 
     async def save(self, data: SchemaType) -> ModelType:
         async with async_session_factory() as db_session:

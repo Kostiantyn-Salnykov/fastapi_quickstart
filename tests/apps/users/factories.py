@@ -1,7 +1,7 @@
 import factory
 
 from apps.CORE.managers import PasswordsManager
-from apps.users.models import User
+from apps.CORE.tables import User
 from tests.bases import BaseModelFactory
 
 __all__ = ("UserFactory",)

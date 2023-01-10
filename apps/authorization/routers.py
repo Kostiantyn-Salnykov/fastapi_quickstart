@@ -1,3 +1,4 @@
+import typing
 import uuid
 
 from fastapi import APIRouter, Body, Depends, Path, Request, status
@@ -6,11 +7,11 @@ from sqlalchemy.sql.elements import UnaryExpression
 
 from apps.authorization.dependencies import bearer_auth
 from apps.authorization.handlers import groups_handler, permissions_handler, roles_handler
-from apps.authorization.models import Group, Permission, Role
 from apps.authorization.schemas import (
     GroupCreateSchema,
     GroupListOutSchema,
     GroupOutSchema,
+    GroupUpdateSchema,
     PermissionListOutSchema,
     PermissionOutSchema,
     RoleCreateSchema,
@@ -19,6 +20,7 @@ from apps.authorization.schemas import (
 )
 from apps.CORE.dependencies import BasePagination, BaseSorting, get_async_session
 from apps.CORE.schemas import JSENDOutSchema
+from apps.CORE.tables import Group, Permission, Role
 
 groups_router = APIRouter(prefix="/auth/groups", tags=["authorization"], dependencies=[Depends(bearer_auth)])
 roles_router = APIRouter(prefix="/auth/roles", tags=["authorization"], dependencies=[Depends(bearer_auth)])
@@ -43,15 +45,14 @@ async def list_groups(
     session: AsyncSession = Depends(get_async_session),
     pagination: BasePagination = Depends(BasePagination()),
     sorting: list[UnaryExpression] = Depends(
-        BaseSorting(model=Group, schema=GroupOutSchema, available_columns=[Group.created_at, Group.name])
+        BaseSorting(model=Group, schema=GroupOutSchema, available_columns=[Group.created_at, Group.title])
     ),
 ) -> GroupListOutSchema:
     total, groups = await groups_handler.list_groups(
         session=session, request=request, pagination=pagination, sorting=sorting
     )
     return GroupListOutSchema(
-        data=BasePagination.paginate(
-            pagination=pagination,
+        data=pagination.paginate(
             request=request,
             objects=groups,
             schema=GroupOutSchema,
@@ -75,21 +76,43 @@ async def read_group(
     )
 
 
+@groups_router.patch(
+    path="/{id}/", name="update_group", response_model=JSENDOutSchema[GroupOutSchema], status_code=status.HTTP_200_OK
+)
+async def update_group(
+    request: Request,
+    session: AsyncSession = Depends(get_async_session),
+    id: uuid.UUID = Path(),
+    data: GroupUpdateSchema = Body(),
+) -> JSENDOutSchema[GroupOutSchema]:
+    return JSENDOutSchema[GroupOutSchema](
+        data=await groups_handler.update_group(request=request, session=session, id=id, data=data),
+        message="Group details.",
+    )
+
+
+@groups_router.delete(path="/{id}/", name="delete_group", response_model=JSENDOutSchema[typing.Type[None]])
+async def delete_group(
+    request: Request, id: uuid.UUID = Path(), session: AsyncSession = Depends(get_async_session)
+) -> JSENDOutSchema[typing.Type[None]]:
+    await groups_handler.delete_group(session=session, request=request, id=id)
+    return JSENDOutSchema(data=None, message="Group deleted successfully.")
+
+
 @roles_router.get(path="/", name="list_roles", response_model=RoleListOutSchema)
 async def list_roles(
     request: Request,
     session: AsyncSession = Depends(get_async_session),
     pagination: BasePagination = Depends(BasePagination()),
     sorting: list[UnaryExpression] = Depends(
-        BaseSorting(model=Role, schema=RoleOutSchema, available_columns=[Role.created_at, Role.name])
+        BaseSorting(model=Role, schema=RoleOutSchema, available_columns=[Role.created_at, Role.title])
     ),
 ) -> RoleListOutSchema:
     total, roles = await roles_handler.list_roles(
         session=session, request=request, pagination=pagination, sorting=sorting
     )
     return RoleListOutSchema(
-        data=BasePagination.paginate(
-            pagination=pagination,
+        data=pagination.paginate(
             request=request,
             objects=roles,
             schema=RoleOutSchema,
@@ -119,6 +142,14 @@ async def create_role(
     )
 
 
+@roles_router.delete(path="/{id}/", name="delete_role", response_model=JSENDOutSchema[typing.Type[None]])
+async def delete_role(
+    request: Request, id: uuid.UUID = Path(), session: AsyncSession = Depends(get_async_session)
+) -> JSENDOutSchema[typing.Type[None]]:
+    await roles_handler.delete_role(session=session, request=request, id=id)
+    return JSENDOutSchema(data=None, message="Role deleted successfully.")
+
+
 @permissions_router.get(path="/", name="list_permissions", response_model=PermissionListOutSchema)
 async def list_permissions(
     request: Request,
@@ -136,8 +167,7 @@ async def list_permissions(
         session=session, request=request, pagination=pagination, sorting=sorting
     )
     return PermissionListOutSchema(
-        data=BasePagination.paginate(
-            pagination=pagination,
+        data=pagination.paginate(
             request=request,
             objects=permissions,
             schema=PermissionOutSchema,

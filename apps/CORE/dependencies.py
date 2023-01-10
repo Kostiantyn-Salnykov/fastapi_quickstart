@@ -2,12 +2,11 @@ import math
 import typing
 import urllib.parse
 
-import aioredis
 import orjson
 from fastapi import Query, Request
 from pydantic import Field, ValidationError, parse_obj_as, validator
 from pydantic.generics import GenericModel
-from sqlalchemy.exc import IntegrityError
+from sqlalchemy.exc import IntegrityError, NoResultFound
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import ColumnProperty, InstrumentedAttribute, Session
 from sqlalchemy.sql.elements import BinaryExpression, UnaryExpression
@@ -15,15 +14,17 @@ from sqlalchemy.sql.elements import BinaryExpression, UnaryExpression
 from apps.CORE.db import async_session_factory, redis, session_factory
 from apps.CORE.enums import FOps
 from apps.CORE.exceptions import BackendException
-from apps.CORE.handlers import integrity_error_handler
+from apps.CORE.handlers import integrity_error_handler, no_result_found_error_handler
 from apps.CORE.schemas import ObjectsVar, PaginationOutSchema
 from apps.CORE.types import ModelColumnVar, ModelType, SchemaType
 from loggers import get_logger
+from redis import asyncio as aioredis
 from settings import Settings
 
 logger = get_logger(name=__name__)
 
 
+# TODO: Think about `page` query instead of `offset`.
 class BasePagination:
     def __init__(self) -> None:
         """Initializer for BasePagination. Also, setup default values."""
@@ -59,16 +60,17 @@ class BasePagination:
             if self.offset > 0
             else None
         )
+        objects_count = len(objects)
         next_url = (
             request.url_for(name=endpoint_name) + "?" + urllib.parse.urlencode(query=self.next())
-            if len(objects) == self.limit
+            if objects_count == self.limit and objects_count != total
             else None
         )
         return PaginationOutSchema[schema](
             objects=(schema.from_orm(obj=obj) for obj in objects),  # type: ignore
             offset=self.offset,
             limit=self.limit,
-            count=len(objects),
+            count=objects_count,
             total_count=total,
             previous_url=previous_url,
             next_url=next_url,
@@ -154,6 +156,9 @@ async def get_async_session() -> typing.AsyncGenerator[AsyncSession, None]:  # p
         except IntegrityError as error:
             await session.rollback()
             integrity_error_handler(error=error)
+        except NoResultFound as error:
+            await session.rollback()
+            no_result_found_error_handler(error=error)
         finally:
             await session.close()
 
@@ -171,6 +176,9 @@ def get_session() -> typing.Generator[Session, None, None]:
         except IntegrityError as error:
             session.rollback()
             integrity_error_handler(error=error)
+        except NoResultFound as error:
+            session.rollback()
+            no_result_found_error_handler(error=error)
         finally:
             session.close()
 

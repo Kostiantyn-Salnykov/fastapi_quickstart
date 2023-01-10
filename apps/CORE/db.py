@@ -1,13 +1,13 @@
 import re
 import uuid
 
-import aioredis
 from sqlalchemy import TIMESTAMP, Column, MetaData, create_engine, text
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import Session, declarative_base, declarative_mixin, declared_attr, sessionmaker
 from sqlalchemy.sql import func
 
+from redis import asyncio as aioredis
 from settings import Settings
 
 

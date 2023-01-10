@@ -11,7 +11,7 @@ class PermissionException(BackendException):
         self,
         *,
         status: JSENDStatus = JSENDStatus.FAIL,
-        data: typing.Union[None, int, str, list, dict] = None,
+        data: typing.Union[None, int, str, list[typing.Any], dict[str, typing.Any]] = None,
         message: str = "User has no access to perform this action.",
         code: int = http_status.HTTP_403_FORBIDDEN,
     ):

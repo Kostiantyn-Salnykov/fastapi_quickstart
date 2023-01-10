@@ -2,10 +2,8 @@ from sqlalchemy import SMALLINT, VARCHAR, Column, ForeignKey
 from sqlalchemy.orm import relationship
 
 from apps.CORE.db import Base, CreatedAtMixin, CreatedUpdatedMixin, UUIDMixin
-from apps.users.models import User
+from apps.CORE.tables import CASCADES, User
 from apps.wishmaster.enums import WishComplexities, WishPriorities, WishStatuses
-
-CASCADES = {"ondelete": "CASCADE", "onupdate": "CASCADE"}
 
 
 class WishList(Base, UUIDMixin, CreatedUpdatedMixin):

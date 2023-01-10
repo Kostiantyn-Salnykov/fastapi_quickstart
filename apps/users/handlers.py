@@ -8,9 +8,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from apps.CORE.enums import TokenAudience
 from apps.CORE.exceptions import BackendException
 from apps.CORE.managers import PasswordsManager
+from apps.CORE.tables import User
+from apps.CORE.types import StrOrUUID
 from apps.CORE.utils import utc_now
 from apps.users.enums import UsersStatuses
-from apps.users.models import User
 from apps.users.schemas import (
     LoginOutSchema,
     LoginSchema,
@@ -38,7 +39,7 @@ class UsersHandler:
             password_hash=self.passwords_manager.make_password(password=data.password),
         )
         user: User = await users_service.create(session=session, obj=create_to_db)
-        return UserOutSchema.from_orm(obj=user)  # type: ignore
+        return UserOutSchema.from_orm(obj=user)
 
     async def update_user(self, *, request: Request, session: AsyncSession, data: UserUpdateSchema) -> UserOutSchema:
         values = data.dict(exclude_unset=True)
@@ -55,10 +56,10 @@ class UsersHandler:
                 "status": UsersStatuses.CONFIRMED.value,
             }
         user = await users_service.update(session=session, id=request.user.id, obj=UserToDBBaseSchema(**values))
-        return UserOutSchema.from_orm(user)  # type: ignore
+        return UserOutSchema.from_orm(user)
 
     @staticmethod
-    def generate_tokens(*, request: Request, id: uuid.UUID | str) -> LoginOutSchema:
+    def generate_tokens(*, request: Request, id: StrOrUUID) -> LoginOutSchema:
         user_id = str(id) if isinstance(id, uuid.UUID) else id
         now = utc_now()
         token_id = hashlib.blake2s(f"{user_id}_{now.isoformat()}".encode(encoding="utf-8")).hexdigest()

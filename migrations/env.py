@@ -4,8 +4,11 @@ from logging.config import fileConfig
 
 from alembic import context
 
+from apps.CORE.db import Base, engine
+
 # You should import models explicitly to this file, to allow autogenerate migrations.
-from apps.authorization.models import (  # noqa
+from apps.CORE.tables import User  # noqa
+from apps.CORE.tables import (  # noqa
     Group,
     GroupRole,
     GroupUser,
@@ -15,8 +18,6 @@ from apps.authorization.models import (  # noqa
     RolePermission,
     RoleUser,
 )
-from apps.CORE.db import Base, engine
-from apps.users.models import User  # noqa
 from apps.wishmaster.models import Category, Tag, Wish, WishList, WishTag  # noqa
 
 # this is the Alembic Config object, which provides

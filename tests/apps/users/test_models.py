@@ -1,4 +1,4 @@
-from apps.users.models import User
+from apps.CORE.tables import User
 from tests.apps.users.factories import UserFactory
 from tests.bases import BaseModelFactory
 

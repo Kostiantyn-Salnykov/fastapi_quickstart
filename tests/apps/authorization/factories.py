@@ -5,16 +5,7 @@ import factory
 
 from apps.authorization.enums import PermissionActions
 from apps.authorization.managers import AuthorizationManager
-from apps.authorization.models import (
-    Group,
-    GroupRole,
-    GroupUser,
-    Permission,
-    PermissionUser,
-    Role,
-    RolePermission,
-    RoleUser,
-)
+from apps.CORE.tables import Group, GroupRole, GroupUser, Permission, PermissionUser, Role, RolePermission, RoleUser
 from tests.bases import BaseModelFactory
 
 
@@ -58,7 +49,7 @@ class RolePermissionFactory(BaseModelFactory):
 
 
 class RoleFactory(BaseModelFactory):
-    name = factory.Faker("pystr", max_chars=128)
+    title = factory.Faker("pystr", max_chars=128)
 
     groups = factory.RelatedFactoryList(
         factory="tests.apps.authorization.factories.GroupRoleFactory", factory_related_name="roles", size=0
@@ -70,7 +61,7 @@ class RoleFactory(BaseModelFactory):
 
     class Meta:
         model = Role
-        sqlalchemy_get_or_create = ("name",)
+        sqlalchemy_get_or_create = ("title",)
 
 
 class GroupRoleFactory(BaseModelFactory):
@@ -87,7 +78,7 @@ class GroupRoleFactory(BaseModelFactory):
 
 
 class GroupFactory(BaseModelFactory):
-    name = factory.Faker("pystr", max_chars=256)
+    title = factory.Faker("pystr", max_chars=256)
 
     roles = factory.RelatedFactoryList(factory=GroupRoleFactory, factory_related_name="group", size=1)
     users = factory.RelatedFactoryList(
@@ -96,7 +87,7 @@ class GroupFactory(BaseModelFactory):
 
     class Meta:
         model = Group
-        sqlalchemy_get_or_create = ("name",)
+        sqlalchemy_get_or_create = ("title",)
 
 
 class PermissionUserFactory(BaseModelFactory):

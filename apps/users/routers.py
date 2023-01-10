@@ -21,7 +21,12 @@ tokens_router = APIRouter(tags=["tokens"])
 
 
 @register_router.post(
-    path="/", name="create_user", response_model=JSENDOutSchema[UserOutSchema], status_code=status.HTTP_201_CREATED
+    path="/",
+    name="create_user",
+    summary="Registration",
+    description="Create user and get details.",
+    response_model=JSENDOutSchema[UserOutSchema],
+    status_code=status.HTTP_201_CREATED,
 )
 async def create_user(
     request: Request,
@@ -36,6 +41,8 @@ async def create_user(
 @users_router.get(
     path="/",
     name="whoami",
+    summary="Who am I?",
+    description="Get user's data from authorization.",
     response_model=JSENDOutSchema[UserOutSchema],
     status_code=status.HTTP_200_OK,
 )

@@ -1,13 +1,4 @@
-from apps.authorization.models import (
-    Group,
-    GroupRole,
-    GroupUser,
-    Permission,
-    PermissionUser,
-    Role,
-    RolePermission,
-    RoleUser,
-)
+from apps.CORE.tables import Group, GroupRole, GroupUser, Permission, PermissionUser, Role, RolePermission, RoleUser
 from tests.apps.authorization.factories import (
     GroupFactory,
     GroupRoleFactory,
@@ -47,7 +38,7 @@ class TestRole:
 
     def test__repr__(self) -> None:
         obj: Role = RoleFactory()
-        expected_result = f'{obj.__class__.__name__}(name="{obj.name}")'
+        expected_result = f'{obj.__class__.__name__}(name="{obj.title}")'
 
         result = obj.__repr__()
 
@@ -60,7 +51,7 @@ class TestGroup:
 
     def test__repr__(self) -> None:
         obj: Group = GroupFactory()
-        expected_result = f'{obj.__class__.__name__}(name="{obj.name}")'
+        expected_result = f'{obj.__class__.__name__}(name="{obj.title}")'
 
         result = obj.__repr__()
 
