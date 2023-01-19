@@ -66,6 +66,7 @@ class BaseModelFactory(factory.alchemy.SQLAlchemyModelFactory):
 
     @staticmethod
     def check_factory(factory_class: typing.Type["BaseModelFactory"], model: typing.Type[Base]) -> None:
+        """Test that factory creates successfully."""
         obj = factory_class()
         size = random.randint(2, 3)
         objs = factory_class.create_batch(size=size)

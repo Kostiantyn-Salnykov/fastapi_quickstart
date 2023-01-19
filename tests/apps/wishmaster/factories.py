@@ -11,7 +11,7 @@ class CategoryFactory(BaseModelFactory):
     title = factory.Faker("pystr", max_chars=128)
     owner_id = factory.SelfAttribute(attribute_name="owner.id")
 
-    owner = factory.SubFactory(factory="tests.apps.users.factories.UserFactory")
+    owner = factory.SubFactory(factory="tests.apps.CORE.factories.UserFactory")
 
     class Meta:
         model = Category
@@ -41,7 +41,7 @@ class WishListFactory(BaseModelFactory):
     title = factory.Faker("pystr", max_chars=128)
     owner_id = factory.SelfAttribute(attribute_name="owner.id")
 
-    owner = factory.SubFactory(factory="tests.apps.users.factories.UserFactory")
+    owner = factory.SubFactory(factory="tests.apps.CORE.factories.UserFactory")
 
     class Meta:
         model = WishList
@@ -56,7 +56,7 @@ class WishFactory(BaseModelFactory):
     complexity = factory.Faker("word", ext_word_list=list(WishComplexities))
     priority = factory.Faker("word", ext_word_list=list(WishPriorities))
 
-    user = factory.SubFactory(factory="tests.apps.users.factories.UserFactory")
+    user = factory.SubFactory(factory="tests.apps.CORE.factories.UserFactory")
     wishlist = factory.SubFactory(factory=WishListFactory, owner=factory.SelfAttribute("..user"))
     category = factory.SubFactory(factory=CategoryFactory, owner=factory.SelfAttribute("..user"))
     tags = factory.RelatedFactoryList(factory=WishTagFactory, factory_related_name="wish", size=3)

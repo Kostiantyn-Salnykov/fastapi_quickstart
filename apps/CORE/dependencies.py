@@ -240,7 +240,7 @@ class QueryFilter(GenericModel, typing.Generic[TypeA]):
         allow_population_by_field_name = True
 
     @validator("value")
-    def validate_obj(cls, v, values: dict):
+    def validate_obj(cls, v, values: dict[str, typing.Any]):
         operation = values.get("operation", "=")
         if operation in {"in", "notin"}:
             if not isinstance(v, list):

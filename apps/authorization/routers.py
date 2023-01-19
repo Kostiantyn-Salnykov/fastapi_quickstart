@@ -36,6 +36,7 @@ async def create_group(
     return JSENDOutSchema[GroupOutSchema](
         data=await groups_handler.create_group(request=request, session=session, data=data),
         message="Group object created successfully.",
+        code=status.HTTP_201_CREATED,
     )
 
 

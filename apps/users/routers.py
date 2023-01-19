@@ -34,8 +34,11 @@ async def create_user(
     session: AsyncSession = Depends(get_async_session),
 ) -> JSENDOutSchema[UserOutSchema]:
     """Creates new user."""
-    data = await users_handler.create_user(request=request, session=session, data=data)
-    return JSENDOutSchema[UserOutSchema](data=data, message="Created User's details.")
+    return JSENDOutSchema[UserOutSchema](
+        data=await users_handler.create_user(request=request, session=session, data=data),
+        message="Created User's details.",
+        code=status.HTTP_201_CREATED,
+    )
 
 
 @users_router.get(

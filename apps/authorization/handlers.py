@@ -49,7 +49,7 @@ class GroupsHandler:
         return GroupOutSchema.from_orm(obj=group)
 
     async def read_group(self, *, request: Request, session: AsyncSession, id: StrOrUUID) -> GroupOutSchema:
-        group: Group = await groups_service.read_or_not_found(session=session, id=id, message="Group no found.")
+        group: Group = await groups_service.read_or_not_found(session=session, id=id, message="Group not found.")
         return GroupOutSchema.from_orm(obj=group)
 
     async def list_groups(

@@ -1,5 +1,4 @@
 """Basic CRUD for services."""
-import abc
 import typing
 from typing import Type, TypeAlias
 

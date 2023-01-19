@@ -19,7 +19,7 @@ from apps.CORE.db import async_session_factory as AsyncSessionFactory  # noqa
 from apps.CORE.db import session_factory as SessionFactory  # noqa
 from apps.CORE.dependencies import get_async_session, get_session
 from settings import Settings
-from tests.apps.authorization.factories import (
+from tests.apps.CORE.factories import (
     GroupFactory,
     GroupRoleFactory,
     GroupUserFactory,
@@ -28,8 +28,8 @@ from tests.apps.authorization.factories import (
     RoleFactory,
     RolePermissionFactory,
     RoleUserFactory,
+    UserFactory,
 )
-from tests.apps.users.factories import UserFactory
 from tests.apps.wishmaster.factories import CategoryFactory, TagFactory, WishFactory, WishListFactory, WishTagFactory
 from tests.bases import BaseModelFactory
 

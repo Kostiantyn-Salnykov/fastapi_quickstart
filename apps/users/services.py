@@ -16,15 +16,12 @@ __all__ = ("users_service",)
 
 
 class UsersService(BaseCoreRepository):
-    async def create(self, *, session: AsyncSession, obj: UserCreateSchema, unique: bool = False) -> User:
+    async def create(self, *, session: AsyncSession, obj: UserCreateSchema) -> User:
         obj.status = UsersStatuses.CONFIRMED  # Automatically activates User!!!
-        obj_in_data = to_db_encoder(obj=obj)
         async with session.begin_nested():
-            statement = insert(self.model).values(**obj_in_data)
+            statement = insert(self.model).values(**to_db_encoder(obj=obj))
             result: CursorResult = await session.execute(statement=statement)
-            inserted_id: uuid.UUID = result.inserted_primary_key[0]
-            user: User = await self.get_with_authorization(session=session, id=inserted_id)
-        return user
+            return await self.get_with_authorization(session=session, id=result.inserted_primary_key[0])
 
     async def get_with_authorization(self, *, session: AsyncSession, id: uuid.UUID) -> User | None:
         statement = (
