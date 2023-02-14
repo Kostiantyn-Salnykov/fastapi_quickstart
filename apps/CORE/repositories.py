@@ -104,25 +104,26 @@ class _BaseCommonRepository:
 
 class BaseORMRepository(_BaseCommonRepository):
     @staticmethod
-    async def create(self, *, session: AsyncSession, obj: ModelType) -> ModelType:
+    async def create(*, session: AsyncSession, obj: ModelType) -> ModelType:
         session.add(instance=obj)
         await session.flush()
         # await session.refresh(instance=obj)
         return obj
 
     @staticmethod
-    async def create_many(self, *, session: AsyncSession, objs: typing.Iterable[ModelType]) -> list[ModelType]:
+    async def create_many(*, session: AsyncSession, objs: typing.Iterable[ModelType]) -> list[ModelType]:
         objects = [obj for obj in objs]
         session.add_all(instances=objects)
         await session.flush()
         return objects
 
-    async def update(self, *, session: AsyncSession, obj: ModelType) -> ModelType:
+    @staticmethod
+    async def update(*, session: AsyncSession, obj: ModelType) -> ModelType:
         await session.flush()
         return obj
 
     @staticmethod
-    async def delete(self, *, session: AsyncSession, obj: ModelType) -> ModelType:
+    async def delete(*, session: AsyncSession, obj: ModelType) -> ModelType:
         await session.delete(instance=obj)
         await session.flush()
         return obj

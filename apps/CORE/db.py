@@ -1,10 +1,19 @@
+import datetime
 import re
 import uuid
 
-from sqlalchemy import TIMESTAMP, Column, MetaData, create_engine, text
+from sqlalchemy import TIMESTAMP, MetaData, create_engine, text
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
-from sqlalchemy.orm import Session, declarative_base, declarative_mixin, declared_attr, sessionmaker
+from sqlalchemy.orm import (
+    Mapped,
+    Session,
+    declarative_base,
+    declarative_mixin,
+    declared_attr,
+    mapped_column,
+    sessionmaker,
+)
 from sqlalchemy.sql import func
 
 from redis import asyncio as aioredis
@@ -26,7 +35,7 @@ class TableNameMixin:
 class UUIDMixin:
     """Mixin for rewrite integer id field to uuid4 id field."""
 
-    id = Column(
+    id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
         default=uuid.uuid4,
         server_default=text("gen_random_uuid()"),
@@ -38,7 +47,7 @@ class UUIDMixin:
 class CreatedAtMixin:
     """Mixin for add created_at field."""
 
-    created_at = Column(
+    created_at: Mapped[datetime.datetime] = mapped_column(
         TIMESTAMP(timezone=True),
         server_default=func.current_timestamp(),
         nullable=False,
@@ -49,7 +58,7 @@ class CreatedAtMixin:
 class UpdatedAtMixin:
     """Mixin for add updated_at field."""
 
-    updated_at = Column(
+    updated_at: Mapped[datetime.datetime] = mapped_column(
         TIMESTAMP(timezone=True),
         server_default=func.current_timestamp(),
         server_onupdate=func.current_timestamp(),
