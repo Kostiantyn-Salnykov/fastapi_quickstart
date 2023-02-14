@@ -5,6 +5,11 @@ from fastapi import status
 from httpx import Response
 
 from apps.CORE.enums import JSENDStatus
+from apps.CORE.managers import TokensManager
+from apps.CORE.tables import User
+from apps.users.enums import UsersStatuses
+from settings import Settings
+from tests.apps.CORE.factories import UserFactory
 
 
 def assert_jsend_response(
@@ -25,3 +30,40 @@ def assert_is_uuid(val: str) -> None:
         assert True, "Valid UUID"
     except ValueError:
         assert False, "Not uuid"
+
+
+class UsersHelper:
+    def __init__(
+        self, user: User = None, token: str = None, user_kwargs: dict = None, token_kwargs: dict = None
+    ) -> None:
+        self._user = user
+        self._token = token
+        self._user_kwargs = user_kwargs or {"status": UsersStatuses.CONFIRMED}
+        self._token_kwargs = token_kwargs or {}
+        self._tokens_manager = TokensManager(secret_key=Settings.TOKENS_SECRET_KEY)
+
+    @property
+    def token(self) -> str:
+        if self._token:
+            return self._token
+        else:
+            return self._generate_token()
+
+    @property
+    def user(self) -> User:
+        if self._user:
+            return self._user
+        else:
+            return self._generate_user()
+
+    def _generate_token(self) -> str:
+        self._token = self._tokens_manager.create_code(data={"id": str(self.user.id), "token_id": 1})
+        return self._token
+
+    def _generate_user(self) -> User:
+        user = UserFactory(**self._user_kwargs)
+        self._user = user
+        return self._user
+
+    def get_headers(self) -> dict[str, str]:
+        return {"Authorization": f"Bearer {self.token}", "Content-Type": "application/json"}

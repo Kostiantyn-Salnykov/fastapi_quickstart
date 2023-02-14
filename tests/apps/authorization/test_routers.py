@@ -242,6 +242,7 @@ class TestGroupsRouter:
             json={"title": new_title, "roles_ids": [str(role.id) for role in new_roles]},
         )
 
+        # FIXME: Fix test assertion
         assert_jsend_response(
             response=response,
             http_code=status.HTTP_200_OK,

@@ -1,13 +1,14 @@
 import pytest
 from faker import Faker
 from fastapi import FastAPI, status
-from httpx import AsyncClient, Response
+from httpx import AsyncClient
 from pytest_mock import MockerFixture
 
 from apps.CORE.enums import JSENDStatus, TokenAudience
 from apps.CORE.managers import TokensManager
+from apps.CORE.utils import get_timestamp
 from apps.users.enums import UsersStatuses
-from tests.apps.conftest import assert_jsend_response
+from tests.apps.conftest import UsersHelper, assert_jsend_response
 from tests.apps.CORE.factories import UserFactory
 
 
@@ -52,6 +53,61 @@ class TestUsersRouter:
             assert k in response_data
 
         assert response_data["createdAt"] == response_data["updatedAt"]
+
+    async def test_whoami_401_unauthorized(self, async_client: AsyncClient, app_fixture: FastAPI, faker: Faker) -> None:
+        response = await async_client.get(url=app_fixture.url_path_for(name="whoami"))
+
+        assert_jsend_response(
+            response=response,
+            http_code=status.HTTP_401_UNAUTHORIZED,
+            status=JSENDStatus.FAIL,
+            message="Not authenticated.",
+            code=status.HTTP_401_UNAUTHORIZED,
+            data=None,
+        )
+
+    @pytest.mark.parametrize(argnames="user_status", argvalues=(UsersStatuses.UNCONFIRMED, UsersStatuses.ARCHIVED))
+    async def test_whoami_401_unauthorized_statuses(
+        self, async_client: AsyncClient, app_fixture: FastAPI, faker: Faker, user_status: UsersStatuses
+    ) -> None:
+        users_helper = UsersHelper(user_kwargs={"status": user_status})
+        response = await async_client.get(
+            url=app_fixture.url_path_for(name="whoami"), headers=users_helper.get_headers()
+        )
+
+        assert_jsend_response(
+            response=response,
+            http_code=status.HTTP_401_UNAUTHORIZED,
+            status=JSENDStatus.FAIL,
+            message="Not authenticated.",
+            code=status.HTTP_401_UNAUTHORIZED,
+            data=None,
+        )
+
+    async def test_whoami_200(self, async_client: AsyncClient, app_fixture: FastAPI, faker: Faker) -> None:
+        users_helper = UsersHelper()
+        response = await async_client.get(
+            url=app_fixture.url_path_for(name="whoami"), headers=users_helper.get_headers()
+        )
+
+        assert_jsend_response(
+            response=response,
+            http_code=status.HTTP_200_OK,
+            status=JSENDStatus.SUCCESS,
+            message="User's data from authorization.",
+            code=status.HTTP_200_OK,
+        )
+        response_data = response.json()["data"]
+        user = users_helper.user
+        assert response_data["id"] == str(user.id)
+        assert response_data["firstName"] == user.first_name
+        assert response_data["lastName"] == user.last_name
+        assert response_data["email"] == user.email
+        assert response_data["createdAt"] == get_timestamp(user.created_at)
+        assert response_data["updatedAt"] == get_timestamp(user.updated_at)
+        assert response_data["groups"] == user.groups
+        assert response_data["roles"] == user.roles
+        assert response_data["permissions"] == user.permissions
 
 
 class TestTokensRouter:

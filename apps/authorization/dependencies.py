@@ -63,7 +63,7 @@ class IsAuthenticated:
         Returns:
             request(Request): Proxies FastAPI Request.
         """
-        if not request.user.is_authenticated:
+        if not request.user or not request.user.is_authenticated:
             raise BackendException(message="Not authenticated.", code=status.HTTP_401_UNAUTHORIZED)
         return request
 
