@@ -202,7 +202,7 @@ def get_sqlalchemy_where_operations_mapper(operation_type: FOps) -> str:
         case operation_type.GREATER:
             return "__gt__"
         case operation_type.GREATER_OR_EQUAL:
-            return "__gt__"
+            return "__ge__"
         case operation_type.LESS:
             return "__lt__"
         case operation_type.LESS_OR_EQUAL:
@@ -223,7 +223,7 @@ def get_sqlalchemy_where_operations_mapper(operation_type: FOps) -> str:
             return "isnull"
         case operation_type.NOT_NULL:
             return "notnull"
-        case _:
+        case _:  # pragma: no cover
             return "__eq__"  # default
 
 

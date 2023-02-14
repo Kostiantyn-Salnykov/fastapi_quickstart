@@ -5,7 +5,17 @@ from pytest_mock import MockerFixture
 from sqlalchemy.exc import IntegrityError
 
 from apps.CORE.db import Base
-from apps.CORE.dependencies import BasePagination, BaseSorting, get_async_session, get_redis, get_session
+from apps.CORE.dependencies import (
+    BasePagination,
+    BaseSorting,
+    QueryFilter,
+    get_async_session,
+    get_redis,
+    get_session,
+    get_sqlalchemy_where_operations_mapper,
+)
+from apps.CORE.enums import FOps
+from apps.CORE.exceptions import BackendException
 from apps.CORE.schemas import BaseOutSchema
 
 
@@ -64,7 +74,7 @@ class TestBasePagination:
 
         assert result == expected_result
 
-    def test_get_paginated_response(self, faker: Faker, mocker: MockerFixture):
+    def test_get_paginated_response(self, faker: Faker, mocker: MockerFixture) -> None:
         domain = faker.url()
         limit: int = faker.pyint(min_value=10, max_value=1000)
         offset: int = faker.pyint(min_value=limit, max_value=limit + 10000)
@@ -192,3 +202,73 @@ async def test_get_redis() -> None:
     result = await redis.ping()
 
     assert result is True
+
+
+@pytest.mark.parametrize(
+    argnames=("filter_operation", "expected_result"),
+    argvalues=(
+        (FOps.EQ, "__eq__"),
+        (FOps.EQUAL, "__eq__"),
+        (FOps.NOT_EQUAL, "__ne__"),
+        (FOps.NE, "__ne__"),
+        (FOps.GREATER, "__gt__"),
+        (FOps.G, "__gt__"),
+        (FOps.LESS, "__lt__"),
+        (FOps.GREATER_OR_EQUAL, "__ge__"),
+        (FOps.GE, "__ge__"),
+        (FOps.LESS_OR_EQUAL, "__le__"),
+        (FOps.LE, "__le__"),
+        (FOps.IN, "in_"),
+        (FOps.NOT_IN, "not_in"),
+        (FOps.LIKE, "like"),
+        (FOps.ILIKE, "ilike"),
+        (FOps.STARTSWITH, "startswith"),
+        (FOps.ENDSWITH, "endswith"),
+        (FOps.ISNULL, "isnull"),
+        (FOps.NOT_NULL, "notnull"),
+    ),
+)
+def test_get_sqlalchemy_where_operations_mapper(filter_operation: FOps, expected_result: str) -> None:
+    result = get_sqlalchemy_where_operations_mapper(operation_type=filter_operation)
+
+    assert result == expected_result
+
+
+class TestQueryFilter:
+    @pytest.mark.parametrize(argnames="filter_operation", argvalues=(FOps.ISNULL, FOps.NOT_NULL))
+    def test_validate_obj_none_result(self, filter_operation: FOps) -> None:
+        schema = QueryFilter[str]
+
+        result = schema(field="test", operation=filter_operation, value="test")
+
+        assert result.value is None
+
+    @pytest.mark.parametrize(argnames="filter_operation", argvalues=(FOps.IN, FOps.NOT_IN))
+    def test_validate_obj_exception(self, filter_operation: FOps) -> None:
+        schema = QueryFilter[str]  # not true generic schema.
+
+        with pytest.raises(BackendException) as exception_context:
+            schema(field="test", operation=filter_operation, value="test")
+
+        assert str(exception_context.value) == str(
+            BackendException(
+                message=f"Filters error. For operation '{filter_operation}', the value must be a list (Array[])."
+            )
+        )
+
+    @pytest.mark.parametrize(argnames="filter_operation", argvalues=(FOps.IN, FOps.NOT_IN))
+    def test_validate_obj_success(self, filter_operation: FOps) -> None:
+        value = ["test", "test2"]
+        schema = QueryFilter[list[str]]
+
+        result = schema(field="test", operation=filter_operation, value=value)
+
+        assert result.value == value
+
+    def test_validate_obj_simple_success(self) -> None:
+        value = "test"
+        schema = QueryFilter[str]
+
+        result = schema(field="test", operation=FOps.EQ, value=value)
+
+        assert result.value == value
