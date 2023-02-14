@@ -1,12 +1,14 @@
+import operator
+
 import pytest
 from faker import Faker
 from fastapi import FastAPI, status
 from httpx import AsyncClient
 
 from apps.CORE.enums import JSENDStatus
-from apps.CORE.tables import Group, Role
+from apps.CORE.tables import Group, Permission, Role
 from tests.apps.conftest import assert_is_uuid, assert_jsend_response
-from tests.apps.CORE.factories import GroupFactory, RoleFactory
+from tests.apps.CORE.factories import GroupFactory, PermissionFactory, RoleFactory
 
 
 class TestGroupsRouter:
@@ -33,6 +35,27 @@ class TestGroupsRouter:
     ) -> None:
         roles: list[Role] = RoleFactory.create_batch(size=2)
         title = faker.pystr(max_chars=256)
+        expected_result = sorted(
+            [
+                {
+                    "id": str(role.id),
+                    "permissions": sorted(
+                        [
+                            {
+                                "id": str(permission.id),
+                                "objectName": permission.object_name,
+                                "action": permission.action.value,
+                            }
+                            for permission in role.permissions
+                        ],
+                        key=operator.itemgetter("objectName", "action"),
+                    ),
+                    "title": role.title,
+                }
+                for role in roles
+            ],
+            key=operator.itemgetter("title"),
+        )
 
         response = await async_client.post(
             url=app_fixture.url_path_for(name="create_group"),
@@ -48,17 +71,7 @@ class TestGroupsRouter:
         )
         response_data = response.json()["data"]
         assert_is_uuid(val=response_data["id"])
-        assert response_data["roles"] == [
-            {
-                "id": str(role.id),
-                "permissions": [
-                    {"id": str(permission.id), "objectName": permission.object_name, "action": permission.action}
-                    for permission in role.permissions
-                ],
-                "title": role.title,
-            }
-            for role in roles
-        ]
+        assert response_data["roles"] == expected_result
 
     async def test_create_group_404_roles_not_fround(
         self, async_client: AsyncClient, app_fixture: FastAPI, faker: Faker
@@ -173,7 +186,6 @@ class TestGroupsRouter:
             data=expected_result,
         )
 
-    @pytest.mark.debug()
     async def test_update_group_200_title(self, async_client: AsyncClient, app_fixture: FastAPI, faker: Faker) -> None:
         old_title = "test"
         new_title = faker.pystr(max_chars=256)
@@ -206,7 +218,17 @@ class TestGroupsRouter:
         group: Group = GroupFactory(title=old_title, roles=[])
         updated_group = {
             "id": str(group.id),
-            "roles": [{"id": str(role.id), "title": role.title, "permissions": role.permissions} for role in new_roles],
+            "roles": sorted(
+                [
+                    {
+                        "id": str(role.id),
+                        "title": role.title,
+                        "permissions": sorted(role.permissions, key=operator.itemgetter("object_name", "action")),
+                    }
+                    for role in new_roles
+                ],
+                key=operator.itemgetter("title"),
+            ),
             "title": new_title,
         }
         old_response = await async_client.get(
@@ -229,7 +251,6 @@ class TestGroupsRouter:
             data=updated_group,
         )
 
-    @pytest.mark.debug()
     async def test_update_group_404_not_found_roles(
         self, async_client: AsyncClient, app_fixture: FastAPI, faker: Faker
     ) -> None:
@@ -260,7 +281,6 @@ class TestGroupsRouter:
         )
         assert set(response.json()["data"]) == {fake_role_id, fake_role_id_2}
 
-    @pytest.mark.debug()
     async def test_update_group_400_nothing_to_update(
         self, async_client: AsyncClient, app_fixture: FastAPI, faker: Faker
     ) -> None:
@@ -276,5 +296,176 @@ class TestGroupsRouter:
             status=JSENDStatus.FAIL,
             message="Nothing to update.",
             code=status.HTTP_400_BAD_REQUEST,
+            data=None,
+        )
+
+    async def test_delete_group_404_not_found(
+        self, async_client: AsyncClient, app_fixture: FastAPI, faker: Faker
+    ) -> None:
+        group_id = faker.uuid4()
+
+        response = await async_client.delete(url=app_fixture.url_path_for(name="delete_group", id=group_id))
+
+        assert_jsend_response(
+            response=response,
+            http_code=status.HTTP_404_NOT_FOUND,
+            status=JSENDStatus.FAIL,
+            message="Group not found.",
+            code=status.HTTP_404_NOT_FOUND,
+            data=None,
+        )
+
+    async def test_delete_group_200_then_404(
+        self, async_client: AsyncClient, app_fixture: FastAPI, faker: Faker
+    ) -> None:
+        group: Group = GroupFactory()
+
+        # deleting group
+        response = await async_client.delete(url=app_fixture.url_path_for(name="delete_group", id=str(group.id)))
+
+        assert_jsend_response(
+            response=response,
+            http_code=status.HTTP_200_OK,
+            status=JSENDStatus.SUCCESS,
+            message="Group deleted successfully.",
+            code=status.HTTP_200_OK,
+            data=None,
+        )
+
+        response_fail = await async_client.delete(url=app_fixture.url_path_for(name="delete_group", id=str(group.id)))
+
+        # check that group already deleted
+        assert_jsend_response(
+            response=response_fail,
+            http_code=status.HTTP_404_NOT_FOUND,
+            status=JSENDStatus.FAIL,
+            message="Group not found.",
+            code=status.HTTP_404_NOT_FOUND,
+            data=None,
+        )
+
+
+class TestRolesRouter:
+    async def test_create_role_201_title_only(
+        self, async_client: AsyncClient, app_fixture: FastAPI, faker: Faker
+    ) -> None:
+        title = faker.pystr(max_chars=128)
+
+        response = await async_client.post(url=app_fixture.url_path_for(name="create_role"), json={"title": title})
+
+        assert_jsend_response(
+            response=response,
+            http_code=status.HTTP_201_CREATED,
+            status=JSENDStatus.SUCCESS,
+            message="Role object created successfully.",
+            code=status.HTTP_201_CREATED,
+        )
+        response_data = response.json()["data"]
+        assert_is_uuid(val=response_data["id"])
+        assert response_data["permissions"] == []
+
+    async def test_create_role_201_with_permissions(
+        self, async_client: AsyncClient, app_fixture: FastAPI, faker: Faker
+    ) -> None:
+        permissions: list[Permission] = PermissionFactory.create_batch(size=2)
+        title = faker.pystr(max_chars=128)
+
+        response = await async_client.post(
+            url=app_fixture.url_path_for(name="create_role"),
+            json={"title": title, "permissions_ids": [str(permission.id) for permission in permissions]},
+        )
+
+        assert_jsend_response(
+            response=response,
+            http_code=status.HTTP_201_CREATED,
+            status=JSENDStatus.SUCCESS,
+            message="Role object created successfully.",
+            code=status.HTTP_201_CREATED,
+        )
+        response_data = response.json()["data"]
+        assert_is_uuid(val=response_data["id"])
+        assert response_data["permissions"] == sorted(
+            [
+                {"id": str(permission.id), "objectName": permission.object_name, "action": permission.action}
+                for permission in permissions
+            ],
+            key=operator.itemgetter("objectName", "action"),
+        )
+
+    async def test_list_roles_200(self, async_client: AsyncClient, app_fixture: FastAPI, faker: Faker) -> None:
+        roles: list[Role] = RoleFactory.create_batch(size=2)
+        expected_result = [
+            {
+                "id": str(role.id),
+                "title": role.title,
+                "permissions": [
+                    {
+                        "id": str(permission.id),
+                        "objectName": permission.object_name,
+                        "action": permission.action,
+                    }
+                    for permission in role.permissions
+                ],
+            }
+            for role in roles
+        ]
+
+        response = await async_client.get(
+            url=app_fixture.url_path_for(name="list_roles"),
+        )
+
+        assert_jsend_response(
+            response=response,
+            http_code=status.HTTP_200_OK,
+            status=JSENDStatus.SUCCESS,
+            message="Paginated list of Role objects.",
+            code=status.HTTP_200_OK,
+        )
+        response_objects = response.json()["data"]["objects"]
+        for role in expected_result:
+            assert role in response_objects
+
+    async def test_read_role_404(self, async_client: AsyncClient, app_fixture: FastAPI, faker: Faker) -> None:
+        role_id = faker.uuid4()
+
+        response = await async_client.get(
+            url=app_fixture.url_path_for(name="read_role", id=role_id),
+        )
+
+        assert_jsend_response(
+            response=response,
+            http_code=status.HTTP_404_NOT_FOUND,
+            status=JSENDStatus.FAIL,
+            message="Role not found.",
+            code=status.HTTP_404_NOT_FOUND,
+            data=None,
+        )
+
+    async def test_delete_role_200_then_404(
+        self, async_client: AsyncClient, app_fixture: FastAPI, faker: Faker
+    ) -> None:
+        role: Role = RoleFactory()
+
+        # deleting role
+        response = await async_client.delete(url=app_fixture.url_path_for(name="delete_role", id=str(role.id)))
+
+        assert_jsend_response(
+            response=response,
+            http_code=status.HTTP_200_OK,
+            status=JSENDStatus.SUCCESS,
+            message="Role deleted successfully.",
+            code=status.HTTP_200_OK,
+            data=None,
+        )
+
+        response_fail = await async_client.delete(url=app_fixture.url_path_for(name="delete_role", id=str(role.id)))
+
+        # check that role already deleted
+        assert_jsend_response(
+            response=response_fail,
+            http_code=status.HTTP_404_NOT_FOUND,
+            status=JSENDStatus.FAIL,
+            message="Role not found.",
+            code=status.HTTP_404_NOT_FOUND,
             data=None,
         )

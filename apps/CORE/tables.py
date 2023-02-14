@@ -68,7 +68,7 @@ class User(Base, UUIDMixin, CreatedUpdatedMixin, BaseUser):
 class Group(Base, CreatedUpdatedMixin, UUIDMixin):
     title = Column(VARCHAR(length=256), nullable=False, unique=True, index=True)
 
-    roles = relationship("Role", secondary="group_role", back_populates="groups", lazy="joined")
+    roles = relationship("Role", secondary="group_role", back_populates="groups", lazy="joined", order_by="Role.title")
     users = relationship("User", secondary="group_user", back_populates="groups")
 
     def __repr__(self) -> str:
@@ -79,7 +79,13 @@ class Role(Base, CreatedUpdatedMixin, UUIDMixin):
     title = Column(VARCHAR(length=128), nullable=False, unique=True, index=True)
 
     groups = relationship("Group", secondary="group_role", back_populates="roles")
-    permissions = relationship("Permission", secondary="role_permission", back_populates="roles", lazy="joined")
+    permissions = relationship(
+        "Permission",
+        secondary="role_permission",
+        back_populates="roles",
+        lazy="joined",
+        order_by="Permission.object_name, Permission.action",
+    )
     users = relationship("User", secondary="role_user", back_populates="roles")
 
     def __repr__(self) -> str:

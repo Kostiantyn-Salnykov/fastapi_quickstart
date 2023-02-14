@@ -40,7 +40,7 @@ async def create_group(
     )
 
 
-@groups_router.get(path="/", name="list_groups", response_model=GroupListOutSchema)
+@groups_router.get(path="/", name="list_groups", response_model=GroupListOutSchema, status_code=status.HTTP_200_OK)
 async def list_groups(
     request: Request,
     session: AsyncSession = Depends(get_async_session),
@@ -100,7 +100,7 @@ async def delete_group(
     return JSENDOutSchema(data=None, message="Group deleted successfully.")
 
 
-@roles_router.get(path="/", name="list_roles", response_model=RoleListOutSchema)
+@roles_router.get(path="/", name="list_roles", response_model=RoleListOutSchema, status_code=status.HTTP_200_OK)
 async def list_roles(
     request: Request,
     session: AsyncSession = Depends(get_async_session),
@@ -124,7 +124,9 @@ async def list_roles(
     )
 
 
-@roles_router.get(path="/{id}/", name="read_role", response_model=JSENDOutSchema[RoleOutSchema])
+@roles_router.get(
+    path="/{id}/", name="read_role", response_model=JSENDOutSchema[RoleOutSchema], status_code=status.HTTP_200_OK
+)
 async def read_role(
     request: Request, session: AsyncSession = Depends(get_async_session), id: uuid.UUID = Path()
 ) -> JSENDOutSchema[RoleOutSchema]:
@@ -133,17 +135,22 @@ async def read_role(
     )
 
 
-@roles_router.post(path="/", name="create_role", response_model=JSENDOutSchema[RoleOutSchema])
+@roles_router.post(
+    path="/", name="create_role", response_model=JSENDOutSchema[RoleOutSchema], status_code=status.HTTP_201_CREATED
+)
 async def create_role(
     request: Request, session: AsyncSession = Depends(get_async_session), data: RoleCreateSchema = Body()
 ) -> JSENDOutSchema[RoleOutSchema]:
     return JSENDOutSchema[RoleOutSchema](
         data=await roles_handler.create_role(request=request, session=session, data=data),
         message="Role object created successfully.",
+        code=status.HTTP_201_CREATED,
     )
 
 
-@roles_router.delete(path="/{id}/", name="delete_role", response_model=JSENDOutSchema[typing.Type[None]])
+@roles_router.delete(
+    path="/{id}/", name="delete_role", response_model=JSENDOutSchema[typing.Type[None]], status_code=status.HTTP_200_OK
+)
 async def delete_role(
     request: Request, id: uuid.UUID = Path(), session: AsyncSession = Depends(get_async_session)
 ) -> JSENDOutSchema[typing.Type[None]]:
@@ -151,7 +158,9 @@ async def delete_role(
     return JSENDOutSchema(data=None, message="Role deleted successfully.")
 
 
-@permissions_router.get(path="/", name="list_permissions", response_model=PermissionListOutSchema)
+@permissions_router.get(
+    path="/", name="list_permissions", response_model=PermissionListOutSchema, status_code=status.HTTP_200_OK
+)
 async def list_permissions(
     request: Request,
     session: AsyncSession = Depends(get_async_session),
@@ -179,7 +188,12 @@ async def list_permissions(
     )
 
 
-@permissions_router.get(path="/{id}/", name="read_permission", response_model=JSENDOutSchema[PermissionOutSchema])
+@permissions_router.get(
+    path="/{id}/",
+    name="read_permission",
+    response_model=JSENDOutSchema[PermissionOutSchema],
+    status_code=status.HTTP_200_OK,
+)
 async def read_permission(
     request: Request, session: AsyncSession = Depends(get_async_session), id: uuid.UUID = Path()
 ) -> JSENDOutSchema[PermissionOutSchema]:
