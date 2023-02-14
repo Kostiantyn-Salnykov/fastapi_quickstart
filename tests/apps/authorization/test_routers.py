@@ -44,7 +44,7 @@ class TestGroupsRouter:
                             {
                                 "id": str(permission.id),
                                 "objectName": permission.object_name,
-                                "action": permission.action.value,
+                                "action": permission.action,
                             }
                             for permission in role.permissions
                         ],
