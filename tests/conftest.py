@@ -13,7 +13,7 @@ from pytest_alembic import Config, runner
 from sqlalchemy import create_engine
 from sqlalchemy.engine import URL, Engine
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, create_async_engine
-from sqlalchemy.orm import Session, scoped_session, sessionmaker
+from sqlalchemy.orm import Session, scoped_session, sessionmaker, close_all_sessions
 
 from apps.CORE.db import async_session_factory as AsyncSessionFactory  # noqa
 from apps.CORE.db import session_factory as SessionFactory  # noqa
@@ -60,6 +60,7 @@ def create_database(mock_db_url: None) -> typing.Generator[None, None, None]:
     cursor.execute(f"""CREATE DATABASE {Settings.POSTGRES_DB};""")
     yield
     cursor.execute(f"""DROP DATABASE IF EXISTS {Settings.POSTGRES_DB};""")
+    close_all_sessions()
 
 
 @pytest.fixture(scope="session")
@@ -70,8 +71,10 @@ def monkeypatch_session() -> MonkeyPatch:
         monkeypatch (MonkeyPatch): MonkeyPatch instance with `session` (one time per tests run) scope.
     """
     monkeypatch = MonkeyPatch()
-    yield monkeypatch
-    monkeypatch.undo()
+    try:
+        yield monkeypatch
+    finally:
+        monkeypatch.undo()
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -108,8 +111,10 @@ def event_loop() -> typing.Generator[asyncio.AbstractEventLoop, None, None]:
         loop (asyncio.AbstractEventLoop): Shared with FastAPI, asyncio instance loop, that created for test runs.
     """
     loop = asyncio.get_event_loop_policy().new_event_loop()
-    yield loop
-    loop.close()
+    try:
+        yield loop
+    finally:
+        loop.close()
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -212,6 +217,7 @@ def sync_db_engine() -> Engine:
         yield engine
     finally:
         engine.dispose()
+        close_all_sessions()
 
 
 @pytest.fixture(scope="session")
@@ -226,6 +232,7 @@ async def async_db_engine(event_loop: asyncio.AbstractEventLoop) -> AsyncEngine:
         yield async_engine
     finally:
         await async_engine.dispose()
+        close_all_sessions()
 
 
 @pytest.fixture(scope="function")
@@ -238,9 +245,11 @@ def sync_session_factory(sync_db_engine: Engine) -> sessionmaker:
 def sync_db_session(sync_session_factory: sessionmaker) -> typing.Generator[Session, None, None]:
     """Create sync session for database and rollback it after test."""
     with sync_session_factory() as session:
-        yield session
-        session.rollback()
-        session.close()
+        try:
+            yield session
+        finally:
+            session.rollback()
+            session.close()
 
 
 @pytest.fixture(scope="function")
@@ -253,18 +262,22 @@ async def session_factory(async_db_engine: AsyncEngine) -> sessionmaker:
 async def db_session(session_factory: sessionmaker) -> typing.AsyncGenerator[AsyncSession, None]:
     """Create async session for database and rollback it after test."""
     async with session_factory() as async_session:
-        yield async_session
-        await async_session.rollback()
-        await async_session.close()
+        try:
+            yield async_session
+        finally:
+            await async_session.rollback()
+            await async_session.close()
 
 
 @pytest.fixture(scope="session")
 def scoped_db_session() -> scoped_session:
     """Create scoped session for tests runner and model factories."""
     session = scoped_session(session_factory=SessionFactory)
-    yield session
-    session.rollback()
-    session.close()
+    try:
+        yield session
+    finally:
+        session.rollback()
+        session.close()
 
 
 @pytest.fixture(autouse=True, scope="session")

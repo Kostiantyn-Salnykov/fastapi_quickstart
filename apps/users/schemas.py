@@ -88,7 +88,7 @@ class LoginOutSchema(TokenRefreshSchema):
 
 class UserTokenPayloadSchema(TokenPayloadSchema):
     id: uuid.UUID
-    token_id: str
+    token_id: str | None
 
 
 class LoginSchema(BaseInSchema):

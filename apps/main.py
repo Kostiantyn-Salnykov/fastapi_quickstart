@@ -1,6 +1,5 @@
 import datetime
 
-import fastapi.responses
 from fastapi import APIRouter, FastAPI, status
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
@@ -58,7 +57,7 @@ app.add_middleware(middleware_class=GZipMiddleware, minimum_size=512)  # №5
 app.add_middleware(
     middleware_class=AuthenticationMiddleware,
     backend=JWTTokenBackend(scheme_prefix="Bearer"),
-    on_error=lambda conn, exc: fastapi.responses.ORJSONResponse(
+    on_error=lambda conn, exc: ORJSONResponse(
         content={"status": JSENDStatus.FAIL, "data": None, "message": str(exc), "code": status.HTTP_401_UNAUTHORIZED},
         status_code=status.HTTP_401_UNAUTHORIZED,
     ),
