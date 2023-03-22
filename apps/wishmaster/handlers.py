@@ -5,7 +5,7 @@ from sqlalchemy.engine import CursorResult
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.sql.elements import BinaryExpression, UnaryExpression
 
-from apps.CORE.dependencies import BasePagination
+from apps.CORE.deps.pagination import BasePagination
 from apps.CORE.exceptions import BackendException
 from apps.CORE.types import StrOrUUID
 from apps.CORE.utils import to_db_encoder

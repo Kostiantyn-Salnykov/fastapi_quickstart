@@ -13,11 +13,11 @@ from pytest_alembic import Config, runner
 from sqlalchemy import create_engine
 from sqlalchemy.engine import URL, Engine
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, create_async_engine
-from sqlalchemy.orm import Session, scoped_session, sessionmaker, close_all_sessions
+from sqlalchemy.orm import Session, close_all_sessions, scoped_session, sessionmaker
 
 from apps.CORE.db import async_session_factory as AsyncSessionFactory  # noqa
 from apps.CORE.db import session_factory as SessionFactory  # noqa
-from apps.CORE.dependencies import get_async_session, get_session
+from apps.CORE.deps import get_async_session, get_session
 from settings import Settings
 from tests.apps.CORE.factories import (
     GroupFactory,

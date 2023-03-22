@@ -2,7 +2,7 @@ import uuid
 from typing import Optional
 
 from sqlalchemy import SMALLINT, VARCHAR, ForeignKey
-from sqlalchemy.orm import relationship, Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from apps.CORE.db import Base, CreatedAtMixin, CreatedUpdatedMixin, UUIDMixin
 from apps.CORE.tables import CASCADES, User

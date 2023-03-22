@@ -54,3 +54,17 @@ class BackendException(Exception):
             "message": self.message,
             "code": self.code,
         }
+
+
+class RateLimitException(BackendException):
+    def __init__(
+        self,
+        *,
+        status: JSENDStatus = JSENDStatus.FAIL,
+        data: typing.Union[None, int, str, list[typing.Any], dict[str, typing.Any]] = None,
+        message: str,
+        code: int = http_status.HTTP_429_TOO_MANY_REQUESTS,
+        headers: dict[str, str] = None,
+    ) -> None:
+        super().__init__(status=status, data=data, message=message, code=code)
+        self.headers = headers

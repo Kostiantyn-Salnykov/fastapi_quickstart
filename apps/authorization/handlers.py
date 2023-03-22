@@ -23,7 +23,7 @@ from apps.authorization.services import (
     role_permission_service,
     roles_service,
 )
-from apps.CORE.dependencies import BasePagination
+from apps.CORE.deps.pagination import BasePagination
 from apps.CORE.exceptions import BackendException
 from apps.CORE.tables import Group, Permission, Role
 from apps.CORE.types import StrOrUUID

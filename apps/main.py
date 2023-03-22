@@ -12,10 +12,10 @@ from uvicorn.middleware.proxy_headers import ProxyHeadersMiddleware
 from apps.authorization.managers import AuthorizationManager
 from apps.authorization.middlewares import JWTTokenBackend
 from apps.authorization.routers import groups_router, permissions_router, roles_router
-from apps.CORE.db import async_engine, async_session_factory, engine, redis, session_factory
+from apps.CORE.db import async_engine, async_session_factory, engine, redis_engine, session_factory
 from apps.CORE.enums import JSENDStatus
-from apps.CORE.exceptions import BackendException
-from apps.CORE.handlers import backend_exception_handler, validation_exception_handler
+from apps.CORE.exceptions import BackendException, RateLimitException
+from apps.CORE.handlers import backend_exception_handler, rate_limit_exception_handler, validation_exception_handler
 from apps.CORE.managers import TokensManager
 from apps.CORE.responses import Responses
 from apps.CORE.schemas import JSENDOutSchema
@@ -45,11 +45,12 @@ app.state.tokens_manager = TokensManager(
 )
 authorization_manager = AuthorizationManager(engine=engine)
 app.state.authorization_manager = authorization_manager
-app.state.redis = redis  # proxy Redis client to request.app.state.redis
+app.state.redis = redis_engine  # proxy Redis client to request.app.state.redis
 
-# Add exception handlers
+# Add exception handlers (<Error type>, <Error handler>)
 app.add_exception_handler(BackendException, backend_exception_handler)
 app.add_exception_handler(RequestValidationError, validation_exception_handler)
+app.add_exception_handler(RateLimitException, rate_limit_exception_handler)
 
 # Add middlewares stack (FIRST IN => LATER EXECUTION)
 app.add_middleware(middleware_class=GZipMiddleware, minimum_size=512)  # №5
@@ -98,7 +99,7 @@ async def _check_async_engine() -> None:
 @app.on_event(event_type="startup")
 async def _check_redis() -> None:
     logger.debug(msg="Checking connection with Redis...")
-    async with redis.client() as conn:
+    async with redis_engine.client() as conn:
         result = await conn.ping()
         if result is not True:
             msg = "Connection to Redis failed."
@@ -110,15 +111,15 @@ async def _check_redis() -> None:
 @app.on_event(event_type="shutdown")
 async def _dispose_all_connections() -> None:
     logger.debug(msg="Closing PostgreSQL connections...")
-    await async_engine.dispose()
-    engine.dispose()
+    await async_engine.dispose()  # Close sessions to async engine
+    engine.dispose()  # Close sessions to sync engine
     logger.debug(msg="All PostgreSQL connections closed.")
 
 
 @app.on_event(event_type="shutdown")
 async def _close_redis() -> None:
     logger.debug(msg="Closing Redis connection...")
-    await redis.close()
+    await redis_engine.close()
     logger.debug(msg="Redis connection closed.")
 
 
@@ -171,7 +172,7 @@ if __name__ == "__main__":  # pragma: no cover
         host=Settings.HOST,
         port=Settings.PORT,
         loop="uvloop",
-        reload=True,
+        reload=True,  # FIXME: PyCharm debugger error: https://youtrack.jetbrains.com/issue/PY-57217
         reload_delay=5,
         log_level=Settings.LOG_LEVEL,
         use_colors=Settings.LOG_USE_COLORS,

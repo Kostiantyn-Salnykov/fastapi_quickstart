@@ -46,3 +46,13 @@ class FOps(str, enum.Enum):
     GE = GREATER_OR_EQUAL
     L = LESS
     LE = LESS_OR_EQUAL
+
+
+class RatePeriod(str, enum.Enum):
+    """Predefined periods for RateLimiters. Used in datetime.timedelta constructor."""
+
+    SECOND = "seconds"
+    MINUTE = "minutes"
+    HOUR = "hours"
+    DAY = "days"
+    WEEK = "weeks"

@@ -5,15 +5,10 @@ from pytest_mock import MockerFixture
 from sqlalchemy.exc import IntegrityError
 
 from apps.CORE.db import Base
-from apps.CORE.dependencies import (
-    BasePagination,
-    BaseSorting,
-    QueryFilter,
-    get_async_session,
-    get_redis,
-    get_session,
-    get_sqlalchemy_where_operations_mapper,
-)
+from apps.CORE.deps import get_async_session, get_redis, get_session
+from apps.CORE.deps.filters import QueryFilter, get_sqlalchemy_where_operations_mapper
+from apps.CORE.deps.pagination import BasePagination
+from apps.CORE.deps.sorting import BaseSorting
 from apps.CORE.enums import FOps
 from apps.CORE.exceptions import BackendException
 from apps.CORE.schemas import BaseOutSchema
@@ -173,7 +168,7 @@ class TestBaseSorting:
 
 async def test_get_async_session(mocker: MockerFixture) -> None:
     async_session_factory_mock = mocker.patch(
-        target="apps.CORE.dependencies.async_session_factory", return_value=mocker.MagicMock()
+        target="apps.CORE.deps.async_session_factory", return_value=mocker.MagicMock()
     )
     async_gen_session = get_async_session()
 
@@ -186,7 +181,7 @@ async def test_get_async_session(mocker: MockerFixture) -> None:
 @pytest.mark.debug()
 def test_get_session(mocker: MockerFixture) -> None:
     session_factory_mock = mocker.patch(
-        target="apps.CORE.dependencies.session_factory",
+        target="apps.CORE.deps.session_factory",
         return_value=mocker.MagicMock(test=mocker.MagicMock(side_effect=IntegrityError("", "", ""))),
     )
     gen_session = get_session()

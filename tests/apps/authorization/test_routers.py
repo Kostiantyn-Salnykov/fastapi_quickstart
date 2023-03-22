@@ -17,7 +17,7 @@ class TestGroupsRouter:
     ) -> None:
         title = faker.pystr(max_chars=256)
 
-        response = await async_client.post(url=app_fixture.url_path_for(name="create_group"), json={"title": title})
+        response = await async_client.post(url=app_fixture.url_path_for("create_group"), json={"title": title})
 
         assert_jsend_response(
             response=response,
@@ -58,7 +58,7 @@ class TestGroupsRouter:
         )
 
         response = await async_client.post(
-            url=app_fixture.url_path_for(name="create_group"),
+            url=app_fixture.url_path_for("create_group"),
             json={"title": title, "roles_ids": [str(role.id) for role in roles]},
         )
 
@@ -80,7 +80,7 @@ class TestGroupsRouter:
         title = faker.pystr(max_chars=256)
 
         response = await async_client.post(
-            url=app_fixture.url_path_for(name="create_group"),
+            url=app_fixture.url_path_for("create_group"),
             json={"title": title, "roles_ids": roles_ids},
         )
 
@@ -121,7 +121,7 @@ class TestGroupsRouter:
         ]
 
         response = await async_client.get(
-            url=app_fixture.url_path_for(name="list_groups"),
+            url=app_fixture.url_path_for("list_groups"),
         )
 
         assert_jsend_response(
@@ -139,7 +139,7 @@ class TestGroupsRouter:
         group_id = faker.uuid4()
 
         response = await async_client.get(
-            url=app_fixture.url_path_for(name="read_group", id=group_id),
+            url=app_fixture.url_path_for("read_group", id=group_id),
         )
 
         assert_jsend_response(
@@ -174,7 +174,7 @@ class TestGroupsRouter:
         }
 
         response = await async_client.get(
-            url=app_fixture.url_path_for(name="read_group", id=str(group.id)),
+            url=app_fixture.url_path_for("read_group", id=str(group.id)),
         )
 
         assert_jsend_response(
@@ -192,12 +192,12 @@ class TestGroupsRouter:
         group: Group = GroupFactory(title=old_title, roles=[])
         updated_group = {"id": str(group.id), "roles": group.roles, "title": new_title}
         old_response = await async_client.get(
-            url=app_fixture.url_path_for(name="read_group", id=str(group.id)),
+            url=app_fixture.url_path_for("read_group", id=str(group.id)),
         )
         assert old_response.json()["data"]["title"] == old_title
 
         response = await async_client.patch(
-            url=app_fixture.url_path_for(name="update_group", id=str(group.id)), json={"title": new_title}
+            url=app_fixture.url_path_for("update_group", id=str(group.id)), json={"title": new_title}
         )
 
         assert_jsend_response(
@@ -232,13 +232,13 @@ class TestGroupsRouter:
             "title": new_title,
         }
         old_response = await async_client.get(
-            url=app_fixture.url_path_for(name="read_group", id=str(group.id)),
+            url=app_fixture.url_path_for("read_group", id=str(group.id)),
         )
         assert old_response.json()["data"]["title"] == old_title
         assert old_response.json()["data"]["roles"] == []
 
         response = await async_client.patch(
-            url=app_fixture.url_path_for(name="update_group", id=str(group.id)),
+            url=app_fixture.url_path_for("update_group", id=str(group.id)),
             json={"title": new_title, "roles_ids": [str(role.id) for role in new_roles]},
         )
 
@@ -261,12 +261,12 @@ class TestGroupsRouter:
         role: Role = RoleFactory()
         group: Group = GroupFactory(title=old_title, roles=[role])
         old_response = await async_client.get(
-            url=app_fixture.url_path_for(name="read_group", id=str(group.id)),
+            url=app_fixture.url_path_for("read_group", id=str(group.id)),
         )
         assert old_response.json()["data"]["title"] == old_title
 
         response = await async_client.patch(
-            url=app_fixture.url_path_for(name="update_group", id=str(group.id)),
+            url=app_fixture.url_path_for("update_group", id=str(group.id)),
             json={
                 "title": new_title,
                 "roles_ids": [str(role_id) for role_id in (role.id, fake_role_id, fake_role_id_2)],
@@ -287,9 +287,7 @@ class TestGroupsRouter:
     ) -> None:
         group: Group = GroupFactory()
 
-        response = await async_client.patch(
-            url=app_fixture.url_path_for(name="update_group", id=str(group.id)), json={}
-        )
+        response = await async_client.patch(url=app_fixture.url_path_for("update_group", id=str(group.id)), json={})
 
         assert_jsend_response(
             response=response,
@@ -305,7 +303,7 @@ class TestGroupsRouter:
     ) -> None:
         group_id = faker.uuid4()
 
-        response = await async_client.delete(url=app_fixture.url_path_for(name="delete_group", id=group_id))
+        response = await async_client.delete(url=app_fixture.url_path_for("delete_group", id=group_id))
 
         assert_jsend_response(
             response=response,
@@ -322,7 +320,7 @@ class TestGroupsRouter:
         group: Group = GroupFactory()
 
         # deleting group
-        response = await async_client.delete(url=app_fixture.url_path_for(name="delete_group", id=str(group.id)))
+        response = await async_client.delete(url=app_fixture.url_path_for("delete_group", id=str(group.id)))
 
         assert_jsend_response(
             response=response,
@@ -333,7 +331,7 @@ class TestGroupsRouter:
             data=None,
         )
 
-        response_fail = await async_client.delete(url=app_fixture.url_path_for(name="delete_group", id=str(group.id)))
+        response_fail = await async_client.delete(url=app_fixture.url_path_for("delete_group", id=str(group.id)))
 
         # check that group already deleted
         assert_jsend_response(
@@ -352,7 +350,7 @@ class TestRolesRouter:
     ) -> None:
         title = faker.pystr(max_chars=128)
 
-        response = await async_client.post(url=app_fixture.url_path_for(name="create_role"), json={"title": title})
+        response = await async_client.post(url=app_fixture.url_path_for("create_role"), json={"title": title})
 
         assert_jsend_response(
             response=response,
@@ -372,7 +370,7 @@ class TestRolesRouter:
         title = faker.pystr(max_chars=128)
 
         response = await async_client.post(
-            url=app_fixture.url_path_for(name="create_role"),
+            url=app_fixture.url_path_for("create_role"),
             json={"title": title, "permissions_ids": [str(permission.id) for permission in permissions]},
         )
 
@@ -412,7 +410,7 @@ class TestRolesRouter:
         ]
 
         response = await async_client.get(
-            url=app_fixture.url_path_for(name="list_roles"),
+            url=app_fixture.url_path_for("list_roles"),
         )
 
         assert_jsend_response(
@@ -430,7 +428,7 @@ class TestRolesRouter:
         role_id = faker.uuid4()
 
         response = await async_client.get(
-            url=app_fixture.url_path_for(name="read_role", id=role_id),
+            url=app_fixture.url_path_for("read_role", id=role_id),
         )
 
         assert_jsend_response(
@@ -448,7 +446,7 @@ class TestRolesRouter:
         role: Role = RoleFactory()
 
         # deleting role
-        response = await async_client.delete(url=app_fixture.url_path_for(name="delete_role", id=str(role.id)))
+        response = await async_client.delete(url=app_fixture.url_path_for("delete_role", id=str(role.id)))
 
         assert_jsend_response(
             response=response,
@@ -459,7 +457,7 @@ class TestRolesRouter:
             data=None,
         )
 
-        response_fail = await async_client.delete(url=app_fixture.url_path_for(name="delete_role", id=str(role.id)))
+        response_fail = await async_client.delete(url=app_fixture.url_path_for("delete_role", id=str(role.id)))
 
         # check that role already deleted
         assert_jsend_response(

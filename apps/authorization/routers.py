@@ -18,7 +18,9 @@ from apps.authorization.schemas import (
     RoleListOutSchema,
     RoleOutSchema,
 )
-from apps.CORE.dependencies import BasePagination, BaseSorting, get_async_session
+from apps.CORE.deps import get_async_session
+from apps.CORE.deps.pagination import BasePagination
+from apps.CORE.deps.sorting import BaseSorting
 from apps.CORE.schemas import JSENDOutSchema
 from apps.CORE.tables import Group, Permission, Role
 

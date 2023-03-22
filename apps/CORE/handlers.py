@@ -4,7 +4,7 @@ from fastapi.responses import ORJSONResponse
 from sqlalchemy.exc import IntegrityError, NoResultFound
 
 from apps.CORE.enums import JSENDStatus
-from apps.CORE.exceptions import BackendException
+from apps.CORE.exceptions import BackendException, RateLimitException
 from settings import Settings
 
 
@@ -91,3 +91,17 @@ def no_result_found_error_handler(error: NoResultFound) -> None:
         code=status.HTTP_404_NOT_FOUND,
         status=JSENDStatus.FAIL,
     )
+
+
+def rate_limit_exception_handler(request: Request, exc: RateLimitException) -> ORJSONResponse:
+    """
+    Handler for RateLimitException.
+
+    Args:
+        request (Request): FastAPI Request instance.
+        exc (RateLimitException): Error that RateLimiter raises.
+
+    Returns:
+        result (ORJSONResponse): Transformed JSON response from Back-end exception.
+    """
+    return ORJSONResponse(content=exc.dict(), status_code=exc.code, headers=exc.headers)

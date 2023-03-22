@@ -1,196 +1,27 @@
-import math
 import typing
-import urllib.parse
 
 import orjson
 from fastapi import Query, Request
 from pydantic import Field, ValidationError, parse_obj_as, validator
 from pydantic.generics import GenericModel
-from sqlalchemy.exc import IntegrityError, NoResultFound
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import ColumnProperty, InstrumentedAttribute, Session
-from sqlalchemy.sql.elements import BinaryExpression, UnaryExpression
+from sqlalchemy import BinaryExpression
+from sqlalchemy.orm import ColumnProperty, InstrumentedAttribute
 
-from apps.CORE.db import async_session_factory, redis, session_factory
 from apps.CORE.enums import FOps
 from apps.CORE.exceptions import BackendException
-from apps.CORE.handlers import integrity_error_handler, no_result_found_error_handler
-from apps.CORE.schemas import ObjectsVar, PaginationOutSchema
-from apps.CORE.types import ModelColumnVar, ModelType, SchemaType
-from loggers import get_logger
-from redis import asyncio as aioredis
+from apps.CORE.types import ModelType, SchemaType
 from settings import Settings
 
-logger = get_logger(name=__name__)
+__all__ = (
+    "get_sqlalchemy_where_operations_mapper",
+    "QueryFilter",
+    "F",
+    "BaseFilters",
+)
 
 
-# TODO: Think about `page` query instead of `offset`.
-class BasePagination:
-    def __init__(self) -> None:
-        """Initializer for BasePagination. Also, setup default values."""
-        self.offset = 0
-        self.limit = 100
-
-    def __call__(
-        self,
-        offset: int = Query(default=0, ge=0, description="Number of records to skip."),
-        limit: int = Query(default=100, ge=1, le=1000, description="Number of records to return per request."),
-    ) -> "BasePagination":
-        """Callable `Depends` class usage."""
-        self.offset = offset
-        self.limit = limit
-        return self
-
-    def next(self) -> dict[str, int]:
-        return {"offset": self.offset + self.limit, "limit": self.limit}
-
-    def previous(self) -> dict[str, int]:
-        return {"offset": val if (val := self.offset - self.limit) >= 0 else 0, "limit": self.limit}
-
-    def paginate(
-        self,
-        request: Request,
-        objects: list[ObjectsVar],
-        schema: typing.Type[SchemaType],
-        total: int,
-        endpoint_name: str,
-    ) -> PaginationOutSchema[SchemaType]:
-        previous_url = (
-            request.url_for(name=endpoint_name) + "?" + urllib.parse.urlencode(query=self.previous())
-            if self.offset > 0
-            else None
-        )
-        objects_count = len(objects)
-        next_url = (
-            request.url_for(name=endpoint_name) + "?" + urllib.parse.urlencode(query=self.next())
-            if objects_count == self.limit and objects_count != total
-            else None
-        )
-        return PaginationOutSchema[schema](
-            objects=(schema.from_orm(obj=obj) for obj in objects),  # type: ignore
-            offset=self.offset,
-            limit=self.limit,
-            count=objects_count,
-            total_count=total,
-            previous_url=previous_url,
-            next_url=next_url,
-            page=int(math.floor(self.offset / self.limit) + 1),  # calculate current page.
-            pages=int(math.ceil(total / self.limit)),  # calculate total numbed of pages.
-        )
-
-
-class BaseSorting:
-    def __init__(
-        self,
-        model: typing.Type[ModelType],
-        schema: typing.Type[SchemaType],
-        available_columns: list[ModelColumnVar] | None = None,
-    ):
-        self.model = model
-        self.schema = schema
-        self.available_columns = available_columns or []
-        self.available_columns_names = [col.key for col in self.available_columns]
-
-    def __call__(
-        self,
-        sorting: list[str] = Query(
-            default=None,
-            title="Sorting system.",
-            description="You can sort by one or multiple fields. "
-            "\n\n**Examples**: "
-            "\n\n`&sorting=field_name` (_This will sort `field_name` by ASC._)"
-            "\n\n`&sorting=field_one&sorting=-field_two` (_This will sort `field_one` ASC, then `field_two` DESC._)"
-            "\n\n**P.S.** Order of `sorting` query parameters are matter!",
-            examples={
-                "no sorting": {
-                    "summary": "No sorting.",
-                    "description": "",
-                    "value": [],
-                },
-                "-createdAt": {
-                    "summary": "-createdAt",
-                    "description": "Sort by 'createdAt' DESC.",
-                    "value": ["-createdAt"],
-                },
-                "createdAt": {
-                    "summary": "createdAt",
-                    "description": "Sort by 'createdAt' ASC.",
-                    "value": ["createdAt"],
-                },
-            },
-        ),
-    ) -> list[UnaryExpression]:
-        return self.build_sorting(sorting=sorting)
-
-    def collect_aliases(self) -> dict[str, str]:
-        result = {}  # <alias_name>: <real_name>
-        for field_name, field in self.schema.__fields__.items():
-            if field.has_alias:
-                result.update({field.alias: field.name})
-        return result
-
-    def build_sorting(self, sorting: list[str]) -> list[UnaryExpression]:
-        aliases_map = self.collect_aliases()
-        result = []
-        for column in sorting or ["-created_at"]:  # If no provided, sort by `created_at` DESC.
-            raw_column = column.strip().removeprefix("-").removeprefix("+")
-            # retrieve real column name by alias, or skip (by default)
-            raw_column = aliases_map.get(raw_column, raw_column)
-            if hasattr(self.model, raw_column) and raw_column in self.available_columns_names:
-                ordering_method = "desc" if column.startswith("-") else "asc"  # Choose method to use: .acs() OR .desc()
-                col_attr = getattr(self.model, raw_column)  # e.g. Get model attribute dynamically: Model.<raw_column>
-                result.append(getattr(col_attr, ordering_method)())  # e.g. Model.<raw_column>.desc()
-        return result
-
-
-async def get_async_session() -> typing.AsyncGenerator[AsyncSession, None]:  # pragma: no cover
-    """Creates FastAPI dependency for generation of SQLAlchemy AsyncSession.
-
-    Yields:
-        AsyncSession: SQLAlchemy AsyncSession.
-    """
-    async with async_session_factory() as session:
-        try:
-            yield session
-            await session.commit()
-        except IntegrityError as error:
-            await session.rollback()
-            integrity_error_handler(error=error)
-        except NoResultFound as error:
-            await session.rollback()
-            no_result_found_error_handler(error=error)
-        finally:
-            await session.close()
-
-
-def get_session() -> typing.Generator[Session, None, None]:
-    """Creates FastAPI dependency for generation of SQLAlchemy Session.
-
-    Yields:
-        Session: SQLAlchemy Session.
-    """
-    with session_factory() as session:
-        try:
-            yield session
-            session.commit()
-        except IntegrityError as error:
-            session.rollback()
-            integrity_error_handler(error=error)
-        except NoResultFound as error:
-            session.rollback()
-            no_result_found_error_handler(error=error)
-        finally:
-            session.close()
-
-
-async def get_redis() -> typing.AsyncGenerator[aioredis.Redis, None]:
-    async with redis.client() as conn:
-        try:
-            yield conn
-        except Exception as error:
-            logger.warning(msg=error)
-        finally:
-            await conn.close()
+TypeA = typing.TypeVar("TypeA")
+TypeValue = typing.TypeVar("TypeValue")
 
 
 def get_sqlalchemy_where_operations_mapper(operation_type: FOps) -> str:
@@ -225,10 +56,6 @@ def get_sqlalchemy_where_operations_mapper(operation_type: FOps) -> str:
             return "notnull"
         case _:  # pragma: no cover
             return "__eq__"  # default
-
-
-TypeA = typing.TypeVar("TypeA")
-TypeValue = typing.TypeVar("TypeValue")
 
 
 class QueryFilter(GenericModel, typing.Generic[TypeA]):
@@ -307,7 +134,7 @@ class BaseFilters:
             },
         ),
     ) -> list[BinaryExpression]:
-        result = []
+        result: list[BinaryExpression] = []
         if json_filters:
             filters_list = self.parse_json_filters(json_filters=json_filters)
             query_filters_list = self.parse_query_filters(filters_list=filters_list)

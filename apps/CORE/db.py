@@ -2,6 +2,7 @@ import datetime
 import re
 import uuid
 
+import redis.asyncio as aioredis
 from sqlalchemy import TIMESTAMP, MetaData, create_engine, text
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
@@ -16,8 +17,22 @@ from sqlalchemy.orm import (
 )
 from sqlalchemy.sql import func
 
-from redis import asyncio as aioredis
 from settings import Settings
+
+__all__ = (
+    "TableNameMixin",
+    "UUIDMixin",
+    "CreatedAtMixin",
+    "UpdatedAtMixin",
+    "CreatedUpdatedMixin",
+    "NAMING_CONVENTION",
+    "Base",
+    "async_engine",
+    "engine",
+    "async_session_factory",
+    "session_factory",
+    "redis_engine",
+)
 
 
 @declarative_mixin
@@ -86,7 +101,7 @@ async_engine = create_async_engine(url=Settings.POSTGRES_URL_ASYNC, echo=Setting
 engine = create_engine(url=Settings.POSTGRES_URL, echo=Settings.POSTGRES_ECHO)
 async_session_factory = sessionmaker(bind=async_engine, class_=AsyncSession, expire_on_commit=False, future=True)
 session_factory = sessionmaker(bind=engine, class_=Session, expire_on_commit=False, future=True)
-redis = aioredis.Redis(
+redis_engine = aioredis.Redis(
     host=Settings.REDIS_HOST,
     port=Settings.REDIS_PORT,
     db=Settings.REDIS_DB,

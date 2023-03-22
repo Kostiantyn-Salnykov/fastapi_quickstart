@@ -7,7 +7,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.sql.elements import BinaryExpression, UnaryExpression
 
 from apps.authorization.dependencies import IsAuthenticated, bearer_auth
-from apps.CORE.dependencies import BaseFilters, BasePagination, BaseSorting, F, get_async_session
+from apps.CORE.deps import get_async_session
+from apps.CORE.deps.filters import BaseFilters, F
+from apps.CORE.deps.pagination import BasePagination
+from apps.CORE.deps.sorting import BaseSorting
 from apps.CORE.enums import FOps
 from apps.CORE.responses import Responses
 from apps.CORE.schemas import JSENDOutSchema
