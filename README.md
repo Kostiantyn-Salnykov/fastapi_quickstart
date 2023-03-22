@@ -1,6 +1,56 @@
 # fastapi_quickstart (In development, WIP)!!!
 Initial FastAPI project with SQLAlchemy (asyncpg), Alembic, Pydantic, Pytest, Poetry, Gunicorn, Docker, docker-compose, black, isort, flake8, coverage, factory-boy, pytest-alembic, pydantic-factories. 
 
+## Dependencies:
+- Python 3.11
+- Poetry
+- Docker & docker-compose (for development)
+
+
+## Setup
+#### Create `.env` file (based on example.env)
+```commandline
+cp example.env .env
+```
+
+#### Setup environment
+```commandline
+poetry env use python3.11
+```
+
+#### Activate environment
+```commandline
+poetry shell
+```
+
+#### Install packages
+```commandline
+poetry install
+```
+
+### Run all containers (PostgreSQL, PGAdmin, Redis, RedisInsights)
+```commandline
+docker-compose up -d
+```
+
+### Run Back-end
+#### docker-compose (local container)
+It also possible to uncomment backend service inside docker-compose.yml and run 
+through the docker compose.
+> **_Note:_** Set `POSTGRES_HOST` to `db` (`POSTGRES_HOST=db`) inside .env file
+
+#### Uvicorn (local)
+```commandline
+poetry run python -m apps.main
+```
+
+#### With Gunicorn & UvicornWorker (like a prod)
+```commandline
+make run
+```
+
+---
+
 ## Tech stack
 
 ### Package & Dependencies Management
