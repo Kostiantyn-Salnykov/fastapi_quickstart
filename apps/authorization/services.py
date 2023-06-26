@@ -1,5 +1,5 @@
-from apps.CORE.repositories import BaseCoreRepository
 from apps.CORE.models import Group, GroupRole, Permission, Role, RolePermission
+from apps.CORE.repositories import BaseCoreRepository
 from loggers import get_logger
 
 logger = get_logger(name=__name__)

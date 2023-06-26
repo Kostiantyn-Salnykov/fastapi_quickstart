@@ -6,8 +6,8 @@ from sqlalchemy.engine import ChunkedIteratorResult, CursorResult
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import contains_eager
 
-from apps.CORE.repositories import BaseCoreRepository
 from apps.CORE.models import Group, Permission, Role, User
+from apps.CORE.repositories import BaseCoreRepository
 from apps.CORE.utils import to_db_encoder
 from apps.users.enums import UsersStatuses
 from apps.users.schemas import UserCreateSchema
