@@ -7,17 +7,17 @@ from apps.CORE.schemas import BaseInSchema, BaseOutSchema, JSENDPaginationOutSch
 
 
 class GroupCreateSchema(BaseInSchema):
-    title: str = Field(default=..., max_length=256, example="Group title")
+    title: str = Field(default=..., max_length=255, example="Group title")
     roles_ids: list[uuid.UUID] | None = Field(default=[])
 
 
 class GroupUpdateSchema(GroupCreateSchema):
-    title: str | None = Field(default=None, max_length=256, example="Group title")
+    title: str | None = Field(default=None, max_length=255, example="Group title")
 
 
 class GroupCreateToDBSchema(BaseInSchema):
     id: uuid.UUID | None
-    title: str = Field(default=..., max_length=256, example="Group title")
+    title: str = Field(default=..., max_length=255, example="Group title")
 
 
 class CreateGroupRoleSchema(BaseInSchema):
@@ -54,7 +54,7 @@ class RoleOutSchema(BaseOutSchema):
 
 class GroupOutSchema(BaseOutSchema):
     id: uuid.UUID
-    title: str = Field(default=..., max_length=256)
+    title: str = Field(default=..., max_length=255)
     roles: list[RoleOutSchema] | None = Field(default=[])
 
 

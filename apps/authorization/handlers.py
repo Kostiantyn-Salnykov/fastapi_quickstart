@@ -1,6 +1,6 @@
 import typing
-import uuid
 
+import uuid_extensions
 from fastapi import Request, status
 from sqlalchemy.engine import CursorResult
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -23,7 +23,7 @@ from apps.authorization.services import (
     role_permission_service,
     roles_service,
 )
-from apps.CORE.deps.pagination import BasePagination
+from apps.CORE.deps.pagination import NextTokenPagination
 from apps.CORE.exceptions import BackendException
 from apps.CORE.tables import Group, Permission, Role
 from apps.CORE.types import StrOrUUID
@@ -35,7 +35,7 @@ logger = get_logger(name=__name__)
 
 class GroupsHandler:
     async def create_group(self, *, request: Request, session: AsyncSession, data: GroupCreateSchema) -> GroupOutSchema:
-        group_schema: GroupCreateToDBSchema = GroupCreateToDBSchema(id=uuid.uuid4(), title=data.title)
+        group_schema: GroupCreateToDBSchema = GroupCreateToDBSchema(id=uuid_extensions.uuid7str(), title=data.title)
         if data.roles_ids:
             await roles_service.list_or_not_found(session=session, ids=data.roles_ids, message="Role(s) not found.")
         async with session.begin_nested():
@@ -57,14 +57,14 @@ class GroupsHandler:
         *,
         request: Request,
         session: AsyncSession,
-        pagination: BasePagination,
+        pagination: NextTokenPagination,
         sorting: list[UnaryExpression],
         filters: list[BinaryExpression] | None = None
     ) -> tuple[int, list[Group]]:
         objects: list[Group]
         return await groups_service.list(
             session=session,
-            offset=pagination.offset,
+            next_token=pagination.next_token,
             limit=pagination.limit,
             sorting=sorting,
             filters=filters,
@@ -98,7 +98,7 @@ class GroupsHandler:
 
 class RolesHandler:
     async def create_role(self, *, request: Request, session: AsyncSession, data: RoleCreateSchema) -> RoleOutSchema:
-        role_schema: RoleCreateToDBSchema = RoleCreateToDBSchema(id=uuid.uuid4(), title=data.title)
+        role_schema: RoleCreateToDBSchema = RoleCreateToDBSchema(id=uuid_extensions.uuid7str(), title=data.title)
         if data.permissions_ids:
             await permissions_service.list_or_not_found(
                 session=session, ids=data.permissions_ids, message="Permission(s) not found."
@@ -127,14 +127,14 @@ class RolesHandler:
         *,
         request: Request,
         session: AsyncSession,
-        pagination: BasePagination,
+        pagination: NextTokenPagination,
         sorting: list[UnaryExpression],
         filters: list[BinaryExpression] | None = None
     ) -> tuple[int, list[Role]]:
         objects: list[Role]
         return await roles_service.list(
             session=session,
-            offset=pagination.offset,
+            next_token=pagination.next_token,
             limit=pagination.limit,
             sorting=sorting,
             filters=filters,
@@ -160,13 +160,13 @@ class PermissionsHandler:
         *,
         request: Request,
         session: AsyncSession,
-        pagination: BasePagination,
+        pagination: NextTokenPagination,
         sorting: list[UnaryExpression],
         filters: list[BinaryExpression] | None = None
     ) -> tuple[int, list[Permission]]:
         objects: list[Permission]
         total, objects = await permissions_service.list(
-            session=session, offset=pagination.offset, limit=pagination.limit, sorting=sorting, filters=filters
+            session=session, limit=pagination.limit, next_token=pagination.next_token, sorting=sorting, filters=filters
         )
         return total, objects
 

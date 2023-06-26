@@ -6,6 +6,7 @@ Create Date: 2022-09-27 19:29:54.643748+00:00
 
 """
 from alembic import op
+from sqlalchemy import text
 
 # revision identifiers, used by Alembic.
 revision = "0001"
@@ -15,8 +16,8 @@ depends_on = None
 
 
 def upgrade() -> None:
-    op.execute(sqltext="""CREATE EXTENSION IF NOT EXISTS pgcrypto""")
+    op.execute(text("CREATE EXTENSION IF NOT EXISTS pgcrypto;").execution_options(dialect_name="postgresql"))
 
 
 def downgrade() -> None:
-    op.execute(sqltext="""DROP EXTENSION IF EXISTS pgcrypto""")
+    op.execute(text("DROP EXTENSION IF EXISTS pgcrypto;").execution_options(dialect_name="postgresql"))

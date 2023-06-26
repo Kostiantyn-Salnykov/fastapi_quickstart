@@ -1,7 +1,7 @@
 -- Running upgrade 0002 -> 0003
 
 CREATE TABLE tag (
-    id UUID DEFAULT gen_random_uuid() NOT NULL, 
+    id UUID NOT NULL,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL, 
     title VARCHAR(64) NOT NULL, 
     CONSTRAINT pk_tag PRIMARY KEY (id)
@@ -10,7 +10,7 @@ CREATE TABLE tag (
 CREATE INDEX ix_tag_title ON tag (title);
 
 CREATE TABLE category (
-    id UUID DEFAULT gen_random_uuid() NOT NULL, 
+    id UUID NOT NULL,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL, 
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL, 
     title VARCHAR(128) NOT NULL, 
@@ -22,7 +22,7 @@ CREATE TABLE category (
 CREATE INDEX ix_category_title ON category (title);
 
 CREATE TABLE wish_list (
-    id UUID DEFAULT gen_random_uuid() NOT NULL, 
+    id UUID  NOT NULL,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL, 
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL, 
     title VARCHAR(128) NOT NULL, 
@@ -34,7 +34,7 @@ CREATE TABLE wish_list (
 CREATE INDEX ix_wish_list_title ON wish_list (title);
 
 CREATE TABLE wish (
-    id UUID DEFAULT gen_random_uuid() NOT NULL, 
+    id UUID NOT NULL,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL, 
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL, 
     wishlist_id UUID NOT NULL, 

@@ -29,7 +29,7 @@ class WishCreateToDBSchema(BaseInSchema):
     complexity: WishComplexities = Field(default=WishComplexities.NORMAL)
     priority: WishPriorities = Field(default=WishPriorities.NORMAL)
     category_id: uuid.UUID | None = Field(default=None, alias="categoryId")
-    description: str | None = Field(max_length=256)
+    description: str | None = Field(max_length=255)
 
 
 class WishCreateSchema(WishCreateToDBSchema):
@@ -40,7 +40,7 @@ class WishUpdateToDBSchema(WishCreateSchema):
     title: str | None = Field(default=None, max_length=128)
     wishlist_id: uuid.UUID | None = Field(default=None, alias="wishlistId")
     status: WishStatuses | None = Field(default=WishStatuses.CREATED)
-    description: str | None = Field(default=None, max_length=256)
+    description: str | None = Field(default=None, max_length=255)
 
 
 class WishUpdateSchema(WishUpdateToDBSchema):
@@ -55,7 +55,7 @@ class WishOutSchema(BaseOutSchema, CreatedUpdatedOutSchema):
     complexity: WishComplexities = Field(default=...)
     priority: WishPriorities = Field(default=...)
     category_id: uuid.UUID | None = Field(default=None, alias="categoryId")
-    description: str | None = Field(default=None, max_length=256)
+    description: str | None = Field(default=None, max_length=255)
 
     category: CategoryOutSchema | None = Field(default=None)
     tags: list[str] = Field(default=[])

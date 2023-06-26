@@ -119,7 +119,7 @@ class GroupRoleFactory(BaseModelFactory):
 
 class GroupFactory(BaseModelFactory):
     id = factory.Faker("uuid4", cast_to=None)
-    title = factory.Faker("pystr", max_chars=256)
+    title = factory.Faker("pystr", max_chars=255)
 
     roles = factory.RelatedFactoryList(factory=GroupRoleFactory, factory_related_name="group", size=1)
     users = factory.RelatedFactoryList(

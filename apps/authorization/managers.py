@@ -1,7 +1,7 @@
 import itertools
-import uuid
 from typing import Generator, Iterable
 
+import uuid_extensions
 from sqlalchemy import inspect, select
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.engine import ChunkedIteratorResult, Engine
@@ -84,7 +84,7 @@ class AuthorizationManager:
         async with session.begin_nested():
             # Generate Permission instances with superuser object_name.
             permissions = (
-                Permission(id=uuid.uuid4(), object_name=self._superuser_object_name, action=action)
+                Permission(id=uuid_extensions.uuid7str(), object_name=self._superuser_object_name, action=action)
                 for action in PermissionActions
             )
             # Create or Update permissions
@@ -112,7 +112,7 @@ class AuthorizationManager:
         logger.debug(msg="Creating Permissions, Role, Group for superusers...")
         permissions = await self.create_superuser_permissions(session=session)
 
-        role: Role = Role(id=uuid.uuid4(), title=self._superuser_role_name, permissions=permissions)
+        role: Role = Role(id=uuid_extensions.uuid7str(), title=self._superuser_role_name, permissions=permissions)
         try:
             logger.debug(msg=f"Creating {role}")
             async with session.begin_nested():

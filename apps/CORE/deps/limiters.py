@@ -90,7 +90,7 @@ class BaseRedisRateLimiter(abc.ABC):
 
     @abc.abstractmethod
     async def __call__(
-        self, request: Request, response: Response, redis_client: aioredis.Redis = Depends(get_redis)
+        self, *, request: Request, response: Response, redis_client: aioredis.Redis = Depends(get_redis)
     ) -> None:
         raise NotImplementedError
 
@@ -109,6 +109,7 @@ class BaseRedisRateLimiter(abc.ABC):
         Args:
             request (Request): FastAPI Request instance.
             now (pendulum.DateTime): DateTime instance from pendulum package.
+            previous (bool): Select previous windows instead of current.
 
         Returns:
             (str): Unique key for Redis

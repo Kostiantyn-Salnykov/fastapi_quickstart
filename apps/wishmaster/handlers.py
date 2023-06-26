@@ -5,7 +5,7 @@ from sqlalchemy.engine import CursorResult
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.sql.elements import BinaryExpression, UnaryExpression
 
-from apps.CORE.deps.pagination import BasePagination
+from apps.CORE.deps.pagination import LimitOffsetPagination
 from apps.CORE.exceptions import BackendException
 from apps.CORE.types import StrOrUUID
 from apps.CORE.utils import to_db_encoder
@@ -68,7 +68,7 @@ class WishHandler:
         *,
         session: AsyncSession,
         request: Request,
-        pagination: BasePagination,
+        pagination: LimitOffsetPagination,
         sorting: list[UnaryExpression],
         filters: list[BinaryExpression],
     ) -> tuple[int, list[Wish]]:
@@ -102,7 +102,7 @@ class WishlistHandler:
         *,
         session: AsyncSession,
         request: Request,
-        pagination: BasePagination,
+        pagination: LimitOffsetPagination,
         sorting: list[UnaryExpression],
         filters: list[BinaryExpression],
     ) -> tuple[int, list[WishList]]:

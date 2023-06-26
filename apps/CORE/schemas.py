@@ -9,7 +9,7 @@ from pydantic import AnyHttpUrl, BaseModel, Field
 from pydantic.generics import GenericModel
 
 from apps.CORE.enums import JSENDStatus
-from apps.CORE.types import ObjectsVar, SchemaType, Timestamp
+from apps.CORE.types import ObjectsVar, SchemaType, StrUUID, Timestamp
 from apps.CORE.utils import get_timestamp, orjson_dumps
 
 StrOrNone: TypeAlias = str | None
@@ -98,17 +98,21 @@ class PaginationOutSchema(GenericModel, Generic[ObjectsVar]):
     """Generic OurSchema that uses for pagination."""
 
     objects: list[ObjectsVar]
-    offset: int = Field(default=0)
-    limit: int = Field(default=100)
-    count: int | None = Field(
-        default=0, alias="objectsCount", description="Number of objects returned in this response."
-    )
+    offset: int = Field(default=None, description="Number of objects to skip.")
+    limit: int = Field(default=100, description="Number of objects returned per one page.")
+    count: int = Field(default=0, alias="objectsCount", description="Number of objects returned in this response.")
     total_count: int = Field(
         default=..., alias="totalCount", description="Numbed of objects counted inside db for this query."
     )
+    next_token: StrUUID | None = Field(
+        default=None,
+        alias="nextToken",
+        title="Next Token",
+        description="This is the latest `id` of previous result.",
+    )
     next_url: AnyHttpUrl | None = Field(default=None, alias="nextURL", title="Next URL")
     previous_url: AnyHttpUrl | None = Field(default=None, alias="previousURL", title="Previous URL")
-    page: int = Field(default=1, title="Page", description="Current page (depends on offset, limit).")
+    page: int = Field(default=None, title="Page", description="Current page (depends on offset, limit).")
     pages: int = Field(
         default=..., title="Pages", description="Total number of pages (depends on limit and total number of records)."
     )

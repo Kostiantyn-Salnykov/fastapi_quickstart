@@ -3,7 +3,8 @@ import re
 import uuid
 
 import redis.asyncio as aioredis
-from sqlalchemy import TIMESTAMP, MetaData, create_engine, text
+import uuid_extensions
+from sqlalchemy import TIMESTAMP, MetaData, create_engine
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import (
@@ -52,8 +53,7 @@ class UUIDMixin:
 
     id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
-        default=uuid.uuid4,
-        server_default=text("gen_random_uuid()"),
+        default=uuid_extensions.uuid7str,
         primary_key=True,
     )
 

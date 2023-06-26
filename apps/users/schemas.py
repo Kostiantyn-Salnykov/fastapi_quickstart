@@ -14,17 +14,17 @@ class UserCreateSchema(BaseInSchema):
     first_name: str = Field(default=..., title="First name", max_length=128, alias="firstName", example="John")
     last_name: str = Field(default=..., title="Last name", max_length=128, alias="lastName", example="Doe")
     email: Email = Field(default=..., title="Email", example="kostiantyn.salnykov@gmail.com")
-    password: str = Field(default=..., title="Password", min_length=8, max_length=256, example="!QAZxsw2")
+    password: str = Field(default=..., title="Password", min_length=8, max_length=255, example="!QAZxsw2")
 
 
 class UserUpdateSchema(BaseInSchema):
     first_name: str | None = Field(default=None, title="First name", max_length=128, alias="firstName", example="")
     last_name: str | None = Field(default=None, title="Last name", max_length=128, alias="lastName", example="")
     old_password: str | None = Field(
-        default=None, min_length=8, max_length=256, example="!QAZxsw2", alias="oldPassword"
+        default=None, min_length=8, max_length=255, example="!QAZxsw2", alias="oldPassword"
     )
     new_password: str | None = Field(
-        default=None, min_length=8, max_length=256, example="!QAZxsw2", alias="newPassword"
+        default=None, min_length=8, max_length=255, example="!QAZxsw2", alias="newPassword"
     )
 
     @root_validator()
@@ -93,4 +93,4 @@ class UserTokenPayloadSchema(TokenPayloadSchema):
 
 class LoginSchema(BaseInSchema):
     email: Email = Field(default=..., title="Email", example="kostiantyn.salnykov@gmail.com")
-    password: str = Field(default=..., min_length=8, max_length=256, example="!QAZxsw2")
+    password: str = Field(default=..., min_length=8, max_length=255, example="!QAZxsw2")

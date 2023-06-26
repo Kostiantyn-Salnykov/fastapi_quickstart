@@ -67,17 +67,18 @@ class _BaseCommonRepository:
         *,
         session: AsyncSession,
         sorting: list[UnaryExpression],
-        offset: int = 0,
         limit: int = 100,
+        next_token: str = None,
         filters: list[BinaryExpression] | None = None,
         unique: bool = True,
     ) -> tuple[int, list[ModelType]]:
         select_statement = select(self.model)
         if filters:
             select_statement = select_statement.where(*filters)
-        select_statement = (
-            select_statement.order_by(*sorting).offset(offset).limit(limit).execution_options(populate_existing=True)
-        )
+        if next_token:
+            select_statement = select_statement.where(self.model.id > next_token)
+        select_statement = select_statement.order_by(*sorting).limit(limit).execution_options(populate_existing=True)
+
         count_statement = select(func.count(self.model.id)).select_from(self.model).where(*filters or {})
 
         async with session.begin_nested():

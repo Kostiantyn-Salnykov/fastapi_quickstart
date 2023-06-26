@@ -15,7 +15,7 @@ class TestGroupsRouter:
     async def test_create_group_201_title_only(
         self, async_client: AsyncClient, app_fixture: FastAPI, faker: Faker
     ) -> None:
-        title = faker.pystr(max_chars=256)
+        title = faker.pystr(max_chars=255)
 
         response = await async_client.post(url=app_fixture.url_path_for("create_group"), json={"title": title})
 
@@ -34,7 +34,7 @@ class TestGroupsRouter:
         self, async_client: AsyncClient, app_fixture: FastAPI, faker: Faker
     ) -> None:
         roles: list[Role] = RoleFactory.create_batch(size=2)
-        title = faker.pystr(max_chars=256)
+        title = faker.pystr(max_chars=255)
         expected_result = sorted(
             [
                 {
@@ -77,7 +77,7 @@ class TestGroupsRouter:
         self, async_client: AsyncClient, app_fixture: FastAPI, faker: Faker
     ) -> None:
         roles_ids = [faker.uuid4(), faker.uuid4()]
-        title = faker.pystr(max_chars=256)
+        title = faker.pystr(max_chars=255)
 
         response = await async_client.post(
             url=app_fixture.url_path_for("create_group"),
@@ -188,7 +188,7 @@ class TestGroupsRouter:
 
     async def test_update_group_200_title(self, async_client: AsyncClient, app_fixture: FastAPI, faker: Faker) -> None:
         old_title = "test"
-        new_title = faker.pystr(max_chars=256)
+        new_title = faker.pystr(max_chars=255)
         group: Group = GroupFactory(title=old_title, roles=[])
         updated_group = {"id": str(group.id), "roles": group.roles, "title": new_title}
         old_response = await async_client.get(
@@ -213,7 +213,7 @@ class TestGroupsRouter:
         self, async_client: AsyncClient, app_fixture: FastAPI, faker: Faker
     ) -> None:
         old_title = "test"
-        new_title = faker.pystr(max_chars=256)
+        new_title = faker.pystr(max_chars=255)
         new_roles: list[Role] = RoleFactory.create_batch(size=2, permissions=[])
         group: Group = GroupFactory(title=old_title, roles=[])
         updated_group = {
@@ -256,7 +256,7 @@ class TestGroupsRouter:
         self, async_client: AsyncClient, app_fixture: FastAPI, faker: Faker
     ) -> None:
         old_title = "test"
-        new_title = faker.pystr(max_chars=256)
+        new_title = faker.pystr(max_chars=255)
         fake_role_id, fake_role_id_2 = faker.uuid4(), faker.uuid4()
         role: Role = RoleFactory()
         group: Group = GroupFactory(title=old_title, roles=[role])

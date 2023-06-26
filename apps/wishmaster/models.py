@@ -40,7 +40,7 @@ class Wish(Base, UUIDMixin, CreatedUpdatedMixin):
     wishlist_id: Mapped[uuid.UUID] = mapped_column(ForeignKey(column="wish_list.id", **CASCADES), nullable=False)
     category_id: Mapped[Optional[uuid.UUID]] = mapped_column(ForeignKey(column="category.id", **CASCADES))
     title: Mapped[str] = mapped_column(VARCHAR(length=128), nullable=False, index=True)
-    description: Mapped[Optional[str]] = mapped_column(VARCHAR(length=256))
+    description: Mapped[Optional[str]] = mapped_column(VARCHAR(length=255))
     status: Mapped[str] = mapped_column(VARCHAR(length=32), default=WishStatuses.CREATED.value, nullable=False)
     complexity: Mapped[str] = mapped_column(VARCHAR(length=32), default=WishComplexities.NORMAL.value, nullable=False)
     priority: Mapped[int] = mapped_column(SMALLINT, default=WishPriorities.NORMAL.value, nullable=False)

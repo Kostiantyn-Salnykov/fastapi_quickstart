@@ -36,6 +36,11 @@ class BaseSorting:
                     "description": "",
                     "value": [],
                 },
+                "-id": {
+                    "summary": "-id",
+                    "description": "Sort by 'id' DESC.",
+                    "value": ["-id"],
+                },
                 "-createdAt": {
                     "summary": "-createdAt",
                     "description": "Sort by 'createdAt' DESC.",
@@ -61,7 +66,7 @@ class BaseSorting:
     def build_sorting(self, sorting: list[str]) -> list[UnaryExpression]:
         aliases_map = self.collect_aliases()
         result = []
-        for column in sorting or ["-created_at"]:  # If no provided, sort by `created_at` DESC.
+        for column in sorting or ["-id"]:  # If no provided, sort by `id` DESC.
             raw_column = column.strip().removeprefix("-").removeprefix("+")
             # retrieve real column name by alias, or skip (by default)
             raw_column = aliases_map.get(raw_column, raw_column)

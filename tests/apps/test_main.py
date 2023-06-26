@@ -10,7 +10,11 @@ async def test_healthcheck(async_client: AsyncClient, app_fixture: FastAPI) -> N
     assert response.status_code == status.HTTP_200_OK
     assert response.json() == {
         "status": JSENDStatus.SUCCESS,
-        "data": None,
+        "data": {
+            "postgresql_async": True,
+            "postgresql_sync": True,
+            "redis": True,
+        },
         "message": "Health check.",
         "code": status.HTTP_200_OK,
     }

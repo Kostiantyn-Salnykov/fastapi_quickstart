@@ -29,14 +29,21 @@ class User(Base, UUIDMixin, CreatedUpdatedMixin, BaseUser):
 
     first_name: Mapped[str] = mapped_column(VARCHAR(length=128), nullable=False)
     last_name: Mapped[str] = mapped_column(VARCHAR(length=128), nullable=False)
-    email: Mapped[str] = mapped_column(VARCHAR(length=256), nullable=False, index=True, unique=True)
+    email: Mapped[str] = mapped_column(VARCHAR(length=255), nullable=False, index=True, unique=True)
     password_hash: Mapped[str] = mapped_column(VARCHAR(length=1024), nullable=False)
     status: Mapped[str] = mapped_column(VARCHAR(length=64), default=UsersStatuses.UNCONFIRMED.value, nullable=False)
 
-    groups: Mapped[list["Group"]] = relationship("Group", secondary="group_user", back_populates="users")
-    roles: Mapped[list["Role"]] = relationship("Role", secondary="role_user", back_populates="users")
+    groups: Mapped[list["Group"]] = relationship(
+        "Group", secondary="group_user", back_populates="users", order_by="Group.title"
+    )
+    roles: Mapped[list["Role"]] = relationship(
+        "Role", secondary="role_user", back_populates="users", order_by="Role.title"
+    )
     permissions: Mapped[list["Permission"]] = relationship(
-        "Permission", secondary="permission_user", back_populates="users"
+        "Permission",
+        secondary="permission_user",
+        back_populates="users",
+        order_by="Permission.object_name, Permission.action",
     )
 
     def __repr__(self) -> str:
@@ -70,7 +77,7 @@ class User(Base, UUIDMixin, CreatedUpdatedMixin, BaseUser):
 
 
 class Group(Base, CreatedUpdatedMixin, UUIDMixin):
-    title: Mapped[str] = mapped_column(VARCHAR(length=256), nullable=False, unique=True, index=True)
+    title: Mapped[str] = mapped_column(VARCHAR(length=255), nullable=False, unique=True, index=True)
 
     roles: Mapped[list["Role"]] = relationship(
         "Role", secondary="group_role", back_populates="groups", lazy="joined", order_by="Role.title"
@@ -84,7 +91,9 @@ class Group(Base, CreatedUpdatedMixin, UUIDMixin):
 class Role(Base, CreatedUpdatedMixin, UUIDMixin):
     title: Mapped[str] = mapped_column(VARCHAR(length=128), nullable=False, unique=True, index=True)
 
-    groups: Mapped[list["Group"]] = relationship("Group", secondary="group_role", back_populates="roles")
+    groups: Mapped[list["Group"]] = relationship(
+        "Group", secondary="group_role", back_populates="roles", order_by="Group.title"
+    )
     permissions: Mapped[list["Permission"]] = relationship(
         "Permission",
         secondary="role_permission",
@@ -92,7 +101,9 @@ class Role(Base, CreatedUpdatedMixin, UUIDMixin):
         lazy="joined",
         order_by="Permission.object_name, Permission.action",
     )
-    users: Mapped[list["User"]] = relationship("User", secondary="role_user", back_populates="roles")
+    users: Mapped[list["User"]] = relationship(
+        "User", secondary="role_user", back_populates="roles", order_by="User.email"
+    )
 
     def __repr__(self) -> str:
         return f'{self.__class__.__name__}(name="{self.title}")'
@@ -104,8 +115,12 @@ class Permission(Base, CreatedUpdatedMixin, UUIDMixin):
     object_name: Mapped[str] = mapped_column(VARCHAR(length=128), nullable=False)
     action: Mapped[str] = Column(VARCHAR(length=32), nullable=False)
 
-    roles: Mapped[list["Role"]] = relationship("Role", secondary="role_permission", back_populates="permissions")
-    users: Mapped[list["User"]] = relationship("User", secondary="permission_user", back_populates="permissions")
+    roles: Mapped[list["Role"]] = relationship(
+        "Role", secondary="role_permission", back_populates="permissions", order_by="Role.title"
+    )
+    users: Mapped[list["User"]] = relationship(
+        "User", secondary="permission_user", back_populates="permissions", order_by="User.email"
+    )
 
     def __repr__(self) -> str:
         return f'{self.__class__.__name__}(object_name="{self.object_name}", action="{self.action}")'

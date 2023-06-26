@@ -49,7 +49,7 @@ class WishListFactory(BaseModelFactory):
 
 class WishFactory(BaseModelFactory):
     title = factory.Faker("pystr", max_chars=128)
-    description = factory.Faker("pystr", max_chars=256)
+    description = factory.Faker("pystr", max_chars=255)
     wishlist_id = factory.SelfAttribute(attribute_name="wishlist.id")
     category_id = factory.SelfAttribute(attribute_name="category.id")
     status = factory.Faker("word", ext_word_list=list(WishStatuses))

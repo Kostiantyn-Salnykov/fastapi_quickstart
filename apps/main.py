@@ -1,6 +1,11 @@
+import contextlib
 import datetime
+import typing
 
-from fastapi import APIRouter, FastAPI, status
+import redis.asyncio as redis
+import sqlalchemy.ext.asyncio
+import sqlalchemy.orm
+from fastapi import APIRouter, Depends, FastAPI, Request, status
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
@@ -13,6 +18,7 @@ from apps.authorization.managers import AuthorizationManager
 from apps.authorization.middlewares import JWTTokenBackend
 from apps.authorization.routers import groups_router, permissions_router, roles_router
 from apps.CORE.db import async_engine, async_session_factory, engine, redis_engine, session_factory
+from apps.CORE.deps import get_async_session, get_redis, get_session
 from apps.CORE.enums import JSENDStatus
 from apps.CORE.exceptions import BackendException, RateLimitException
 from apps.CORE.handlers import backend_exception_handler, rate_limit_exception_handler, validation_exception_handler
@@ -26,6 +32,67 @@ from settings import Settings
 
 logger = get_logger(name=__name__)
 
+
+def enable_logging() -> None:
+    setup_logging()
+    logger.debug(msg="Logging configuration completed.")
+
+
+async def _check_sync_engine() -> None:
+    logger.debug(msg="Checking connection with sync engine 'SQLAlchemy + psycopg2'...")
+    with session_factory() as session:
+        result = session.execute(statement=text("SELECT current_timestamp;")).scalar()
+    logger.debug(msg=f"Result of sync 'SELECT current_timestamp;' is: {result.isoformat() if result else result}")
+
+
+async def _check_async_engine() -> None:
+    logger.debug(msg="Checking connection with async engine 'SQLAlchemy + asyncpg'...")
+    async with async_session_factory() as async_session:
+        result = await async_session.execute(statement=text("SELECT current_timestamp;"))
+        result = result.scalar()
+    logger.debug(msg=f"Result of async 'SELECT current_timestamp;' is: {result.isoformat() if result else result}")
+
+
+async def _setup_redis(app: FastAPI) -> None:
+    logger.debug(msg="Setting up global Redis `app.redis`...")
+    # proxy Redis client to request.app.state.redis
+    app.redis = redis_engine
+    logger.debug(msg="Checking connection with Redis...")
+    async with app.redis.client() as conn:
+        result = await conn.ping()
+        if result is not True:
+            msg = "Connection to Redis failed."
+            logger.error(msg=msg)
+            raise RuntimeError(msg)
+        logger.debug(msg=f"Result of Redis 'PING' command: {result}")
+
+
+async def _dispose_all_connections() -> None:
+    logger.debug(msg="Closing PostgreSQL connections...")
+    await async_engine.dispose()  # Close sessions to async engine
+    engine.dispose()  # Close sessions to sync engine
+    logger.debug(msg="All PostgreSQL connections closed.")
+
+
+async def _close_redis(app: FastAPI) -> None:
+    logger.debug(msg="Closing Redis connection...")
+    await app.redis.close(close_connection_pool=True)
+    logger.debug(msg="Redis connection closed.")
+
+
+@contextlib.asynccontextmanager
+async def lifespan(app: FastAPI) -> typing.AsyncGenerator[None, None]:
+    setup_logging()
+    logger.info(msg="Lifespan started.")
+    await _setup_redis(app=app)
+    await _check_sync_engine()
+    await _check_async_engine()
+    yield
+    await _close_redis(app=app)
+    await _dispose_all_connections()
+    logger.info(msg="Lifespan ended.")
+
+
 app = FastAPI(
     debug=Settings.DEBUG,
     title="FastAPI Quickstart",
@@ -36,6 +103,7 @@ app = FastAPI(
     docs_url="/docs/" if Settings.ENABLE_OPENAPI else None,
     default_response_class=ORJSONResponse,
     responses=Responses.BASE,
+    lifespan=lifespan,
 )
 
 # State objects
@@ -43,9 +111,7 @@ app.state.tokens_manager = TokensManager(
     secret_key=Settings.TOKENS_SECRET_KEY,
     default_token_lifetime=datetime.timedelta(seconds=Settings.TOKENS_ACCESS_LIFETIME_SECONDS),
 )
-authorization_manager = AuthorizationManager(engine=engine)
-app.state.authorization_manager = authorization_manager
-app.state.redis = redis_engine  # proxy Redis client to request.app.state.redis
+app.state.authorization_manager = AuthorizationManager(engine=engine)
 
 # Add exception handlers (<Error type>, <Error handler>)
 app.add_exception_handler(BackendException, backend_exception_handler)
@@ -73,56 +139,6 @@ app.add_middleware(
 app.add_middleware(middleware_class=ProxyHeadersMiddleware, trusted_hosts=Settings.TRUSTED_HOSTS)  # №1
 
 
-@app.on_event(event_type="startup")
-def enable_logging() -> None:
-    setup_logging()
-    logger.debug(msg="Logging configuration completed.")
-
-
-@app.on_event(event_type="startup")
-async def _check_sync_engine() -> None:
-    logger.debug(msg="Checking connection with sync engine 'SQLAlchemy + psycopg2'...")
-    with session_factory() as session:
-        result = session.execute(statement=text("SELECT current_timestamp;")).scalar()
-    logger.debug(msg=f"Result of sync 'SELECT current_timestamp;' is: {result.isoformat() if result else result}")
-
-
-@app.on_event(event_type="startup")
-async def _check_async_engine() -> None:
-    logger.debug(msg="Checking connection with async engine 'SQLAlchemy + asyncpg'...")
-    async with async_session_factory() as async_session:
-        result = await async_session.execute(statement=text("SELECT current_timestamp;"))
-        result = result.scalar()
-    logger.debug(msg=f"Result of async 'SELECT current_timestamp;' is: {result.isoformat() if result else result}")
-
-
-@app.on_event(event_type="startup")
-async def _check_redis() -> None:
-    logger.debug(msg="Checking connection with Redis...")
-    async with redis_engine.client() as conn:
-        result = await conn.ping()
-        if result is not True:
-            msg = "Connection to Redis failed."
-            logger.error(msg=msg)
-            raise RuntimeError(msg)
-        logger.debug(msg=f"Result of Redis 'PING' command: {result}")
-
-
-@app.on_event(event_type="shutdown")
-async def _dispose_all_connections() -> None:
-    logger.debug(msg="Closing PostgreSQL connections...")
-    await async_engine.dispose()  # Close sessions to async engine
-    engine.dispose()  # Close sessions to sync engine
-    logger.debug(msg="All PostgreSQL connections closed.")
-
-
-@app.on_event(event_type="shutdown")
-async def _close_redis() -> None:
-    logger.debug(msg="Closing Redis connection...")
-    await redis_engine.close()
-    logger.debug(msg="Redis connection closed.")
-
-
 api_router = APIRouter()
 
 
@@ -133,16 +149,30 @@ api_router = APIRouter()
     summary="Health check.",
     description="Health check endpoint.",
 )
-async def healthcheck() -> ORJSONResponse:
+async def healthcheck(
+    request: Request,
+    redis: redis.Redis = Depends(get_redis),
+    async_session: sqlalchemy.ext.asyncio.AsyncSession = Depends(get_async_session),
+    session: sqlalchemy.orm.Session = Depends(get_session),
+) -> ORJSONResponse:
     """Check that API endpoints works properly.
 
     Returns:
         ORJSONResponse: json object with JSENDResponseSchema body.
     """
+    if Settings.DEBUG:
+        async_result = await async_session.execute(statement=text("SELECT true;"))
+        data = {
+            "redis": await redis.ping(),
+            "postgresql_sync": session.execute(statement=text("SELECT true;")).scalar_one(),
+            "postgresql_async": async_result.scalar_one(),
+        }
+    else:
+        data = None
     return ORJSONResponse(
         content={
             "status": JSENDStatus.SUCCESS,
-            "data": None,
+            "data": data,
             "message": "Health check.",
             "code": status.HTTP_200_OK,
         },

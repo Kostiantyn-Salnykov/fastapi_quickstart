@@ -60,6 +60,7 @@ def run_migrations_offline() -> None:
         compare_type=True,
         transactional_ddl=False,
         output_buffer=open(SQL_VERSIONS_DIR / f"{context.get_head_revision()}.sql", "w"),
+        dialect_name="postgresql",
         dialect_opts={"paramstyle": "named"},
     )
 
@@ -86,6 +87,7 @@ def run_migrations_online() -> None:
             compare_type=True,
             compare_server_default=True,
             include_schemas=True,
+            dialect_name="postgresql",
         )
 
         with context.begin_transaction():

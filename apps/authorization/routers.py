@@ -19,7 +19,7 @@ from apps.authorization.schemas import (
     RoleOutSchema,
 )
 from apps.CORE.deps import get_async_session
-from apps.CORE.deps.pagination import BasePagination
+from apps.CORE.deps.pagination import NextTokenPagination
 from apps.CORE.deps.sorting import BaseSorting
 from apps.CORE.schemas import JSENDOutSchema
 from apps.CORE.tables import Group, Permission, Role
@@ -46,7 +46,7 @@ async def create_group(
 async def list_groups(
     request: Request,
     session: AsyncSession = Depends(get_async_session),
-    pagination: BasePagination = Depends(BasePagination()),
+    pagination: NextTokenPagination = Depends(NextTokenPagination()),
     sorting: list[UnaryExpression] = Depends(
         BaseSorting(model=Group, schema=GroupOutSchema, available_columns=[Group.created_at, Group.title])
     ),
@@ -106,7 +106,7 @@ async def delete_group(
 async def list_roles(
     request: Request,
     session: AsyncSession = Depends(get_async_session),
-    pagination: BasePagination = Depends(BasePagination()),
+    pagination: NextTokenPagination = Depends(NextTokenPagination()),
     sorting: list[UnaryExpression] = Depends(
         BaseSorting(model=Role, schema=RoleOutSchema, available_columns=[Role.created_at, Role.title])
     ),
@@ -166,12 +166,12 @@ async def delete_role(
 async def list_permissions(
     request: Request,
     session: AsyncSession = Depends(get_async_session),
-    pagination: BasePagination = Depends(BasePagination()),
+    pagination: NextTokenPagination = Depends(NextTokenPagination()),
     sorting: list[UnaryExpression] = Depends(
         BaseSorting(
             model=Permission,
             schema=PermissionOutSchema,
-            available_columns=[Permission.created_at, Permission.object_name],
+            available_columns=[Permission.id, Permission.created_at, Permission.object_name],
         )
     ),
 ) -> PermissionListOutSchema:

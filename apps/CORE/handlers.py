@@ -67,7 +67,10 @@ def integrity_error_handler(error: IntegrityError) -> None:
     """
     if "duplicate" in error.args[0]:
         # Parse duplication error and show it in debug mode, otherwise "update error".
-        raise BackendException(message=str(error.orig.args[0].split("\n")[-1]) if Settings.DEBUG else "Update error.")
+        raise BackendException(
+            message=str(error.orig.args[0].split("\n")[-1]) if Settings.DEBUG else "Conflict error.",
+            status=status.HTTP_409_CONFLICT,
+        )
     else:
         raise BackendException(
             message=str(error) if Settings.DEBUG else "Internal server error.",

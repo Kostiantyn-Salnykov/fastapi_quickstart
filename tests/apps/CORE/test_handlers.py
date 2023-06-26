@@ -49,7 +49,9 @@ class TestIntegrityErrorHandler:
         with pytest.raises(BackendException) as exception_context:
             integrity_error_handler(error=exception_mock)
 
-        assert str(exception_context.value) == str(BackendException(message="Update error."))
+        assert str(exception_context.value) == str(
+            BackendException(message="Conflict error.", status=status.HTTP_409_CONFLICT)
+        )
 
     def test_integrity_error_handler_duplicate_debug(self, faker: Faker, mocker: MockerFixture, monkeypatch) -> None:
         monkeypatch.setattr(target=Settings, name="DEBUG", value=True)
@@ -61,7 +63,9 @@ class TestIntegrityErrorHandler:
         with pytest.raises(BackendException) as exception_context:
             integrity_error_handler(error=exception_mock)
 
-        assert str(exception_context.value) == str(BackendException(message=expected_message))
+        assert str(exception_context.value) == str(
+            BackendException(message=expected_message, status=status.HTTP_409_CONFLICT)
+        )
 
     def test_integrity_error_handler_other(self, faker: Faker, mocker: MockerFixture, monkeypatch) -> None:
         monkeypatch.setattr(target=Settings, name="DEBUG", value=False)

@@ -9,7 +9,7 @@ from sqlalchemy.sql.elements import BinaryExpression, UnaryExpression
 from apps.authorization.dependencies import IsAuthenticated, bearer_auth
 from apps.CORE.deps import get_async_session
 from apps.CORE.deps.filters import BaseFilters, F
-from apps.CORE.deps.pagination import BasePagination
+from apps.CORE.deps.pagination import LimitOffsetPagination
 from apps.CORE.deps.sorting import BaseSorting
 from apps.CORE.enums import FOps
 from apps.CORE.responses import Responses
@@ -56,9 +56,13 @@ async def create_wishlist(
 async def list_wishlists(
     request: Request,
     session: AsyncSession = Depends(get_async_session),
-    pagination: BasePagination = Depends(BasePagination()),
+    pagination: LimitOffsetPagination = Depends(LimitOffsetPagination()),
     sorting: list[UnaryExpression] = Depends(
-        BaseSorting(model=WishList, schema=WishListOutSchema, available_columns=[WishList.created_at, WishList.title])
+        BaseSorting(
+            model=WishList,
+            schema=WishListOutSchema,
+            available_columns=[WishList.id, WishList.created_at, WishList.title],
+        )
     ),
     filters: list[BinaryExpression] = Depends(
         BaseFilters(
@@ -148,7 +152,7 @@ async def create_wish(
 async def list_wishes(
     request: Request,
     session: AsyncSession = Depends(get_async_session),
-    pagination: BasePagination = Depends(BasePagination()),
+    pagination: LimitOffsetPagination = Depends(LimitOffsetPagination()),
     sorting: list[UnaryExpression] = Depends(
         BaseSorting(
             model=Wish,

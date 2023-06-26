@@ -7,7 +7,7 @@ from sqlalchemy.exc import IntegrityError
 from apps.CORE.db import Base
 from apps.CORE.deps import get_async_session, get_redis, get_session
 from apps.CORE.deps.filters import QueryFilter, get_sqlalchemy_where_operations_mapper
-from apps.CORE.deps.pagination import BasePagination
+from apps.CORE.deps.pagination import LimitOffsetPagination
 from apps.CORE.deps.sorting import BaseSorting
 from apps.CORE.enums import FOps
 from apps.CORE.exceptions import BackendException
@@ -16,7 +16,7 @@ from apps.CORE.schemas import BaseOutSchema
 
 class TestBasePagination:
     def setup_method(self) -> None:
-        self.pagination = BasePagination()
+        self.pagination = LimitOffsetPagination()
 
     def test__init___(self) -> None:
         assert self.pagination.offset == 0
@@ -34,7 +34,7 @@ class TestBasePagination:
     def test__call__(self, offset: int, limit: int) -> None:
         result = self.pagination(offset=offset, limit=limit)
 
-        assert isinstance(self.pagination, BasePagination)
+        assert isinstance(self.pagination, LimitOffsetPagination)
         assert self.pagination == result
         assert self.pagination.offset == offset
         assert self.pagination.limit == limit
@@ -147,13 +147,13 @@ class TestBaseSorting:
     def test_build_sorting_default(self, faker: Faker, mocker: MockerFixture) -> None:
         model, schema = mocker.MagicMock(autospec=True), mocker.MagicMock(autospec=True)
         mocker.patch.object(target=BaseSorting, attribute="collect_aliases", return_value={})
-        model.created_at = mocker.MagicMock(key="created_at")
-        sorting_instance = BaseSorting(model=model, available_columns=[model.created_at], schema=schema)
+        model.id = mocker.MagicMock(key="id")
+        sorting_instance = BaseSorting(model=model, available_columns=[model.id], schema=schema)
 
         result = sorting_instance.build_sorting(sorting=None)  # no sorting at all
 
-        # produces `-created_at` if it inside `available_columns` and exists at `Model(Base)` level
-        assert result == [model.created_at.desc()]
+        # produces `-id` if it inside `available_columns` and exists at `Model(Base)` level
+        assert result == [model.id.desc()]
 
     def test_collect_aliases(self, mocker: MockerFixture) -> None:
         class TestSchema(BaseOutSchema):
