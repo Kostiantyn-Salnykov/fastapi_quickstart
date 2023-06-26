@@ -5,7 +5,7 @@ from sqlalchemy import SMALLINT, VARCHAR, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from apps.CORE.db import Base, CreatedAtMixin, CreatedUpdatedMixin, UUIDMixin
-from apps.CORE.tables import CASCADES, User
+from apps.CORE.models import CASCADES, User
 from apps.wishmaster.enums import WishComplexities, WishPriorities, WishStatuses
 
 

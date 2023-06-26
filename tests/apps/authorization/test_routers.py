@@ -6,7 +6,7 @@ from fastapi import FastAPI, status
 from httpx import AsyncClient
 
 from apps.CORE.enums import JSENDStatus
-from apps.CORE.tables import Group, Permission, Role
+from apps.CORE.models import Group, Permission, Role
 from tests.apps.conftest import assert_is_uuid, assert_jsend_response
 from tests.apps.CORE.factories import GroupFactory, PermissionFactory, RoleFactory
 

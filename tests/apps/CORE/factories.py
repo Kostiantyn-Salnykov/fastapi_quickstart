@@ -6,7 +6,7 @@ import factory
 from apps.authorization.enums import PermissionActions
 from apps.authorization.managers import AuthorizationManager
 from apps.CORE.managers import PasswordsManager
-from apps.CORE.tables import (
+from apps.CORE.models import (
     Group,
     GroupRole,
     GroupUser,

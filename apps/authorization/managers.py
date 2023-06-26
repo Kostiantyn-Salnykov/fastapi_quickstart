@@ -9,7 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from apps.authorization.enums import PermissionActions
 from apps.CORE.db import Base
-from apps.CORE.tables import Group, Permission, Role, User
+from apps.CORE.models import Group, Permission, Role, User
 from loggers import get_logger
 
 logger = get_logger(name=__name__)

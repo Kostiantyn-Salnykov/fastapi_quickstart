@@ -6,6 +6,7 @@ import zoneinfo
 from typing import Any
 
 import orjson
+import uuid_extensions
 from fastapi.encoders import jsonable_encoder
 
 
@@ -33,6 +34,11 @@ def id_v1() -> str:
 def id_v4() -> str:
     """Generate UUID with version 4."""
     return str(uuid.uuid4())
+
+
+def id_v7() -> str:
+    """Generate UUID with version 7."""
+    return uuid_extensions.uuid7str()
 
 
 def orjson_dumps(v: Any, *, default: typing.Any) -> str:

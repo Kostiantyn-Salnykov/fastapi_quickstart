@@ -8,7 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from apps.CORE.enums import TokenAudience
 from apps.CORE.exceptions import BackendException
 from apps.CORE.managers import PasswordsManager
-from apps.CORE.tables import User
+from apps.CORE.models import User
 from apps.CORE.types import StrOrUUID
 from apps.CORE.utils import utc_now
 from apps.users.enums import UsersStatuses

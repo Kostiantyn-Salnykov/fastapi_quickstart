@@ -25,7 +25,7 @@ from apps.authorization.services import (
 )
 from apps.CORE.deps.pagination import NextTokenPagination
 from apps.CORE.exceptions import BackendException
-from apps.CORE.tables import Group, Permission, Role
+from apps.CORE.models import Group, Permission, Role
 from apps.CORE.types import StrOrUUID
 from apps.CORE.utils import to_db_encoder
 from loggers import get_logger

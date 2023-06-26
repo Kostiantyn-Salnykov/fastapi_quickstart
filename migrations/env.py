@@ -7,8 +7,8 @@ from alembic import context
 from apps.CORE.db import Base, engine
 
 # You should import models explicitly to this file, to allow autogenerate migrations.
-from apps.CORE.tables import User  # noqa
-from apps.CORE.tables import (  # noqa
+from apps.CORE.models import User  # noqa
+from apps.CORE.models import (  # noqa
     Group,
     GroupRole,
     GroupUser,

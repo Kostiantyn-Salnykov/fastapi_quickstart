@@ -6,7 +6,7 @@ from httpx import Response
 
 from apps.CORE.enums import JSENDStatus
 from apps.CORE.managers import TokensManager
-from apps.CORE.tables import User
+from apps.CORE.models import User
 from apps.users.enums import UsersStatuses
 from settings import Settings
 from tests.apps.CORE.factories import UserFactory

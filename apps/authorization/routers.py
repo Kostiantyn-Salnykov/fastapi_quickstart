@@ -22,7 +22,7 @@ from apps.CORE.deps import get_async_session
 from apps.CORE.deps.pagination import NextTokenPagination
 from apps.CORE.deps.sorting import BaseSorting
 from apps.CORE.schemas import JSENDOutSchema
-from apps.CORE.tables import Group, Permission, Role
+from apps.CORE.models import Group, Permission, Role
 
 groups_router = APIRouter(prefix="/auth/groups", tags=["authorization"], dependencies=[Depends(bearer_auth)])
 roles_router = APIRouter(prefix="/auth/roles", tags=["authorization"], dependencies=[Depends(bearer_auth)])
