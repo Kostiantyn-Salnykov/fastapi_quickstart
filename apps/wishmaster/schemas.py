@@ -58,7 +58,7 @@ class WishResponseSchema(BaseResponseSchema, CreatedUpdatedResponseMixin):
 
     @validator("tags", pre=True)
     def validate_tag(cls, v: list[Tag | str]) -> list[str]:
-        tags: list[str] = [getattr(tag, "title") if isinstance(tag, Tag) else tag for tag in v]
+        tags: list[str] = [tag.title if isinstance(tag, Tag) else tag for tag in v]
         return tags
 
 

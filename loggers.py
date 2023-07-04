@@ -217,11 +217,11 @@ class ColorfulFormatter(logging.Formatter):
         validate: bool = True,
         # Custom setup
         accent_color: str = "bright_cyan",
-        styler: Styler = Styler(),
+        styler: Styler = None,
         link_format: bool = True,
     ) -> None:
         self.accent_color = accent_color
-        self._styler = styler
+        self._styler = styler or Styler()
         if link_format:
             fmt += f"\n{FILE_FORMAT}{{pathname}}{LINE_FORMAT}{{lineno}}"
         super().__init__(fmt=fmt, datefmt=datefmt, style=style, validate=validate)

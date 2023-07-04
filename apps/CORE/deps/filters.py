@@ -87,7 +87,7 @@ class F:
         self._operations = possible_operations
         self._type: TypeValue = value_type
 
-    def create_model(self) -> typing.Type[QueryFilter[TypeValue]]:
+    def create_model(self) -> type[QueryFilter[TypeValue]]:
         """Dynamically generates Pydantic model to validate filter via TypeValue."""
         return QueryFilter[self._type]
 
@@ -98,9 +98,9 @@ class F:
 
 
 class BaseFilters:
-    def __init__(self, *, model: typing.Type[ModelType], schema: typing.Type[SchemaType], filters: list[F]) -> None:
-        self.model: typing.Type[ModelType] = model
-        self.schema: typing.Type[SchemaType] = schema
+    def __init__(self, *, model: type[ModelType], schema: type[SchemaType], filters: list[F]) -> None:
+        self.model: type[ModelType] = model
+        self.schema: type[SchemaType] = schema
         self.filters: list[F] = filters
         self.filters_mapping = self.collect_filtering()
         self.aliases_mapping = self.collect_aliases()
@@ -138,13 +138,13 @@ class BaseFilters:
         if json_filters:
             filters_list = self.parse_json_filters(json_filters=json_filters)
             query_filters_list = self.parse_query_filters(filters_list=filters_list)
-            result.extend((op for op in self.construct_sqlalchemy_operation(query_filters=query_filters_list)))
+            result.extend(op for op in self.construct_sqlalchemy_operation(query_filters=query_filters_list))
         return result
 
-    def collect_filtering(self) -> dict[str, typing.Type[QueryFilter[TypeValue]] | None]:
-        fields: dict[str, typing.Type[QueryFilter[TypeValue]] | None] = {}
+    def collect_filtering(self) -> dict[str, type[QueryFilter[TypeValue]] | None]:
+        fields: dict[str, type[QueryFilter[TypeValue]] | None] = {}
         # populate fields with aliases or names and empty None value
-        for field_name, field in self.schema.__fields__.items():
+        for _, field in self.schema.__fields__.items():
             if field.has_alias:
                 fields.update({field.alias: None})
             else:
@@ -159,7 +159,7 @@ class BaseFilters:
 
     def collect_aliases(self) -> dict[str, str]:
         result = {}  # <alias_name>: <real_name> OR <real_name>: <real_name>
-        for field_name, field in self.schema.__fields__.items():
+        for _, field in self.schema.__fields__.items():
             if field.has_alias:
                 result.update({field.alias: field.name})
             else:
@@ -169,10 +169,10 @@ class BaseFilters:
     def parse_json_filters(self, json_filters: str) -> list[dict[str, typing.Any]]:
         try:
             filters_list: list[dict[str, typing.Any]] = orjson.loads(json_filters)
-        except orjson.JSONDecodeError:
+        except orjson.JSONDecodeError as error:
             raise BackendException(
                 message="Cannot parse 'filters' query parameter. It should be a valid urlencoded JSON string."
-            )
+            ) from error
         else:
             return filters_list
 
@@ -188,18 +188,18 @@ class BaseFilters:
                 if fltr_schema.field in self.filters_mapping:
                     try:
                         query_filters_list.append(parse_obj_as(self.filters_mapping[fltr_schema.field], fltr))
-                    except Exception:
+                    except Exception as error:
                         raise BackendException(
                             data={"Parsed filter (DEBUG)": fltr_schema.dict()} if Settings.DEBUG else None,
                             message=f"Can't parse filter value of '{fltr_schema.field}'. Check validity of "
                             f"filter Object{{}} or a possibility filtering by this field.",
-                        )
-        except ValidationError:
+                        ) from error
+        except ValidationError as error:
             raise BackendException(
                 data={"Parsed JSON (DEBUG)": filters_list} if Settings.DEBUG else None,
                 message="Invalid 'filters' Array[Filter{}]. Every filter should be an Object{} with three fields: "
                 "'field' or 'f', 'operator' or 'o', 'value' or 'v'.",
-            )
+            ) from error
         return query_filters_list
 
     def construct_sqlalchemy_operation(

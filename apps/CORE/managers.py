@@ -5,7 +5,7 @@ __all__ = (
 
 import datetime
 import secrets
-from typing import Sequence, Type
+from collections.abc import Sequence
 
 import bcrypt
 import jwt
@@ -22,8 +22,7 @@ from settings import Settings
 class PasswordsManager:
     @staticmethod
     def make_password(*, password: str) -> str:
-        """
-        Hashing string password value and returns password hash.
+        """Hashing string password value and returns password hash.
 
         Args:
             password (str): Password raw value.
@@ -40,8 +39,7 @@ class PasswordsManager:
 
     @staticmethod
     def check_password(*, password: str, password_hash: str) -> bool:
-        """
-        Check password and password hash then returns boolean result.
+        """Check password and password hash then returns boolean result.
 
         Args:
             password (str): Raw password to check.
@@ -65,8 +63,7 @@ class PasswordsManager:
 
     @staticmethod
     def generate_password(*, length: int = 8) -> str:
-        """
-        Randomly generates password specified length.
+        """Randomly generates password specified length.
 
         Args:
             length (int): Number of generated characters for password.
@@ -171,7 +168,7 @@ class TokensManager:
         aud: TokenAudience | Sequence[TokenAudience] = TokenAudience.ACCESS,  # Audience
         iss: str = Settings.TOKENS_ISSUER,  # Issuer
         leeway: int = 0,  # provide extra time in seconds to validate (iat, exp, nbf)
-        convert_to: Type[BaseModel] | None = None,
+        convert_to: type[BaseModel] | None = None,
         options: TokenOptionsSchema | None = None,
     ) -> BaseModel | dict[str, str | int | float | dict | list | bool]:
         """Method for parse and validate JWT token.
@@ -202,7 +199,7 @@ class TokensManager:
         """
         try:
             options = options or TokenOptionsSchema()
-            audience = [item.value for item in aud] if isinstance(aud, (set, list, tuple)) else aud.value
+            audience = [item.value for item in aud] if isinstance(aud, set | list | tuple) else aud.value
             payload: dict[str, str | int | float | dict | list | bool] = jwt.decode(
                 jwt=code,
                 key=self._secret_key,

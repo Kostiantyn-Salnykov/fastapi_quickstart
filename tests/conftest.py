@@ -283,7 +283,7 @@ def scoped_db_session() -> scoped_session:
 @pytest.fixture(autouse=True, scope="session")
 def set_session_for_factories(scoped_db_session: scoped_session) -> None:
     """Registration of model factories to set up a scoped session during the test run."""
-    known_factories: list[typing.Type[BaseModelFactory]] = [
+    known_factories: list[type[BaseModelFactory]] = [
         UserFactory,
         WishListFactory,
         WishFactory,

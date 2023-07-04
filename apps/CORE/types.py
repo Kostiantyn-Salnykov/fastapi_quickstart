@@ -13,6 +13,7 @@ from apps.CORE.helpers import as_utc, get_timestamp, get_utc_timezone
 
 StrOrUUID: typing.TypeAlias = str | uuid.UUID
 StrOrNone: typing.TypeAlias = str | None
+ListOfAny: typing.TypeAlias = list[typing.Any]
 DictStrOfAny: typing.TypeAlias = dict[str, typing.Any]
 ModelType = typing.TypeVar("ModelType", bound=Base)
 SchemaType = typing.TypeVar("SchemaType", bound=BaseModel)
@@ -84,7 +85,7 @@ class Phone(str):
         if not re.match(r"^\d{8,15}$", v):
             raise ValueError("Must be digits")
         try:
-            v = "".join((digit for digit in v if digit.isdigit()))  # format phone (allow only digits)
+            v = "".join(digit for digit in v if digit.isdigit())  # format phone (allow only digits)
             v = prefix + v  # add prefix to valid parsing
             parsed_phone = phonenumbers.parse(number=v)
         except phonenumbers.phonenumberutil.NumberParseException as error:

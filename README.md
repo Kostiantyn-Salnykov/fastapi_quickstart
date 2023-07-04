@@ -80,6 +80,7 @@ make run
 - iPython (enhanced Python's console)
 
 ### Linters & Formatters
+- ruff (Rust based linter & formatter)
 - black (code formatter, PEP8)
 - isort (code formatter, sort imports)
 - flake8 (code linter)

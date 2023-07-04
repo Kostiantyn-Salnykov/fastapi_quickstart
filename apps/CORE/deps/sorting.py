@@ -1,5 +1,3 @@
-import typing
-
 from fastapi import Query
 from sqlalchemy import UnaryExpression
 
@@ -11,8 +9,8 @@ __all__ = ("BaseSorting",)
 class BaseSorting:
     def __init__(
         self,
-        model: typing.Type[ModelType],
-        schema: typing.Type[SchemaType],
+        model: type[ModelType],
+        schema: type[SchemaType],
         available_columns: list[ModelColumnVar] | None = None,
     ):
         self.model = model
@@ -58,7 +56,7 @@ class BaseSorting:
 
     def collect_aliases(self) -> dict[str, str]:
         result = {}  # <alias_name>: <real_name>
-        for field_name, field in self.schema.__fields__.items():
+        for _, field in self.schema.__fields__.items():
             if field.has_alias:
                 result.update({field.alias: field.name})
         return result

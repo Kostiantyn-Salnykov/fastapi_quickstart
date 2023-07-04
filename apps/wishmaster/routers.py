@@ -108,10 +108,10 @@ async def list_wishlists(
     )
 
 
-@wishlist_router.delete(path="/{id}/", name="delete_wishlist", response_model=JSENDResponse[typing.Type[None]])
+@wishlist_router.delete(path="/{id}/", name="delete_wishlist", response_model=JSENDResponse[type[None]])
 async def delete_wishlist(
     request: Request, id: uuid.UUID = Path(), session: AsyncSession = Depends(get_async_session)
-) -> JSENDResponse[typing.Type[None]]:
+) -> JSENDResponse[type[None]]:
     await wishlist_handler.delete(session=session, request=request, id=id)
     return JSENDResponse(data=None, message="WishList deleted successfully.")
 
@@ -221,7 +221,7 @@ async def delete_wish(
     request: Request,
     id: uuid.UUID = Path(),
     session: AsyncSession = Depends(get_async_session),
-) -> JSENDResponse[typing.Type[None]]:
+) -> JSENDResponse[type[None]]:
     await wish_handler.delete(session=session, request=request, id=id)
     return JSENDResponse(data=None, message="Wish deleted successfully.")
 

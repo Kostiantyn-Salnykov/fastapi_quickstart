@@ -104,6 +104,7 @@ class BaseRedisRateLimiter(abc.ABC):
 
     def key(self, request: Request, now: pendulum.DateTime, previous: bool = False) -> str:
         """Construct key for Redis.
+
         e.g. key="limiter:/api/v1/login/:127.0.0.1:2023-03-12T13:32:00+00:00:minute:5"
 
         Args:
@@ -156,6 +157,8 @@ class FixedWindowRateLimiter(BaseRedisRateLimiter):
 
         Args:
             request (Request): FastAPI Request instance.
+            response (Response): FastAPI Response instance.
+            redis_client (aioredis.Redis): Async client instance for Redis.
 
         Raises:
             RateLimitExceeded: User exceed his/her quotas for this API.

@@ -9,8 +9,7 @@ from settings import Settings
 
 
 def backend_exception_handler(request: Request, exc: BackendException) -> ORJSONResponse:
-    """
-    Handler for BackendException.
+    """Handler for BackendException.
 
     Args:
         request (Request): FastAPI Request instance.
@@ -23,8 +22,7 @@ def backend_exception_handler(request: Request, exc: BackendException) -> ORJSON
 
 
 def validation_exception_handler(request: Request, exc: RequestValidationError) -> ORJSONResponse:
-    """
-    Handler for RequestValidationError. Get the original 'detail' list of errors wrapped with JSEND structure.
+    """Handler for RequestValidationError. Get the original 'detail' list of errors wrapped with JSEND structure.
 
     Args:
         request (Request): FastAPI Request instance.
@@ -56,8 +54,7 @@ def validation_exception_handler(request: Request, exc: RequestValidationError) 
 
 
 def integrity_error_handler(error: IntegrityError) -> None:
-    """
-    Handler for IntegrityError (SQLAlchemy error).
+    """Handler for IntegrityError (SQLAlchemy error).
 
     Args:
         error (IntegrityError): Error that SQLAlchemy raises (in case of SQL query error).
@@ -80,8 +77,7 @@ def integrity_error_handler(error: IntegrityError) -> None:
 
 
 def no_result_found_error_handler(error: NoResultFound) -> None:
-    """
-    Handler for NoResultFound (SQLAlchemy error).
+    """Handler for NoResultFound (SQLAlchemy error).
 
     Args:
         error (NoResultFound): Error that SQLAlchemy raises (in case of scalar_one() error).
@@ -97,8 +93,7 @@ def no_result_found_error_handler(error: NoResultFound) -> None:
 
 
 def rate_limit_exception_handler(request: Request, exc: RateLimitException) -> ORJSONResponse:
-    """
-    Handler for RateLimitException.
+    """Handler for RateLimitException.
 
     Args:
         request (Request): FastAPI Request instance.

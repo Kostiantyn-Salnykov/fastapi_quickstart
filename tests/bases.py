@@ -1,7 +1,7 @@
 import datetime
 import random
 import typing
-from typing import Any, Type
+from typing import Any
 
 import factory
 from pydantic_factories import AsyncPersistenceProtocol, ModelFactory, PostGenerated
@@ -13,7 +13,7 @@ from apps.CORE.types import ModelType, SchemaType
 
 
 class AsyncPersistenceHandler(AsyncPersistenceProtocol):
-    def __init__(self, model: Type[Base]):
+    def __init__(self, model: type[Base]):
         self._model = model
         self._service = BaseCoreRepository(model=self._model)
 
@@ -65,7 +65,7 @@ class BaseModelFactory(factory.alchemy.SQLAlchemyModelFactory):
         return super()._create(model_class=model_class, *args, **kwargs)
 
     @staticmethod
-    def check_factory(factory_class: typing.Type["BaseModelFactory"], model: typing.Type[Base]) -> None:
+    def check_factory(factory_class: type["BaseModelFactory"], model: type[Base]) -> None:
         """Test that factory creates successfully."""
         obj = factory_class()
         size = random.randint(2, 3)

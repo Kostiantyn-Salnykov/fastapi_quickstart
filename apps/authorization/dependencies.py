@@ -12,8 +12,7 @@ class NewHTTPBearer(HTTPBearer):
     """HTTPBearer with updated errors."""
 
     async def __call__(self, request: Request) -> HTTPAuthorizationCredentials | None:
-        """
-        Parse authorization credentials. Used by FastAPI router's dependencies.
+        """Parse authorization credentials. Used by FastAPI router's dependencies.
 
         Args:
             request (Request): FastAPI request instance.
@@ -52,8 +51,7 @@ class IsAuthenticated:
         ...
 
     def __call__(self, request: Request) -> Request:
-        """
-        Make this `Depends` class callable.
+        """Make this `Depends` class callable.
 
         Checks that user is authenticated.
 

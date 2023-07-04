@@ -1,6 +1,6 @@
 """Basic CRUD for services."""
 import typing
-from typing import Type, TypeAlias
+from typing import TypeAlias
 
 from fastapi import status
 from sqlalchemy import delete, func, select, update
@@ -25,11 +25,11 @@ NoneModelTypeList: TypeAlias = list[ModelType] | None
 
 
 class _BaseCommonRepository:
-    def __init__(self, *, model: Type[ModelType]):
+    def __init__(self, *, model: type[ModelType]):
         self._model = model
 
     @property
-    def model(self) -> Type[ModelType]:
+    def model(self) -> type[ModelType]:
         return self._model
 
     async def read(

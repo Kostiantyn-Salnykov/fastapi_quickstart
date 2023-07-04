@@ -10,7 +10,7 @@ import uuid_extensions
 from fastapi.encoders import jsonable_encoder
 
 
-@functools.lru_cache()
+@functools.lru_cache
 def get_utc_timezone() -> zoneinfo.ZoneInfo:
     """Return UTC zone info."""
     return zoneinfo.ZoneInfo(key="UTC")

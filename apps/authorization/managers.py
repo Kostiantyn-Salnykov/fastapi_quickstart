@@ -1,5 +1,5 @@
 import itertools
-from typing import Generator, Iterable
+from collections.abc import Generator, Iterable
 
 import uuid_extensions
 from sqlalchemy import inspect, select
@@ -25,8 +25,7 @@ class AuthorizationManager:
         self._engine = engine
 
     def get_db_table_names(self, *, engine: Engine = None) -> Generator[str, None, None]:
-        """
-        Iterates through the db schema and return table names.
+        """Iterates through the db schema and return table names.
 
         Keyword Args:
             engine (Engine): SQLAlchemy Engine instance.
@@ -43,8 +42,7 @@ class AuthorizationManager:
                         yield table
 
     def _generate_permissions_variants(self) -> Generator[tuple[str, PermissionActions], None, None]:
-        """
-        Iterates through all tables in "public" schema, iterate through PermissionActions and
+        """Iterates through all tables in "public" schema, iterate through PermissionActions.
 
         Yields:
             table_name, action (tuple[str, PermissionActions]):
@@ -52,8 +50,7 @@ class AuthorizationManager:
         return itertools.product(self.get_db_table_names(), PermissionActions)
 
     async def create_object_permissions(self, *, session: AsyncSession) -> None:
-        """
-        Creates permissions for all tables and actions ("<TABLE_NAME>", "create|read|update|delete").
+        """Creates permissions for all tables and actions ("<TABLE_NAME>", "create|read|update|delete").
 
         Keyword Args:
             session (AsyncSession): SQLAlchemy AsyncSession instance.
@@ -71,8 +68,7 @@ class AuthorizationManager:
         logger.debug(msg="Permissions created successfully.")
 
     async def create_superuser_permissions(self, *, session: AsyncSession) -> list[Permission]:
-        """
-        Creates 4 superuser permissions ("__all__", "create|read|update|delete").
+        """Creates 4 superuser permissions ("__all__", "create|read|update|delete").
 
         Keyword Args:
             session (AsyncSession): SQLAlchemy AsyncSession instance.
@@ -139,8 +135,7 @@ class AuthorizationManager:
     def get_permissions_set(
         self, *, groups: Iterable[Group], roles: Iterable[Role], permissions: Iterable[Permission]
     ) -> set[tuple[str, str]]:
-        """
-        Collect all permissions from groups, roles, and permissions to result set of permissions.
+        """Collect all permissions from groups, roles, and permissions to result set of permissions.
 
         Keyword Args:
             groups (Iterable[Group]): collection of Group instances.
@@ -159,8 +154,7 @@ class AuthorizationManager:
         return result_set
 
     def get_permissions_set_from_user(self, *, user: User) -> set[tuple[str, str]]:
-        """
-        Grab all users groups, roles and permissions then produce result set of permissions.
+        """Grab all users groups, roles and permissions then produce result set of permissions.
 
         Keyword Args:
             user (User): User instance

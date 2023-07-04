@@ -1,4 +1,3 @@
-import typing
 import uuid
 
 from fastapi import APIRouter, Body, Depends, Path, Request, status
@@ -98,10 +97,10 @@ async def update_group(
     )
 
 
-@groups_router.delete(path="/{id}/", name="delete_group", response_model=JSENDResponse[typing.Type[None]])
+@groups_router.delete(path="/{id}/", name="delete_group", response_model=JSENDResponse[type[None]])
 async def delete_group(
     request: Request, id: uuid.UUID = Path(), session: AsyncSession = Depends(get_async_session)
-) -> JSENDResponse[typing.Type[None]]:
+) -> JSENDResponse[type[None]]:
     await groups_handler.delete_group(session=session, request=request, id=id)
     return JSENDResponse(data=None, message="Group deleted successfully.")
 
@@ -157,12 +156,12 @@ async def create_role(
 @roles_router.delete(
     path="/{id}/",
     name="delete_role",
-    response_model=JSENDResponse[typing.Type[None]],
+    response_model=JSENDResponse[type[None]],
     status_code=status.HTTP_200_OK,
 )
 async def delete_role(
     request: Request, id: uuid.UUID = Path(), session: AsyncSession = Depends(get_async_session)
-) -> JSENDResponse[typing.Type[None]]:
+) -> JSENDResponse[type[None]]:
     await roles_handler.delete_role(session=session, request=request, id=id)
     return JSENDResponse(data=None, message="Role deleted successfully.")
 

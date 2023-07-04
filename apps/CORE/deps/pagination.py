@@ -1,6 +1,5 @@
 import abc
 import math
-import typing
 import urllib.parse
 
 from fastapi import Query, Request
@@ -17,7 +16,7 @@ class PaginationInterface(abc.ABC):
         self,
         request: Request,
         objects: list[ObjectsVar],
-        schema: typing.Type[SchemaType],
+        schema: type[SchemaType],
         total: int,
         endpoint_name: str,
     ) -> PaginationResponse[SchemaType]:
@@ -50,7 +49,7 @@ class LimitOffsetPagination(PaginationInterface):
         self,
         request: Request,
         objects: list[ObjectsVar],
-        schema: typing.Type[SchemaType],
+        schema: type[SchemaType],
         total: int,
         endpoint_name: str,
     ) -> PaginationResponse[SchemaType]:
@@ -101,7 +100,7 @@ class NextTokenPagination(PaginationInterface):
         self,
         request: Request,
         objects: list[ObjectsVar],
-        schema: typing.Type[SchemaType],
+        schema: type[SchemaType],
         total: int,
         endpoint_name: str,
     ) -> PaginationResponse[SchemaType]:

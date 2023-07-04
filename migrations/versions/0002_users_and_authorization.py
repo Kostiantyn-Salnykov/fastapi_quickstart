@@ -1,4 +1,4 @@
-"""Users and Authorization
+"""Users and Authorization.
 
 Revision ID: 0002
 Revises: 0001

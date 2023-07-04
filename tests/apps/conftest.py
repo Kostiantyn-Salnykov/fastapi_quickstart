@@ -28,8 +28,8 @@ def assert_is_uuid(val: str) -> None:
     try:
         uuid.UUID(val)
         assert True, "Valid UUID"
-    except ValueError:
-        assert False, "Not uuid"
+    except ValueError as error:
+        raise AssertionError("Not uuid") from error
 
 
 class UsersHelper:

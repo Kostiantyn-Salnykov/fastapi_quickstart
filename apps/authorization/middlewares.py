@@ -15,8 +15,7 @@ class JWTTokenBackend(AuthenticationBackend):
         self.scheme_prefix_lower = scheme_prefix.lower()
 
     def get_token_from_header(self, *, authorization: str) -> str:
-        """
-        Parse token and check schema from `Authorization` header value.
+        """Parse token and check schema from `Authorization` header value.
 
         Keyword Args:
             authorization(str): value of `Authorization` header.
@@ -31,10 +30,10 @@ class JWTTokenBackend(AuthenticationBackend):
         try:
             # parse schema and token
             scheme, jwt_token = authorization.split()
-        except Exception:
+        except Exception as error:
             raise BackendException(
                 message="Could not parse Authorization scheme and token.", code=status.HTTP_401_UNAUTHORIZED
-            )
+            ) from error
         else:
             # check schema
             if scheme.lower() != self.scheme_prefix_lower:
@@ -78,7 +77,7 @@ class JWTTokenBackend(AuthenticationBackend):
             if user is None:
                 return AuthCredentials(), None
         except BackendException as error:
-            raise AuthenticationError(error.message)
+            raise AuthenticationError(error.message) from error
 
         # request.auth, request.user
         return AuthCredentials(scopes=["authenticated"]), user

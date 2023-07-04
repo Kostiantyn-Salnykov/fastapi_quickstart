@@ -87,7 +87,7 @@ class MainSettings(BaseSettings):
         return value
 
 
-@functools.lru_cache()
+@functools.lru_cache
 def get_settings() -> MainSettings:
     return MainSettings()
 

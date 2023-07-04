@@ -12,8 +12,7 @@ CASCADES = {"ondelete": "CASCADE", "onupdate": "CASCADE"}
 
 
 class User(Base, UUIDMixin, CreatedUpdatedMixin, BaseUser):
-    """
-    User class and `user` table declaration.
+    """User class and `user` table declaration.
 
     Keyword Args:
         first_name (str): First name of user.
@@ -57,8 +56,7 @@ class User(Base, UUIDMixin, CreatedUpdatedMixin, BaseUser):
 
     @property
     def display_name(self) -> str:
-        """
-        Concatenate full name of user.
+        """Concatenate full name of user.
 
         Returns:
             - (str): Full name of user.
@@ -67,8 +65,7 @@ class User(Base, UUIDMixin, CreatedUpdatedMixin, BaseUser):
 
     @property
     def identity(self) -> str:
-        """
-        Get user UUID and convert it to string.
+        """Get user UUID and convert it to string.
 
         Returns:
             - (str): User's id converted to string.

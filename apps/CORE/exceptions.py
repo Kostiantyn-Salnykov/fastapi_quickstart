@@ -3,6 +3,7 @@ import typing
 from fastapi import status as http_status
 
 from apps.CORE.enums import JSENDStatus
+from apps.CORE.types import DictStrOfAny, ListOfAny
 
 
 class BackendException(Exception):
@@ -17,12 +18,11 @@ class BackendException(Exception):
         self,
         *,
         status: JSENDStatus = JSENDStatus.FAIL,
-        data: typing.Union[None, int, str, list[typing.Any], dict[str, typing.Any]] = None,
+        data: None | int | str | ListOfAny | DictStrOfAny = None,
         message: str,
         code: int = http_status.HTTP_400_BAD_REQUEST,
     ):
-        """
-        Initializer for BackException.
+        """Initializer for BackException.
 
         Keyword Args:
             status (JSENDStatus): status for JSEND
@@ -46,7 +46,7 @@ class BackendException(Exception):
         """String representation for BackendException."""
         return self.__repr__()
 
-    def dict(self) -> typing.Dict[str, typing.Any]:
+    def dict(self) -> dict[str, typing.Any]:
         """Converts BackendException to python dict. Actually used to wrap JSEND response."""
         return {
             "status": self.status.value if isinstance(self.status, JSENDStatus) else self.status,
@@ -61,7 +61,7 @@ class RateLimitException(BackendException):
         self,
         *,
         status: JSENDStatus = JSENDStatus.FAIL,
-        data: typing.Union[None, int, str, list[typing.Any], dict[str, typing.Any]] = None,
+        data: None | int | str | ListOfAny | DictStrOfAny = None,
         message: str,
         code: int = http_status.HTTP_429_TOO_MANY_REQUESTS,
         headers: dict[str, str] = None,

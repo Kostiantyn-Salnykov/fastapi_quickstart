@@ -1,6 +1,5 @@
 import operator
 
-import pytest
 from faker import Faker
 from fastapi import FastAPI, status
 from httpx import AsyncClient

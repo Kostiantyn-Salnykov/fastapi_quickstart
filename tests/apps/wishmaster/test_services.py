@@ -30,9 +30,9 @@ class _TestWishCRUDBase:
         assert isinstance(field, expected_type)
 
     def check_defaults(self, obj):
-        self.check_uuid(field=getattr(obj, "id"))
-        self.check_datetime(field=getattr(obj, "created_at"))
-        self.check_datetime(field=getattr(obj, "updated_at"))
+        self.check_uuid(field=obj.id)
+        self.check_datetime(field=obj.created_at)
+        self.check_datetime(field=obj.updated_at)
 
     async def test_list(self, faker: Faker, db_session: AsyncSession):
         await self.clear_wishes(session=db_session)

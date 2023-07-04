@@ -101,8 +101,8 @@ class PaginationResponse(GenericModel, Generic[ObjectsVar]):
     )
 
     class Config(BaseResponseSchema.Config):
-        """
-        `allow_population_by_field_name` used only for remove lint error from PyCharm
+        """`allow_population_by_field_name` used only for remove lint error from PyCharm.
+
         (by default it applies from BaseOutSchema.Config inheritance).
 
         It also can be defined as:

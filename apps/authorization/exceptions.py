@@ -1,9 +1,8 @@
-import typing
-
 from fastapi import status as http_status
 
 from apps.CORE.enums import JSENDStatus
 from apps.CORE.exceptions import BackendException
+from apps.CORE.types import DictStrOfAny, ListOfAny
 
 
 class PermissionException(BackendException):
@@ -11,7 +10,7 @@ class PermissionException(BackendException):
         self,
         *,
         status: JSENDStatus = JSENDStatus.FAIL,
-        data: typing.Union[None, int, str, list[typing.Any], dict[str, typing.Any]] = None,
+        data: None | int | str | ListOfAny | DictStrOfAny = None,
         message: str = "User has no access to perform this action.",
         code: int = http_status.HTTP_403_FORBIDDEN,
     ):

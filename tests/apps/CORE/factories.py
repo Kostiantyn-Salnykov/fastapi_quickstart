@@ -65,7 +65,7 @@ class PermissionFactory(BaseModelFactory):
 
     @classmethod
     def _create(
-        cls, model_class: typing.Type[Permission], *args: tuple[typing.Any], **kwargs: dict[str, typing.Any]
+        cls, model_class: type[Permission], *args: tuple[typing.Any], **kwargs: dict[str, typing.Any]
     ) -> Permission:
         session = cls._meta.sqlalchemy_session
         am = AuthorizationManager(engine=session.bind)

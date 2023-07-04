@@ -66,7 +66,7 @@ class UsersHandler:
     def generate_tokens(*, request: Request, id: StrOrUUID) -> LoginOutSchema:
         user_id = str(id) if isinstance(id, uuid.UUID) else id
         now = utc_now()
-        token_id = hashlib.blake2s(f"{user_id}_{now.isoformat()}".encode(encoding="utf-8")).hexdigest()
+        token_id = hashlib.blake2s(f"{user_id}_{now.isoformat()}".encode(encoding="utf-8")).hexdigest()  # noqa: UP012
         return LoginOutSchema(
             access_token=request.app.state.tokens_manager.create_code(
                 data={"id": user_id, "token_id": token_id},

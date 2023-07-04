@@ -54,7 +54,6 @@ class GroupsHandler:
         sorting: list[UnaryExpression],
         filters: list[BinaryExpression] | None = None
     ) -> tuple[int, list[Group]]:
-        objects: list[Group]
         return await groups_service.list(
             session=session,
             next_token=pagination.next_token,
@@ -124,7 +123,6 @@ class RolesHandler:
         sorting: list[UnaryExpression],
         filters: list[BinaryExpression] | None = None
     ) -> tuple[int, list[Role]]:
-        objects: list[Role]
         return await roles_service.list(
             session=session,
             next_token=pagination.next_token,
