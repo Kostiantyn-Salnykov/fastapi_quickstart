@@ -6,7 +6,7 @@ import pytest
 from faker import Faker
 from pytest_mock import MockerFixture
 
-from apps.CORE.utils import as_utc, get_timestamp, get_utc_timezone, id_v1, id_v4, orjson_dumps, proxy_func, utc_now
+from apps.CORE.helpers import as_utc, get_timestamp, get_utc_timezone, id_v1, id_v4, orjson_dumps, proxy_func, utc_now
 
 
 def test_get_utc_timezone() -> None:
@@ -18,7 +18,7 @@ def test_get_utc_timezone() -> None:
 
 def test_utc_now(faker: Faker, mocker: MockerFixture) -> None:
     expected_datetime: datetime.datetime = faker.date_time(tzinfo=zoneinfo.ZoneInfo(key="UTC"))
-    date_time_mock = mocker.patch("apps.CORE.utils.datetime")
+    date_time_mock = mocker.patch("apps.CORE.helpers.datetime")
     date_time_mock.datetime.now.return_value = expected_datetime
 
     result = utc_now()
@@ -38,7 +38,7 @@ def test_as_utc(faker: Faker) -> None:
 
 def test_id_v1(mocker: MockerFixture) -> None:
     expected_uuid = uuid.uuid1()
-    uuid_mock = mocker.patch("apps.CORE.utils.uuid")
+    uuid_mock = mocker.patch("apps.CORE.helpers.uuid")
     uuid_mock.uuid1.return_value = expected_uuid
 
     result = id_v1()
@@ -49,7 +49,7 @@ def test_id_v1(mocker: MockerFixture) -> None:
 
 def test_id_v4(mocker: MockerFixture) -> None:
     expected_uuid = uuid.uuid1()
-    uuid_mock = mocker.patch("apps.CORE.utils.uuid")
+    uuid_mock = mocker.patch("apps.CORE.helpers.uuid")
     uuid_mock.uuid4.return_value = expected_uuid
 
     result = id_v4()

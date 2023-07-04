@@ -5,32 +5,20 @@ from typing import Generic
 import orjson
 import pydantic.json
 from fastapi import status as http_status
-from pydantic import AnyHttpUrl, BaseModel, Field, validate_model
+from pydantic import AnyHttpUrl, Field, validate_model
 from pydantic.generics import GenericModel
 from pydantic.main import object_setattr
 
 from apps.CORE.enums import JSENDStatus
-from apps.CORE.types import ModelType, ObjectsVar, SchemaType, StrOrNone, StrUUID, Timestamp
-from apps.CORE.utils import get_timestamp, orjson_dumps
+from apps.CORE.helpers import get_timestamp, orjson_dumps
+from apps.CORE.schemas.requests import BaseRequestSchema
+from apps.CORE.types import ModelType, ObjectsVar, SchemaType, StrOrNone, StrUUID
 
 
-class BaseInSchema(BaseModel):
-    """Base schema for schemas that will be used in request validations."""
-
-    class Config:
-        """Schema configuration."""
-
-        orm_mode = True
-        arbitrary_types_allowed = True
-        validate_assignment = True
-        allow_population_by_field_name = True
-        use_enum_values = True
-
-
-class BaseOutSchema(BaseInSchema):
+class BaseResponseSchema(BaseRequestSchema):
     """Base schema for schemas that will be used in responses."""
 
-    class Config(BaseInSchema.Config):
+    class Config(BaseRequestSchema.Config):
         """Schema configuration."""
 
         json_encoders = {
@@ -57,7 +45,7 @@ class BaseOutSchema(BaseInSchema):
         return model
 
 
-class JSENDOutSchema(GenericModel, Generic[SchemaType]):
+class JSENDResponse(GenericModel, Generic[SchemaType]):
     """JSEND schema with 'success' status."""
 
     status: JSENDStatus = Field(default=JSENDStatus.SUCCESS)
@@ -66,21 +54,21 @@ class JSENDOutSchema(GenericModel, Generic[SchemaType]):
     code: int = Field(default=http_status.HTTP_200_OK)
 
 
-class JSENDFailOutSchema(JSENDOutSchema):
+class JSENDFailResponse(JSENDResponse):
     """JSEND schema with 'fail' status (validation errors, client errors)."""
 
     status: JSENDStatus = Field(default=JSENDStatus.FAIL)
     data: StrOrNone = Field(default=None)
 
 
-class JSENDErrorOutSchema(JSENDOutSchema):
+class JSENDErrorResponse(JSENDResponse):
     """JSEND schema with 'error' status (server errors)."""
 
     status: JSENDStatus = Field(default=JSENDStatus.ERROR)
     data: StrOrNone = Field(default=None)
 
 
-class UnprocessableEntityOutSchema(BaseOutSchema):
+class UnprocessableEntityResponse(BaseResponseSchema):
     """Schema that uses in pydantic validation errors."""
 
     location: list[str] = Field(example=["body", "field_1"])
@@ -89,26 +77,8 @@ class UnprocessableEntityOutSchema(BaseOutSchema):
     context: StrOrNone = Field(default=None)
 
 
-class CreatedAtOutSchema(BaseModel):
-    """Schema with `createdAt` Timestamp field."""
-
-    created_at: Timestamp = Field(title="Created at", alias="createdAt")
-
-
-class UpdatedAtOutSchema(BaseModel):
-    """Schema with `updatedAt` Timestamp field."""
-
-    updated_at: Timestamp = Field(title="Updated at", alias="updatedAt")
-
-
-class CreatedUpdatedOutSchema(CreatedAtOutSchema, UpdatedAtOutSchema):
-    """Schema with `createdAt` and `updatedAt` Timestamp fields."""
-
-    ...
-
-
-class PaginationOutSchema(GenericModel, Generic[ObjectsVar]):
-    """Generic OurSchema that uses for pagination."""
+class PaginationResponse(GenericModel, Generic[ObjectsVar]):
+    """Generic ResponseSchema that uses for pagination."""
 
     objects: list[ObjectsVar]
     offset: int | None = Field(default=None, description="Number of objects to skip.")
@@ -130,7 +100,7 @@ class PaginationOutSchema(GenericModel, Generic[ObjectsVar]):
         default=..., title="Pages", description="Total number of pages (depends on limit and total number of records)."
     )
 
-    class Config(BaseOutSchema.Config):
+    class Config(BaseResponseSchema.Config):
         """
         `allow_population_by_field_name` used only for remove lint error from PyCharm
         (by default it applies from BaseOutSchema.Config inheritance).
@@ -145,55 +115,7 @@ class PaginationOutSchema(GenericModel, Generic[ObjectsVar]):
         allow_population_by_field_name = True
 
 
-class JSENDPaginationOutSchema(JSENDOutSchema):
+class JSENDPaginationResponse(JSENDResponse):
     """Cover PaginationOutSchema with JSEND structure."""
 
-    data: PaginationOutSchema = Field(default=...)
-
-
-class TokenPayloadSchema(BaseOutSchema):
-    """Base JWT token payloads."""
-
-    iat: Timestamp
-    aud: str
-    exp: Timestamp
-    nbf: Timestamp
-    iss: str
-
-
-class TokenOptionsSchema(BaseOutSchema):
-    """Schema options for PyJWT parsing & validation.
-
-    Attributes:
-        verify_signature (bool): Toggle validation for PyJWT library. Defaults: `True`
-
-            `True` --> Enabled,
-
-            `False` --> Disabled.
-
-        require (list[str]): Force check these keys inside JWT's payload.
-
-            Defaults: `["aud", "exp", "iat", "iss", "nbf"]`
-        verify_aud (bool): Enable validation for `aud` field. Defaults: `True`
-        verify_exp (bool): Enable validation for `exp` field. Defaults: `True`
-        verify_iat (bool): Enable validation for `iat` field. Defaults: `True`
-        verify_iss (bool): Enable validation for `iss` field. Defaults: `True`
-        verify_nbf (bool): Enable validation for `nbf` field. Defaults: `True`
-    Examples:
-        Initialize schema (default attributes).
-        >>> schema_1 = TokenOptionsSchema()
-
-        Initialize schema (disable validation).
-        >>> schema_2 = TokenOptionsSchema(verify_signature=False)
-
-        Initialize schema (force require only `aud` as a required key and disable validation for `exp` key).
-        >>> schema_2 = TokenOptionsSchema(requre=["aud"], verify_exp=False)
-    """
-
-    verify_signature: bool = Field(default=True)
-    requre: list[str] = Field(default=["aud", "exp", "iat", "iss", "nbf"])  # pyJWT default is: []
-    verify_aud: bool = Field(default=True)
-    verify_exp: bool = Field(default=True)
-    verify_iat: bool = Field(default=True)
-    verify_iss: bool = Field(default=True)
-    verify_nbf: bool = Field(default=True)
+    data: PaginationResponse = Field(default=...)

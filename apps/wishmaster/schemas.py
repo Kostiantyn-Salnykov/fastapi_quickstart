@@ -2,27 +2,23 @@ import uuid
 
 from pydantic import Field, validator
 
-from apps.CORE.schemas import (
-    BaseInSchema,
-    BaseOutSchema,
-    CreatedUpdatedOutSchema,
-    JSENDPaginationOutSchema,
-    PaginationOutSchema,
-)
+from apps.CORE.schemas.mixins import CreatedUpdatedResponseMixin
+from apps.CORE.schemas.requests import BaseRequestSchema
+from apps.CORE.schemas.responses import BaseResponseSchema, JSENDPaginationResponse, PaginationResponse
 from apps.wishmaster.enums import WishComplexities, WishPriorities, WishStatuses
 from apps.wishmaster.models import Tag
 
 
-class CategoryOutSchema(BaseOutSchema):
+class CategoryResponseSchema(BaseResponseSchema):
     title: str = Field(default=..., max_length=128)
     owner_id: uuid.UUID = Field(...)
 
 
-class TagOutSchema(BaseOutSchema):
+class TagResponseSchema(BaseResponseSchema):
     title: str = Field(default=..., max_length=64)
 
 
-class WishCreateToDBSchema(BaseInSchema):
+class WishCreateToDBSchema(BaseRequestSchema):
     title: str = Field(max_length=128, example="Do something.")
     wishlist_id: uuid.UUID = Field(default=..., alias="wishlistId")
     status: WishStatuses = Field(default=WishStatuses.CREATED)
@@ -47,7 +43,7 @@ class WishUpdateSchema(WishUpdateToDBSchema):
     tags: list[str] | None = Field(default=None, max_items=10)
 
 
-class WishOutSchema(BaseOutSchema, CreatedUpdatedOutSchema):
+class WishResponseSchema(BaseResponseSchema, CreatedUpdatedResponseMixin):
     id: uuid.UUID
     title: str = Field(max_length=128, example="Do something.")
     wishlist_id: uuid.UUID = Field(default=..., alias="wishlistId")
@@ -57,7 +53,7 @@ class WishOutSchema(BaseOutSchema, CreatedUpdatedOutSchema):
     category_id: uuid.UUID | None = Field(default=None, alias="categoryId")
     description: str | None = Field(default=None, max_length=255)
 
-    category: CategoryOutSchema | None = Field(default=None)
+    category: CategoryResponseSchema | None = Field(default=None)
     tags: list[str] = Field(default_factory=list)
 
     @validator("tags", pre=True)
@@ -66,11 +62,11 @@ class WishOutSchema(BaseOutSchema, CreatedUpdatedOutSchema):
         return tags
 
 
-class WishesOutSchema(JSENDPaginationOutSchema):
-    data: PaginationOutSchema[WishOutSchema]
+class WishesOutSchema(JSENDPaginationResponse):
+    data: PaginationResponse[WishResponseSchema]
 
 
-class WishListCreateSchema(BaseInSchema):
+class WishListCreateSchema(BaseRequestSchema):
     title: str = Field(max_length=128, example="My Wishlist")
 
 
@@ -78,15 +74,15 @@ class WishListToDBCreateSchema(WishListCreateSchema):
     owner_id: uuid.UUID = Field(...)
 
 
-class WishListOutSchema(BaseOutSchema, CreatedUpdatedOutSchema):
+class WishListResponseSchema(BaseResponseSchema, CreatedUpdatedResponseMixin):
     id: uuid.UUID
     title: str = Field(max_length=128, example="My Wishlist")
     owner_id: uuid.UUID = Field(alias="ownerId")
 
 
-class WishListWithWishesOutSchema(WishListOutSchema):
-    wishes: list[WishOutSchema] | None = Field(default_factory=list)
+class WishListWithWishesOutSchema(WishListResponseSchema):
+    wishes: list[WishResponseSchema] | None = Field(default_factory=list)
 
 
-class WishListsOutSchema(BaseOutSchema, JSENDPaginationOutSchema):
-    data: PaginationOutSchema[WishListWithWishesOutSchema]
+class WishListsResponseSchema(BaseResponseSchema, JSENDPaginationResponse):
+    data: PaginationResponse[WishListWithWishesOutSchema]

@@ -7,7 +7,7 @@ from pydantic.validators import str_validator
 from pytest_mock import MockerFixture
 
 from apps.CORE.types import Email, Phone, StrUUID, Timestamp
-from apps.CORE.utils import get_utc_timezone
+from apps.CORE.helpers import get_utc_timezone
 
 
 class TestStrUUID:

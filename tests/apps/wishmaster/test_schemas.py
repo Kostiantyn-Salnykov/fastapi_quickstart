@@ -1,5 +1,5 @@
 from apps.wishmaster.models import Tag
-from apps.wishmaster.schemas import WishOutSchema
+from apps.wishmaster.schemas import WishResponseSchema
 
 
 class TestWishOutSchema:
@@ -7,6 +7,6 @@ class TestWishOutSchema:
         tags = ["test", Tag(title="Test2"), "#atata"]
         expected_result = ["test", "Test2", "#atata"]
 
-        result = WishOutSchema.validate_tag(v=tags)
+        result = WishResponseSchema.validate_tag(v=tags)
 
         assert result == expected_result

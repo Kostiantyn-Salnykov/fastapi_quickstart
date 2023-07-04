@@ -4,9 +4,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from apps.authorization.dependencies import IsAuthenticated, bearer_auth
 from apps.CORE.deps import get_async_session
 from apps.CORE.responses import Responses
-from apps.CORE.schemas import JSENDOutSchema
+from apps.CORE.schemas.responses import JSENDResponse
 from apps.users.handlers import users_handler
-from apps.users.schemas import LoginOutSchema, LoginSchema, TokenRefreshSchema, UserCreateSchema, UserOutSchema
+from apps.users.schemas import LoginOutSchema, LoginSchema, TokenRefreshSchema, UserCreateSchema, UserResponseSchema
 
 __all__ = (
     "register_router",
@@ -29,16 +29,16 @@ tokens_router = APIRouter(tags=["tokens"])
     name="create_user",
     summary="Registration",
     description="Create user and get details.",
-    response_model=JSENDOutSchema[UserOutSchema],
+    response_model=JSENDResponse[UserResponseSchema],
     status_code=status.HTTP_201_CREATED,
 )
 async def create_user(
     request: Request,
     data: UserCreateSchema,
     session: AsyncSession = Depends(get_async_session),
-) -> JSENDOutSchema[UserOutSchema]:
+) -> JSENDResponse[UserResponseSchema]:
     """Creates new user."""
-    return JSENDOutSchema[UserOutSchema](
+    return JSENDResponse[UserResponseSchema](
         data=await users_handler.create_user(request=request, session=session, data=data),
         message="Created User's details.",
         code=status.HTTP_201_CREATED,
@@ -50,31 +50,31 @@ async def create_user(
     name="whoami",
     summary="Who am I?",
     description="Get user's data from authorization.",
-    response_model=JSENDOutSchema[UserOutSchema],
+    response_model=JSENDResponse[UserResponseSchema],
     status_code=status.HTTP_200_OK,
 )
-async def whoami(request: Request) -> JSENDOutSchema[UserOutSchema]:
+async def whoami(request: Request) -> JSENDResponse[UserResponseSchema]:
     """Gets information about user from authorization."""
-    return JSENDOutSchema[UserOutSchema](data=request.user, message="User's data from authorization.")
+    return JSENDResponse[UserResponseSchema](data=request.user, message="User's data from authorization.")
 
 
 @tokens_router.post(
-    path="/login/", name="login", response_model=JSENDOutSchema[LoginOutSchema], status_code=status.HTTP_200_OK
+    path="/login/", name="login", response_model=JSENDResponse[LoginOutSchema], status_code=status.HTTP_200_OK
 )
 async def login(
     request: Request, data: LoginSchema, session: AsyncSession = Depends(get_async_session)
-) -> JSENDOutSchema[LoginOutSchema]:
-    return JSENDOutSchema[LoginOutSchema](
+) -> JSENDResponse[LoginOutSchema]:
+    return JSENDResponse[LoginOutSchema](
         data=await users_handler.login(request=request, session=session, data=data),
         message="Tokens to authenticate user for working with API.",
     )
 
 
-@tokens_router.put(path="/refresh/", name="refresh", response_model=JSENDOutSchema[LoginOutSchema])
+@tokens_router.put(path="/refresh/", name="refresh", response_model=JSENDResponse[LoginOutSchema])
 async def refresh(
     request: Request, data: TokenRefreshSchema, session: AsyncSession = Depends(get_async_session)
-) -> JSENDOutSchema[LoginOutSchema]:
-    return JSENDOutSchema[LoginOutSchema](
+) -> JSENDResponse[LoginOutSchema]:
+    return JSENDResponse[LoginOutSchema](
         data=await users_handler.refresh(request=request, session=session, data=data),
         message="Tokens to authenticate user for working with API.",
     )

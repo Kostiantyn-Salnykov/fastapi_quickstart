@@ -5,7 +5,7 @@ import urllib.parse
 
 from fastapi import Query, Request
 
-from apps.CORE.schemas import PaginationOutSchema
+from apps.CORE.schemas.responses import PaginationResponse
 from apps.CORE.types import ObjectsVar, SchemaType, StrUUID
 
 __all__ = ("PaginationInterface", "LimitOffsetPagination", "NextTokenPagination")
@@ -20,7 +20,7 @@ class PaginationInterface(abc.ABC):
         schema: typing.Type[SchemaType],
         total: int,
         endpoint_name: str,
-    ) -> PaginationOutSchema[SchemaType]:
+    ) -> PaginationResponse[SchemaType]:
         ...
 
 
@@ -53,7 +53,7 @@ class LimitOffsetPagination(PaginationInterface):
         schema: typing.Type[SchemaType],
         total: int,
         endpoint_name: str,
-    ) -> PaginationOutSchema[SchemaType]:
+    ) -> PaginationResponse[SchemaType]:
         previous_url = (
             str(request.url_for(endpoint_name)) + "?" + urllib.parse.urlencode(query=self.previous())
             if self.offset > 0
@@ -65,7 +65,7 @@ class LimitOffsetPagination(PaginationInterface):
             if objects_count == self.limit and objects_count != total
             else None
         )
-        return PaginationOutSchema[schema](
+        return PaginationResponse[schema](
             objects=(schema.from_orm(obj=obj) for obj in objects),  # type: ignore
             offset=self.offset,
             limit=self.limit,
@@ -104,7 +104,7 @@ class NextTokenPagination(PaginationInterface):
         schema: typing.Type[SchemaType],
         total: int,
         endpoint_name: str,
-    ) -> PaginationOutSchema[SchemaType]:
+    ) -> PaginationResponse[SchemaType]:
         objects_count = len(objects)
         has_more = objects_count >= self.limit
         if has_more:
@@ -123,7 +123,7 @@ class NextTokenPagination(PaginationInterface):
         else:
             pages = total // self.limit + 1
 
-        return PaginationOutSchema[schema](
+        return PaginationResponse[schema](
             objects=(schema.from_orm(obj=obj) for obj in objects),  # type: ignore
             limit=self.limit,
             count=objects_count,

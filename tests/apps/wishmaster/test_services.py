@@ -8,7 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from apps.wishmaster.enums import WishStatuses
 from apps.wishmaster.models import Wish
-from apps.wishmaster.schemas import WishCreateSchema, WishOutSchema, WishUpdateSchema
+from apps.wishmaster.schemas import WishCreateSchema, WishResponseSchema, WishUpdateSchema
 from apps.wishmaster.services import WishCRUD
 
 
@@ -50,7 +50,7 @@ class _TestWishCRUDBase:
         result = await self.service.create(session=db_session, obj=wish)
 
         assert isinstance(result, Wish)
-        result_schema = WishOutSchema.from_orm(obj=result)
+        result_schema = WishResponseSchema.from_orm(obj=result)
         assert result_schema.dict(include=equal_fields) == wish.dict(include=equal_fields)
         self.check_defaults(obj=result)
 

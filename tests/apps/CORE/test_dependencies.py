@@ -11,7 +11,7 @@ from apps.CORE.deps.pagination import LimitOffsetPagination
 from apps.CORE.deps.sorting import BaseSorting
 from apps.CORE.enums import FOps
 from apps.CORE.exceptions import BackendException
-from apps.CORE.schemas import BaseOutSchema
+from apps.CORE.schemas.responses import BaseResponseSchema
 
 
 class TestBasePagination:
@@ -97,7 +97,7 @@ class TestBasePagination:
 
 class TestBaseSorting:
     def test__init__(self, mocker: MockerFixture) -> None:
-        model, schema = mocker.MagicMock(spec=Base), mocker.MagicMock(spec=BaseOutSchema)
+        model, schema = mocker.MagicMock(spec=Base), mocker.MagicMock(spec=BaseResponseSchema)
         columns = [mocker.MagicMock(key="field1"), mocker.MagicMock(key="field2")]
 
         sorting = BaseSorting(model=model, available_columns=columns, schema=schema)
@@ -107,7 +107,7 @@ class TestBaseSorting:
         assert sorting.available_columns_names == [col.key for col in columns]
 
     def test__init__default(self, mocker: MockerFixture) -> None:
-        model, schema = mocker.MagicMock(spec=Base), mocker.MagicMock(spec=BaseOutSchema)
+        model, schema = mocker.MagicMock(spec=Base), mocker.MagicMock(spec=BaseResponseSchema)
 
         sorting = BaseSorting(model=model, schema=schema)
 
@@ -117,7 +117,7 @@ class TestBaseSorting:
 
     def test__call__(self, faker: Faker, mocker: MockerFixture) -> None:
         build_sorting_mock = mocker.patch.object(target=BaseSorting, attribute="build_sorting")
-        sorting = BaseSorting(model=mocker.MagicMock(spec=Base), schema=mocker.MagicMock(spec=BaseOutSchema))
+        sorting = BaseSorting(model=mocker.MagicMock(spec=Base), schema=mocker.MagicMock(spec=BaseResponseSchema))
         sorting_in = faker.pylist(value_types=[str])
 
         result = sorting(sorting=sorting_in)
@@ -156,7 +156,7 @@ class TestBaseSorting:
         assert result == [model.id.desc()]
 
     def test_collect_aliases(self, mocker: MockerFixture) -> None:
-        class TestSchema(BaseOutSchema):
+        class TestSchema(BaseResponseSchema):
             title: str = Field(alias="t")
             f2: str = Field()
 

@@ -13,7 +13,7 @@ from apps.CORE.deps.pagination import NextTokenPagination
 from apps.CORE.deps.sorting import BaseSorting
 from apps.CORE.enums import FOps
 from apps.CORE.responses import Responses
-from apps.CORE.schemas import JSENDOutSchema
+from apps.CORE.schemas.responses import JSENDResponse
 from apps.wishmaster.enums import WishComplexities, WishPriorities
 from apps.wishmaster.handlers import wish_handler, wishlist_handler
 from apps.wishmaster.models import Wish, WishList
@@ -21,10 +21,10 @@ from apps.wishmaster.schemas import (
     WishCreateSchema,
     WishesOutSchema,
     WishListCreateSchema,
-    WishListOutSchema,
-    WishListsOutSchema,
+    WishListResponseSchema,
+    WishListsResponseSchema,
     WishListWithWishesOutSchema,
-    WishOutSchema,
+    WishResponseSchema,
     WishUpdateSchema,
 )
 
@@ -39,11 +39,11 @@ wish_router = APIRouter(
 )
 
 
-@wishlist_router.post(path="/", name="create_wishlist", response_model=JSENDOutSchema[WishListOutSchema])
+@wishlist_router.post(path="/", name="create_wishlist", response_model=JSENDResponse[WishListResponseSchema])
 async def create_wishlist(
     request: Request, data: WishListCreateSchema, session: AsyncSession = Depends(get_async_session)
-) -> JSENDOutSchema[WishListOutSchema]:
-    return JSENDOutSchema[WishListOutSchema](
+) -> JSENDResponse[WishListResponseSchema]:
+    return JSENDResponse[WishListResponseSchema](
         data=await wishlist_handler.create(session=session, request=request, data=data),
         message="Created WishList details.",
     )
@@ -52,7 +52,7 @@ async def create_wishlist(
 @wishlist_router.get(
     path="/",
     name="list_wishlists",
-    response_model=WishListsOutSchema,
+    response_model=WishListsResponseSchema,
 )
 async def list_wishlists(
     request: Request,
@@ -61,14 +61,14 @@ async def list_wishlists(
     sorting: list[UnaryExpression] = Depends(
         BaseSorting(
             model=WishList,
-            schema=WishListOutSchema,
+            schema=WishListResponseSchema,
             available_columns=[WishList.id, WishList.created_at, WishList.title],
         )
     ),
     filters: list[BinaryExpression] = Depends(
         BaseFilters(
             model=WishList,
-            schema=WishListOutSchema,
+            schema=WishListResponseSchema,
             filters=[
                 F(
                     query_field_name="createdAt",
@@ -92,11 +92,11 @@ async def list_wishlists(
             ],
         )
     ),
-) -> WishListsOutSchema:
+) -> WishListsResponseSchema:
     total, wishlists = await wishlist_handler.list(
         session=session, request=request, pagination=pagination, sorting=sorting, filters=filters
     )
-    return WishListsOutSchema(
+    return WishListsResponseSchema(
         data=pagination.paginate(
             request=request,
             objects=wishlists,
@@ -108,15 +108,15 @@ async def list_wishlists(
     )
 
 
-@wishlist_router.delete(path="/{id}/", name="delete_wishlist", response_model=JSENDOutSchema[typing.Type[None]])
+@wishlist_router.delete(path="/{id}/", name="delete_wishlist", response_model=JSENDResponse[typing.Type[None]])
 async def delete_wishlist(
     request: Request, id: uuid.UUID = Path(), session: AsyncSession = Depends(get_async_session)
-) -> JSENDOutSchema[typing.Type[None]]:
+) -> JSENDResponse[typing.Type[None]]:
     await wishlist_handler.delete(session=session, request=request, id=id)
-    return JSENDOutSchema(data=None, message="WishList deleted successfully.")
+    return JSENDResponse(data=None, message="WishList deleted successfully.")
 
 
-@wish_router.post(path="/", response_model=JSENDOutSchema[WishOutSchema])
+@wish_router.post(path="/", response_model=JSENDResponse[WishResponseSchema])
 async def create_wish(
     request: Request,
     data: WishCreateSchema = Body(
@@ -142,8 +142,8 @@ async def create_wish(
         },
     ),
     session: AsyncSession = Depends(get_async_session),
-) -> JSENDOutSchema[WishOutSchema]:
-    return JSENDOutSchema[WishOutSchema](
+) -> JSENDResponse[WishResponseSchema]:
+    return JSENDResponse[WishResponseSchema](
         data=await wish_handler.create(session=session, request=request, data=data),
         message="Created Wish details.",
     )
@@ -157,14 +157,14 @@ async def list_wishes(
     sorting: list[UnaryExpression] = Depends(
         BaseSorting(
             model=Wish,
-            schema=WishOutSchema,
+            schema=WishResponseSchema,
             available_columns=[Wish.id, Wish.created_at, Wish.title, Wish.priority, Wish.complexity],
         )
     ),
     filters: list[BinaryExpression] = Depends(
         BaseFilters(
             model=Wish,
-            schema=WishOutSchema,
+            schema=WishResponseSchema,
             filters=[
                 F(
                     query_field_name="createdAt",
@@ -208,7 +208,7 @@ async def list_wishes(
         "data": pagination.paginate(
             request=request,
             objects=wishes,
-            schema=WishOutSchema,
+            schema=WishResponseSchema,
             total=total,
             endpoint_name="list_wishes",
         ),
@@ -216,31 +216,31 @@ async def list_wishes(
     }
 
 
-@wish_router.delete(path="/{id}/", name="delete_wish", response_model=JSENDOutSchema)
+@wish_router.delete(path="/{id}/", name="delete_wish", response_model=JSENDResponse)
 async def delete_wish(
     request: Request,
     id: uuid.UUID = Path(),
     session: AsyncSession = Depends(get_async_session),
-) -> JSENDOutSchema[typing.Type[None]]:
+) -> JSENDResponse[typing.Type[None]]:
     await wish_handler.delete(session=session, request=request, id=id)
-    return JSENDOutSchema(data=None, message="Wish deleted successfully.")
+    return JSENDResponse(data=None, message="Wish deleted successfully.")
 
 
-@wish_router.get(path="/{id}/", name="read_wish", response_model=JSENDOutSchema[WishOutSchema])
+@wish_router.get(path="/{id}/", name="read_wish", response_model=JSENDResponse[WishResponseSchema])
 async def read_wish(
     request: Request, id: uuid.UUID = Path(), session: AsyncSession = Depends(get_async_session)
-) -> JSENDOutSchema[WishOutSchema]:
-    return JSENDOutSchema[WishOutSchema](
+) -> JSENDResponse[WishResponseSchema]:
+    return JSENDResponse[WishResponseSchema](
         data=await wish_handler.read(session=session, request=request, id=id),
         message="Wish details.",
     )
 
 
-@wish_router.patch(path="/{id}/", name="update_wish", response_model=JSENDOutSchema[WishOutSchema])
+@wish_router.patch(path="/{id}/", name="update_wish", response_model=JSENDResponse[WishResponseSchema])
 async def update_wish(
     request: Request, data: WishUpdateSchema, id: uuid.UUID = Path(), session: AsyncSession = Depends(get_async_session)
-) -> JSENDOutSchema[WishOutSchema]:
-    return JSENDOutSchema[WishOutSchema](
+) -> JSENDResponse[WishResponseSchema]:
+    return JSENDResponse[WishResponseSchema](
         data=await wish_handler.update(session=session, request=request, id=id, data=data),
         message="Updated Wish details.",
     )

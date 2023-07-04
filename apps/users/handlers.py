@@ -7,10 +7,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from apps.CORE.enums import TokenAudience
 from apps.CORE.exceptions import BackendException
+from apps.CORE.helpers import utc_now
 from apps.CORE.managers import PasswordsManager
 from apps.CORE.models import User
 from apps.CORE.types import StrOrUUID
-from apps.CORE.utils import utc_now
 from apps.users.enums import UsersStatuses
 from apps.users.schemas import (
     LoginOutSchema,
@@ -18,7 +18,7 @@ from apps.users.schemas import (
     TokenRefreshSchema,
     UserCreateSchema,
     UserCreateToDBSchema,
-    UserOutSchema,
+    UserResponseSchema,
     UserToDBBaseSchema,
     UserTokenPayloadSchema,
     UserUpdateSchema,
@@ -33,15 +33,19 @@ class UsersHandler:
     def __init__(self) -> None:
         self.passwords_manager = PasswordsManager()
 
-    async def create_user(self, *, request: Request, session: AsyncSession, data: UserCreateSchema) -> UserOutSchema:
+    async def create_user(
+        self, *, request: Request, session: AsyncSession, data: UserCreateSchema
+    ) -> UserResponseSchema:
         create_to_db = UserCreateToDBSchema(
             **data.dict(by_alias=True, exclude={"password"}),
             password_hash=self.passwords_manager.make_password(password=data.password),
         )
         user: User = await users_service.create(session=session, obj=create_to_db)
-        return UserOutSchema.from_orm(obj=user)
+        return UserResponseSchema.from_orm(obj=user)
 
-    async def update_user(self, *, request: Request, session: AsyncSession, data: UserUpdateSchema) -> UserOutSchema:
+    async def update_user(
+        self, *, request: Request, session: AsyncSession, data: UserUpdateSchema
+    ) -> UserResponseSchema:
         values = data.dict(exclude_unset=True)
         if not values:
             raise BackendException(message="Nothing to update.")
@@ -56,7 +60,7 @@ class UsersHandler:
                 "status": UsersStatuses.CONFIRMED.value,
             }
         user = await users_service.update(session=session, id=request.user.id, obj=UserToDBBaseSchema(**values))
-        return UserOutSchema.from_orm(user)
+        return UserResponseSchema.from_orm(user)
 
     @staticmethod
     def generate_tokens(*, request: Request, id: StrOrUUID) -> LoginOutSchema:

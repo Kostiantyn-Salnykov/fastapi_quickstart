@@ -6,16 +6,9 @@ from sqlalchemy.engine import CursorResult
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.sql.elements import BinaryExpression, UnaryExpression
 
-from apps.authorization.schemas import (
-    GroupCreateSchema,
-    GroupCreateToDBSchema,
-    GroupOutSchema,
-    GroupUpdateSchema,
-    PermissionOutSchema,
-    RoleCreateSchema,
-    RoleCreateToDBSchema,
-    RoleOutSchema,
-)
+from apps.authorization.schemas import GroupCreateToDBSchema, RoleCreateToDBSchema
+from apps.authorization.schemas.requests import GroupCreateRequest, GroupUpdateRequest, RoleCreateRequest
+from apps.authorization.schemas.responses import GroupResponse, PermissionResponse, RoleResponse
 from apps.authorization.services import (
     group_role_service,
     groups_service,
@@ -25,16 +18,16 @@ from apps.authorization.services import (
 )
 from apps.CORE.deps.pagination import NextTokenPagination
 from apps.CORE.exceptions import BackendException
+from apps.CORE.helpers import to_db_encoder
 from apps.CORE.models import Group, Permission, Role
 from apps.CORE.types import StrOrUUID
-from apps.CORE.utils import to_db_encoder
 from loggers import get_logger
 
 logger = get_logger(name=__name__)
 
 
 class GroupsHandler:
-    async def create_group(self, *, request: Request, session: AsyncSession, data: GroupCreateSchema) -> GroupOutSchema:
+    async def create_group(self, *, request: Request, session: AsyncSession, data: GroupCreateRequest) -> GroupResponse:
         group_schema: GroupCreateToDBSchema = GroupCreateToDBSchema(id=uuid_extensions.uuid7str(), title=data.title)
         if data.roles_ids:
             await roles_service.list_or_not_found(session=session, ids=data.roles_ids, message="Role(s) not found.")
@@ -46,11 +39,11 @@ class GroupsHandler:
                     values_list=[{"group_id": group.id, "role_id": role_id} for role_id in data.roles_ids],
                 )
         await session.refresh(group)
-        return GroupOutSchema.from_orm(obj=group)
+        return GroupResponse.from_orm(obj=group)
 
-    async def read_group(self, *, request: Request, session: AsyncSession, id: StrOrUUID) -> GroupOutSchema:
+    async def read_group(self, *, request: Request, session: AsyncSession, id: StrOrUUID) -> GroupResponse:
         group: Group = await groups_service.read_or_not_found(session=session, id=id, message="Group not found.")
-        return GroupOutSchema.from_orm(obj=group)
+        return GroupResponse.from_orm(obj=group)
 
     async def list_groups(
         self,
@@ -71,8 +64,8 @@ class GroupsHandler:
         )
 
     async def update_group(
-        self, *, request: Request, session: AsyncSession, id: StrOrUUID, data: GroupUpdateSchema
-    ) -> GroupOutSchema:
+        self, *, request: Request, session: AsyncSession, id: StrOrUUID, data: GroupUpdateRequest
+    ) -> GroupResponse:
         values: dict[str, typing.Any] = to_db_encoder(obj=data, exclude={"roles_ids"})
         if not values:
             raise BackendException(message="Nothing to update.")
@@ -97,7 +90,7 @@ class GroupsHandler:
 
 
 class RolesHandler:
-    async def create_role(self, *, request: Request, session: AsyncSession, data: RoleCreateSchema) -> RoleOutSchema:
+    async def create_role(self, *, request: Request, session: AsyncSession, data: RoleCreateRequest) -> RoleResponse:
         role_schema: RoleCreateToDBSchema = RoleCreateToDBSchema(id=uuid_extensions.uuid7str(), title=data.title)
         if data.permissions_ids:
             await permissions_service.list_or_not_found(
@@ -116,11 +109,11 @@ class RolesHandler:
         await session.refresh(role)
         return role
 
-    async def read_role(self, *, request: Request, session: AsyncSession, id: StrOrUUID) -> RoleOutSchema:
+    async def read_role(self, *, request: Request, session: AsyncSession, id: StrOrUUID) -> RoleResponse:
         role: Role = await roles_service.read(session=session, id=id)
         if not role:
             raise BackendException(message="Role not found.", code=status.HTTP_404_NOT_FOUND)
-        return RoleOutSchema.from_orm(obj=role)
+        return RoleResponse.from_orm(obj=role)
 
     async def list_roles(
         self,
@@ -149,11 +142,11 @@ class RolesHandler:
 
 
 class PermissionsHandler:
-    async def read_permission(self, *, request: Request, session: AsyncSession, id: StrOrUUID) -> PermissionOutSchema:
+    async def read_permission(self, *, request: Request, session: AsyncSession, id: StrOrUUID) -> PermissionResponse:
         permission: Permission = await permissions_service.read(session=session, id=id)
         if not permission:
             raise BackendException(message="Permission not found.", code=status.HTTP_404_NOT_FOUND)
-        return PermissionOutSchema.from_orm(obj=permission)
+        return PermissionResponse.from_orm(obj=permission)
 
     async def list_permissions(
         self,

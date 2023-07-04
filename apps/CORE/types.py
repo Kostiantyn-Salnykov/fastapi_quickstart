@@ -9,10 +9,11 @@ from pydantic.datetime_parse import parse_datetime
 from sqlalchemy import Column
 
 from apps.CORE.db import Base
-from apps.CORE.utils import as_utc, get_timestamp, get_utc_timezone
+from apps.CORE.helpers import as_utc, get_timestamp, get_utc_timezone
 
 StrOrUUID: typing.TypeAlias = str | uuid.UUID
 StrOrNone: typing.TypeAlias = str | None
+DictStrOfAny: typing.TypeAlias = dict[str, typing.Any]
 ModelType = typing.TypeVar("ModelType", bound=Base)
 SchemaType = typing.TypeVar("SchemaType", bound=BaseModel)
 ModelColumnVar = typing.TypeVar("ModelColumnVar", bound=Column)

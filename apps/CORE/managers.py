@@ -13,9 +13,9 @@ from pydantic import BaseModel
 
 from apps.CORE.enums import TokenAudience
 from apps.CORE.exceptions import BackendException
+from apps.CORE.helpers import utc_now
 from apps.CORE.schemas import TokenOptionsSchema
 from apps.CORE.types import DatetimeOrNone
-from apps.CORE.utils import utc_now
 from settings import Settings
 
 

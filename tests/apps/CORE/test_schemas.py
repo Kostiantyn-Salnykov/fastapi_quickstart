@@ -6,13 +6,13 @@ import orjson
 from faker import Faker
 from pydantic.json import timedelta_isoformat
 
-from apps.CORE.schemas import BaseOutSchema
+from apps.CORE.schemas.responses import BaseResponseSchema
 from apps.CORE.types import Timestamp
-from apps.CORE.utils import get_timestamp
+from apps.CORE.helpers import get_timestamp
 
 
 class TestBaseOutSchema:
-    class CheckSchema(BaseOutSchema):
+    class CheckSchema(BaseResponseSchema):
         field_datetime: datetime.datetime
         field_timestamp: Timestamp
         field_timedelta: datetime.timedelta

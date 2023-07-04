@@ -8,16 +8,16 @@ from sqlalchemy.sql.elements import BinaryExpression, UnaryExpression
 
 from apps.CORE.deps.pagination import NextTokenPagination
 from apps.CORE.exceptions import BackendException
+from apps.CORE.helpers import to_db_encoder, utc_now
 from apps.CORE.types import StrOrUUID
-from apps.CORE.utils import to_db_encoder, utc_now
 from apps.wishmaster.models import Tag, Wish, WishList
 from apps.wishmaster.schemas import (
     WishCreateSchema,
     WishCreateToDBSchema,
     WishListCreateSchema,
-    WishListOutSchema,
+    WishListResponseSchema,
     WishListToDBCreateSchema,
-    WishOutSchema,
+    WishResponseSchema,
     WishUpdateSchema,
     WishUpdateToDBSchema,
 )
@@ -37,7 +37,7 @@ class WishHandler:
             raise BackendException(message="WishList not found.", code=status.HTTP_404_NOT_FOUND)
         return wishlist
 
-    async def create(self, *, session: AsyncSession, request: Request, data: WishCreateSchema) -> WishOutSchema:
+    async def create(self, *, session: AsyncSession, request: Request, data: WishCreateSchema) -> WishResponseSchema:
         obj = WishCreateToDBSchema(**data.dict(exclude={"tags"}, exclude_unset=True))
         await self.read_wishlist_or_not_found(session=session, id=obj.wishlist_id)
         async with session.begin_nested():
@@ -47,15 +47,15 @@ class WishHandler:
                 wish.tags.update(tags)
             session.add(instance=wish)
         await session.refresh(instance=wish)
-        return WishOutSchema.from_orm(obj=wish)
+        return WishResponseSchema.from_orm(obj=wish)
 
-    async def read(self, *, session: AsyncSession, request: Request, id: uuid.UUID | str) -> WishOutSchema:
+    async def read(self, *, session: AsyncSession, request: Request, id: uuid.UUID | str) -> WishResponseSchema:
         wish: Wish = await self.read_or_not_found(session=session, id=id)
-        return WishOutSchema.from_orm(obj=wish)
+        return WishResponseSchema.from_orm(obj=wish)
 
     async def update(
         self, *, session: AsyncSession, request: Request, id: uuid.UUID | str, data: WishUpdateSchema
-    ) -> WishOutSchema:
+    ) -> WishResponseSchema:
         obj = WishUpdateToDBSchema(**data.dict(exclude={"tags"}, exclude_unset=True))
         values = to_db_encoder(obj=obj)
         async with session.begin_nested():
@@ -69,7 +69,7 @@ class WishHandler:
                 updated_at = utc_now()
                 wish.updated_at = updated_at
 
-        return WishOutSchema.from_orm(obj=wish)
+        return WishResponseSchema.from_orm(obj=wish)
 
     async def list(
         self,
@@ -100,11 +100,13 @@ class WishHandler:
 
 
 class WishlistHandler:
-    async def create(self, *, session: AsyncSession, request: Request, data: WishListCreateSchema) -> WishListOutSchema:
+    async def create(
+        self, *, session: AsyncSession, request: Request, data: WishListCreateSchema
+    ) -> WishListResponseSchema:
         data = WishListToDBCreateSchema(**data.dict(), owner_id=request.user.id)
         values: dict[str, typing.Any] = to_db_encoder(obj=data)
         wishlist: WishList = await wishlist_service.create(session=session, values=values)
-        return WishListOutSchema.from_orm(obj=wishlist)
+        return WishListResponseSchema.from_orm(obj=wishlist)
 
     async def list(
         self,

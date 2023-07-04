@@ -25,7 +25,7 @@ from apps.CORE.exceptions import BackendException, RateLimitException
 from apps.CORE.handlers import backend_exception_handler, rate_limit_exception_handler, validation_exception_handler
 from apps.CORE.managers import TokensManager
 from apps.CORE.responses import Responses
-from apps.CORE.schemas import JSENDOutSchema
+from apps.CORE.schemas.responses import JSENDResponse
 from apps.users.routers import register_router, tokens_router, users_router
 from apps.wishmaster.routers import wish_router, wishlist_router
 from loggers import get_logger, setup_logging
@@ -148,7 +148,7 @@ api_router = APIRouter()
 
 @api_router.get(
     path="/",
-    response_model=JSENDOutSchema,
+    response_model=JSENDResponse,
     status_code=status.HTTP_200_OK,
     summary="Health check.",
     description="Health check endpoint.",
