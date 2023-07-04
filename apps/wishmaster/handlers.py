@@ -1,3 +1,4 @@
+import typing
 import uuid
 
 from fastapi import Request, status
@@ -5,10 +6,10 @@ from sqlalchemy.engine import CursorResult
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.sql.elements import BinaryExpression, UnaryExpression
 
-from apps.CORE.deps.pagination import LimitOffsetPagination
+from apps.CORE.deps.pagination import NextTokenPagination
 from apps.CORE.exceptions import BackendException
 from apps.CORE.types import StrOrUUID
-from apps.CORE.utils import to_db_encoder
+from apps.CORE.utils import to_db_encoder, utc_now
 from apps.wishmaster.models import Tag, Wish, WishList
 from apps.wishmaster.schemas import (
     WishCreateSchema,
@@ -56,19 +57,26 @@ class WishHandler:
         self, *, session: AsyncSession, request: Request, id: uuid.UUID | str, data: WishUpdateSchema
     ) -> WishOutSchema:
         obj = WishUpdateToDBSchema(**data.dict(exclude={"tags"}, exclude_unset=True))
+        values = to_db_encoder(obj=obj)
         async with session.begin_nested():
-            wish: Wish = await wish_service.update(session=session, id=id, obj=obj)
+            wish: Wish = await wish_service.read(session=session, id=id)
+            if values:
+                for k, v in values.items():
+                    setattr(wish, k, v)
             if data.tags:
                 tags = {Tag(title=tag) for tag in data.tags}
-                wish.tags.update(tags)
-            return WishOutSchema.from_orm(obj=wish)
+                wish.tags = tags
+                updated_at = utc_now()
+                wish.updated_at = updated_at
+
+        return WishOutSchema.from_orm(obj=wish)
 
     async def list(
         self,
         *,
         session: AsyncSession,
         request: Request,
-        pagination: LimitOffsetPagination,
+        pagination: NextTokenPagination,
         sorting: list[UnaryExpression],
         filters: list[BinaryExpression],
     ) -> tuple[int, list[Wish]]:
@@ -76,7 +84,7 @@ class WishHandler:
         filters.extend([WishList.owner_id == request.user.id])
         total, wishes = await wish_service.list(
             session=session,
-            offset=pagination.offset,
+            next_token=pagination.next_token,
             limit=pagination.limit,
             sorting=sorting,
             filters=filters,
@@ -94,7 +102,8 @@ class WishHandler:
 class WishlistHandler:
     async def create(self, *, session: AsyncSession, request: Request, data: WishListCreateSchema) -> WishListOutSchema:
         data = WishListToDBCreateSchema(**data.dict(), owner_id=request.user.id)
-        wishlist: WishList = await wishlist_service.create(session=session, obj=data)
+        values: dict[str, typing.Any] = to_db_encoder(obj=data)
+        wishlist: WishList = await wishlist_service.create(session=session, values=values)
         return WishListOutSchema.from_orm(obj=wishlist)
 
     async def list(
@@ -102,13 +111,13 @@ class WishlistHandler:
         *,
         session: AsyncSession,
         request: Request,
-        pagination: LimitOffsetPagination,
+        pagination: NextTokenPagination,
         sorting: list[UnaryExpression],
         filters: list[BinaryExpression],
     ) -> tuple[int, list[WishList]]:
         filters.extend([WishList.owner_id == request.user.id])
         return await wishlist_service.list(
-            session=session, sorting=sorting, offset=pagination.offset, limit=pagination.limit, filters=filters
+            session=session, sorting=sorting, limit=pagination.limit, next_token=pagination.next_token, filters=filters
         )
 
     async def delete(self, *, session: AsyncSession, request: Request, id: StrOrUUID, safe: bool = False) -> None:

@@ -63,7 +63,8 @@ class BaseSorting:
                 result.update({field.alias: field.name})
         return result
 
-    def build_sorting(self, sorting: list[str]) -> list[UnaryExpression]:
+    def build_sorting(self, sorting: list[str] | None) -> list[UnaryExpression]:
+        sorting.append("-id") if isinstance(sorting, list) else ...  # add sort by `id` in DESC order.
         aliases_map = self.collect_aliases()
         result = []
         for column in sorting or ["-id"]:  # If no provided, sort by `id` DESC.

@@ -8,7 +8,7 @@ from apps.CORE.schemas import BaseInSchema, BaseOutSchema, JSENDPaginationOutSch
 
 class GroupCreateSchema(BaseInSchema):
     title: str = Field(default=..., max_length=255, example="Group title")
-    roles_ids: list[uuid.UUID] | None = Field(default=[])
+    roles_ids: list[uuid.UUID] | None = Field(default_factory=list)
 
 
 class GroupUpdateSchema(GroupCreateSchema):
@@ -33,7 +33,7 @@ class PermissionOutSchema(BaseOutSchema):
 
 class RoleCreateSchema(BaseInSchema):
     title: str = Field(default=..., max_length=128, example="Role title")
-    permissions_ids: list[uuid.UUID] | None = Field(default=[])
+    permissions_ids: list[uuid.UUID] | None = Field(default_factory=list)
 
 
 class RoleCreateToDBSchema(BaseInSchema):
@@ -49,13 +49,13 @@ class CreateRolePermissionSchema(BaseInSchema):
 class RoleOutSchema(BaseOutSchema):
     id: uuid.UUID
     title: str = Field(default=..., max_length=128, example="Role title")
-    permissions: list[PermissionOutSchema] | None = Field(default=[])
+    permissions: list[PermissionOutSchema] | None = Field(default_factory=list)
 
 
 class GroupOutSchema(BaseOutSchema):
     id: uuid.UUID
     title: str = Field(default=..., max_length=255)
-    roles: list[RoleOutSchema] | None = Field(default=[])
+    roles: list[RoleOutSchema] | None = Field(default_factory=list)
 
 
 class GroupListOutSchema(JSENDPaginationOutSchema):

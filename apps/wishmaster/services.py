@@ -14,7 +14,7 @@ class WishCRUD(BaseCoreRepository):
         *,
         session: AsyncSession,
         sorting: list[UnaryExpression],
-        offset: int = 0,
+        next_token: str = None,
         limit: int = 100,
         filters: list[BinaryExpression] | None = None,
         unique: bool = False
@@ -24,10 +24,12 @@ class WishCRUD(BaseCoreRepository):
             .join(WishList)
             .where(*filters or {})
             .order_by(*sorting)
-            .offset(offset)
             .limit(limit)
             .execution_options(populate_existing=True)
         )
+        if next_token:
+            select_statement = select_statement.where(self.model.id > next_token)
+
         count_statement = (
             select(func.count(self.model.id))
             .select_from(self.model)
@@ -51,7 +53,7 @@ class WishListCRUD(BaseCoreRepository):
         *,
         session: AsyncSession,
         sorting: list[UnaryExpression],
-        offset: int = 0,
+        next_token: str = None,
         limit: int = 100,
         filters: list[BinaryExpression] | None = None,
         unique: bool = True
@@ -61,11 +63,11 @@ class WishListCRUD(BaseCoreRepository):
             .outerjoin(Wish, onclause=WishList.id == Wish.wishlist_id)
             .options(joinedload(WishList.wishes))
         )
+        if next_token:
+            select_statement = select_statement.where(self.model.id > next_token)
         if filters:
             select_statement = select_statement.where(*filters)
-        select_statement = (
-            select_statement.order_by(*sorting).offset(offset).limit(limit).execution_options(populate_existing=True)
-        )
+        select_statement = select_statement.order_by(*sorting).limit(limit).execution_options(populate_existing=True)
         count_statement = select(func.count(self.model.id)).select_from(self.model).where(*filters or {})
 
         async with session.begin_nested():

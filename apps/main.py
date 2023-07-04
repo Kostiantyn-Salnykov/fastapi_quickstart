@@ -3,6 +3,7 @@ import datetime
 import typing
 
 import redis.asyncio as redis
+import redis.exceptions
 import sqlalchemy.ext.asyncio
 import sqlalchemy.orm
 from fastapi import APIRouter, Depends, FastAPI, Request, status
@@ -58,13 +59,16 @@ async def _setup_redis(app: FastAPI) -> None:
     # proxy Redis client to request.app.state.redis
     app.redis = redis_engine
     logger.debug(msg="Checking connection with Redis...")
-    async with app.redis.client() as conn:
-        result = await conn.ping()
-        if result is not True:
-            msg = "Connection to Redis failed."
-            logger.error(msg=msg)
-            raise RuntimeError(msg)
-        logger.debug(msg=f"Result of Redis 'PING' command: {result}")
+    try:
+        async with app.redis.client() as conn:
+            result = await conn.ping()
+            if result is not True:
+                msg = "Connection to Redis failed."
+                logger.error(msg=msg)
+                raise RuntimeError(msg)
+            logger.debug(msg=f"Result of Redis 'PING' command: {result}")
+    except redis.exceptions.ConnectionError as e:
+        logger.error(msg=e)
 
 
 async def _dispose_all_connections() -> None:

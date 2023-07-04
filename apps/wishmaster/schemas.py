@@ -29,11 +29,11 @@ class WishCreateToDBSchema(BaseInSchema):
     complexity: WishComplexities = Field(default=WishComplexities.NORMAL)
     priority: WishPriorities = Field(default=WishPriorities.NORMAL)
     category_id: uuid.UUID | None = Field(default=None, alias="categoryId")
-    description: str | None = Field(max_length=255)
+    description: str | None = Field(default=None, max_length=255)
 
 
 class WishCreateSchema(WishCreateToDBSchema):
-    tags: list[str] | None = Field(default=[], max_items=10)
+    tags: list[str] | None = Field(default_factory=list, max_items=10)
 
 
 class WishUpdateToDBSchema(WishCreateSchema):
@@ -58,7 +58,7 @@ class WishOutSchema(BaseOutSchema, CreatedUpdatedOutSchema):
     description: str | None = Field(default=None, max_length=255)
 
     category: CategoryOutSchema | None = Field(default=None)
-    tags: list[str] = Field(default=[])
+    tags: list[str] = Field(default_factory=list)
 
     @validator("tags", pre=True)
     def validate_tag(cls, v: list[Tag | str]) -> list[str]:
@@ -85,7 +85,7 @@ class WishListOutSchema(BaseOutSchema, CreatedUpdatedOutSchema):
 
 
 class WishListWithWishesOutSchema(WishListOutSchema):
-    wishes: list[WishOutSchema] | None = Field(default=[])
+    wishes: list[WishOutSchema] | None = Field(default_factory=list)
 
 
 class WishListsOutSchema(BaseOutSchema, JSENDPaginationOutSchema):

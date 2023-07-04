@@ -1,18 +1,17 @@
 import datetime
 import uuid
-from typing import Generic, TypeAlias
+from typing import Generic
 
 import orjson
 import pydantic.json
 from fastapi import status as http_status
-from pydantic import AnyHttpUrl, BaseModel, Field
+from pydantic import AnyHttpUrl, BaseModel, Field, validate_model
 from pydantic.generics import GenericModel
+from pydantic.main import object_setattr
 
 from apps.CORE.enums import JSENDStatus
-from apps.CORE.types import ObjectsVar, SchemaType, StrUUID, Timestamp
+from apps.CORE.types import ModelType, ObjectsVar, SchemaType, StrOrNone, StrUUID, Timestamp
 from apps.CORE.utils import get_timestamp, orjson_dumps
-
-StrOrNone: TypeAlias = str | None
 
 
 class BaseInSchema(BaseModel):
@@ -42,6 +41,20 @@ class BaseOutSchema(BaseInSchema):
         }
         json_dumps = orjson_dumps
         json_loads = orjson.loads
+
+    @classmethod
+    def from_orm(cls, obj: SchemaType) -> ModelType:
+        # TableNameMixin.to_dict() logic.
+        obj = obj.to_dict()
+        # Pydantic from_orm logic.
+        model = cls.__new__(cls)
+        values, fields_set, validation_error = validate_model(cls, obj)
+        if validation_error:
+            raise validation_error
+        object_setattr(model, "__dict__", values)
+        object_setattr(model, "__fields_set__", fields_set)
+        model._init_private_attributes()
+        return model
 
 
 class JSENDOutSchema(GenericModel, Generic[SchemaType]):
@@ -98,7 +111,7 @@ class PaginationOutSchema(GenericModel, Generic[ObjectsVar]):
     """Generic OurSchema that uses for pagination."""
 
     objects: list[ObjectsVar]
-    offset: int = Field(default=None, description="Number of objects to skip.")
+    offset: int | None = Field(default=None, description="Number of objects to skip.")
     limit: int = Field(default=100, description="Number of objects returned per one page.")
     count: int = Field(default=0, alias="objectsCount", description="Number of objects returned in this response.")
     total_count: int = Field(
@@ -112,7 +125,7 @@ class PaginationOutSchema(GenericModel, Generic[ObjectsVar]):
     )
     next_url: AnyHttpUrl | None = Field(default=None, alias="nextURL", title="Next URL")
     previous_url: AnyHttpUrl | None = Field(default=None, alias="previousURL", title="Previous URL")
-    page: int = Field(default=None, title="Page", description="Current page (depends on offset, limit).")
+    page: int | None = Field(default=None, title="Page", description="Current page (depends on offset, limit).")
     pages: int = Field(
         default=..., title="Pages", description="Total number of pages (depends on limit and total number of records)."
     )
@@ -135,7 +148,7 @@ class PaginationOutSchema(GenericModel, Generic[ObjectsVar]):
 class JSENDPaginationOutSchema(JSENDOutSchema):
     """Cover PaginationOutSchema with JSEND structure."""
 
-    data: PaginationOutSchema
+    data: PaginationOutSchema = Field(default=...)
 
 
 class TokenPayloadSchema(BaseOutSchema):

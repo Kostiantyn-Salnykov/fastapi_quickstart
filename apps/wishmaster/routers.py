@@ -9,11 +9,12 @@ from sqlalchemy.sql.elements import BinaryExpression, UnaryExpression
 from apps.authorization.dependencies import IsAuthenticated, bearer_auth
 from apps.CORE.deps import get_async_session
 from apps.CORE.deps.filters import BaseFilters, F
-from apps.CORE.deps.pagination import LimitOffsetPagination
+from apps.CORE.deps.pagination import NextTokenPagination
 from apps.CORE.deps.sorting import BaseSorting
 from apps.CORE.enums import FOps
 from apps.CORE.responses import Responses
 from apps.CORE.schemas import JSENDOutSchema
+from apps.wishmaster.enums import WishComplexities, WishPriorities
 from apps.wishmaster.handlers import wish_handler, wishlist_handler
 from apps.wishmaster.models import Wish, WishList
 from apps.wishmaster.schemas import (
@@ -43,7 +44,7 @@ async def create_wishlist(
     request: Request, data: WishListCreateSchema, session: AsyncSession = Depends(get_async_session)
 ) -> JSENDOutSchema[WishListOutSchema]:
     return JSENDOutSchema[WishListOutSchema](
-        data=await wishlist_handler.create(session=session, request=request, values=data),
+        data=await wishlist_handler.create(session=session, request=request, data=data),
         message="Created WishList details.",
     )
 
@@ -56,7 +57,7 @@ async def create_wishlist(
 async def list_wishlists(
     request: Request,
     session: AsyncSession = Depends(get_async_session),
-    pagination: LimitOffsetPagination = Depends(LimitOffsetPagination()),
+    pagination: NextTokenPagination = Depends(NextTokenPagination()),
     sorting: list[UnaryExpression] = Depends(
         BaseSorting(
             model=WishList,
@@ -91,20 +92,20 @@ async def list_wishlists(
             ],
         )
     ),
-):
+) -> WishListsOutSchema:
     total, wishlists = await wishlist_handler.list(
         session=session, request=request, pagination=pagination, sorting=sorting, filters=filters
     )
-    return {
-        "data": pagination.paginate(
+    return WishListsOutSchema(
+        data=pagination.paginate(
             request=request,
             objects=wishlists,
             schema=WishListWithWishesOutSchema,
             total=total,
             endpoint_name="list_wishlists",
         ),
-        "message": "Paginated list of WishList objects.",
-    }
+        message="Paginated list of WishList objects.",
+    )
 
 
 @wishlist_router.delete(path="/{id}/", name="delete_wishlist", response_model=JSENDOutSchema[typing.Type[None]])
@@ -132,8 +133,8 @@ async def create_wish(
                     "title": "Wish title!",
                     "wishlistId": "69d1c962-a512-4ac5-a87b-b593452265a8",
                     "status": "CREATED",
-                    "complexity": "NORMAL",
-                    "priority": "NORMAL",
+                    "complexity": WishComplexities.NORMAL,
+                    "priority": WishPriorities.NORMAL,
                     "categoryId": "69d1c962-a512-4ac5-a87b-b593452265a0",
                     "description": "Wish description!",
                 },
@@ -143,7 +144,7 @@ async def create_wish(
     session: AsyncSession = Depends(get_async_session),
 ) -> JSENDOutSchema[WishOutSchema]:
     return JSENDOutSchema[WishOutSchema](
-        data=await wish_handler.create(session=session, request=request, values=data),
+        data=await wish_handler.create(session=session, request=request, data=data),
         message="Created Wish details.",
     )
 
@@ -152,12 +153,12 @@ async def create_wish(
 async def list_wishes(
     request: Request,
     session: AsyncSession = Depends(get_async_session),
-    pagination: LimitOffsetPagination = Depends(LimitOffsetPagination()),
+    pagination: NextTokenPagination = Depends(NextTokenPagination()),
     sorting: list[UnaryExpression] = Depends(
         BaseSorting(
             model=Wish,
             schema=WishOutSchema,
-            available_columns=[Wish.created_at, Wish.title, Wish.priority, Wish.complexity],
+            available_columns=[Wish.id, Wish.created_at, Wish.title, Wish.priority, Wish.complexity],
         )
     ),
     filters: list[BinaryExpression] = Depends(

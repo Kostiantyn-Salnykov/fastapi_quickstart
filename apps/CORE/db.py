@@ -1,5 +1,6 @@
 import datetime
 import re
+import typing
 import uuid
 
 import redis.asyncio as aioredis
@@ -21,7 +22,7 @@ from sqlalchemy.sql import func
 from settings import Settings
 
 __all__ = (
-    "TableNameMixin",
+    "BaseTableModelMixin",
     "UUIDMixin",
     "CreatedAtMixin",
     "UpdatedAtMixin",
@@ -37,7 +38,7 @@ __all__ = (
 
 
 @declarative_mixin
-class TableNameMixin:
+class BaseTableModelMixin:
     """Mixin for rewrite table name magic method."""
 
     pattern = re.compile(r"(?<!^)(?=[A-Z])")
@@ -46,6 +47,9 @@ class TableNameMixin:
     def __tablename__(cls) -> str:
         return cls.pattern.sub("_", cls.__name__).lower()
 
+    def to_dict(self) -> dict[str, typing.Any]:
+        return self.__dict__
+
 
 @declarative_mixin
 class UUIDMixin:
@@ -53,7 +57,7 @@ class UUIDMixin:
 
     id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
-        default=uuid_extensions.uuid7str,
+        default=uuid_extensions.uuid7,
         primary_key=True,
     )
 
@@ -75,8 +79,9 @@ class UpdatedAtMixin:
 
     updated_at: Mapped[datetime.datetime] = mapped_column(
         TIMESTAMP(timezone=True),
-        server_default=func.current_timestamp(),
-        server_onupdate=func.current_timestamp(),
+        server_default=func.now(),
+        server_onupdate=func.now(),
+        onupdate=func.now(),
         nullable=False,
     )
 
@@ -96,7 +101,7 @@ NAMING_CONVENTION = {
     "pk": "pk_%(table_name)s",  # PrimaryKey
 }
 
-Base = declarative_base(cls=TableNameMixin, metadata=MetaData(naming_convention=NAMING_CONVENTION))
+Base = declarative_base(cls=BaseTableModelMixin, metadata=MetaData(naming_convention=NAMING_CONVENTION))
 async_engine = create_async_engine(url=Settings.POSTGRES_URL_ASYNC, echo=Settings.POSTGRES_ECHO)
 engine = create_engine(url=Settings.POSTGRES_URL, echo=Settings.POSTGRES_ECHO)
 async_session_factory = sessionmaker(bind=async_engine, class_=AsyncSession, expire_on_commit=False, future=True)

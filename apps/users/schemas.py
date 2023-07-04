@@ -1,4 +1,3 @@
-import datetime
 import typing
 import uuid
 
@@ -6,7 +5,7 @@ from pydantic import Field, root_validator
 
 from apps.authorization.schemas import GroupOutSchema, PermissionOutSchema, RoleOutSchema
 from apps.CORE.schemas import BaseInSchema, BaseOutSchema, TokenPayloadSchema
-from apps.CORE.types import Email, Timestamp
+from apps.CORE.types import DatetimeOrNone, Email, Timestamp
 from apps.users.enums import UsersStatuses
 
 
@@ -54,10 +53,10 @@ class UserToDBBaseSchema(BaseInSchema):
     id: uuid.UUID | None
     first_name: str | None = Field(default=None, title="First name", max_length=128, alias="firstName", example="John")
     last_name: str | None = Field(default=None, title="Last name", max_length=128, alias="lastName", example="Doe")
-    email: Email | None = Field(default=None, title="Email", example="kostiantyn.salnykov@vilmate.com")
+    email: Email | None = Field(default=None, title="Email", example="kostiantyn.salnykov@gmail.com")
     status: UsersStatuses = Field(default=UsersStatuses.UNCONFIRMED, title="User status", alias="status")
-    created_at: datetime.datetime | None = Field(default=None, title="Created at", alias="createdAt")
-    updated_at: datetime.datetime | None = Field(default=None, title="Updated at", alias="updatedAt")
+    created_at: DatetimeOrNone = Field(default=None, title="Created at", alias="createdAt")
+    updated_at: DatetimeOrNone = Field(default=None, title="Updated at", alias="updatedAt")
     password_hash: str | None = Field(default=None, max_length=1024)
 
 
@@ -73,9 +72,9 @@ class UserOutSchema(BaseOutSchema):
     status: UsersStatuses = Field(default=UsersStatuses.UNCONFIRMED, title="User status", alias="status")
     created_at: Timestamp = Field(title="Created at", alias="createdAt")
     updated_at: Timestamp = Field(title="Updated at", alias="updatedAt")
-    groups: list[GroupOutSchema] | None = Field(default=[])
-    roles: list[RoleOutSchema] | None = Field(default=[])
-    permissions: list[PermissionOutSchema] | None = Field(default=[])
+    groups: list[GroupOutSchema] | None = Field(default_factory=list)
+    roles: list[RoleOutSchema] | None = Field(default_factory=list)
+    permissions: list[PermissionOutSchema] | None = Field(default_factory=list)
 
 
 class TokenRefreshSchema(BaseInSchema):

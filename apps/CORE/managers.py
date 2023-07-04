@@ -1,6 +1,11 @@
+__all__ = (
+    "PasswordsManager",
+    "TokensManager",
+)
+
 import datetime
 import secrets
-from typing import Sequence, Type, TypeAlias
+from typing import Sequence, Type
 
 import bcrypt
 import jwt
@@ -9,16 +14,9 @@ from pydantic import BaseModel
 from apps.CORE.enums import TokenAudience
 from apps.CORE.exceptions import BackendException
 from apps.CORE.schemas import TokenOptionsSchema
+from apps.CORE.types import DatetimeOrNone
 from apps.CORE.utils import utc_now
 from settings import Settings
-
-__all__ = (
-    "DatetimeOrNone",
-    "PasswordsManager",
-    "TokensManager",
-)
-
-DatetimeOrNone: TypeAlias = datetime.datetime | None
 
 
 class PasswordsManager:

@@ -4,11 +4,15 @@ ENV PYTHONPATH=/backend
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 
-WORKDIR /backend
+RUN apt-get update && apt-get install make
 
 RUN pip install --upgrade pip
 
 RUN pip install poetry
+
+WORKDIR /backend
+
+COPY Makefile pyproject.toml /backend/
 
 RUN make requirements
 
