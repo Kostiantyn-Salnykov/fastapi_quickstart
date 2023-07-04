@@ -7,9 +7,9 @@ import factory
 from pydantic_factories import AsyncPersistenceProtocol, ModelFactory, PostGenerated
 
 from apps.CORE.db import Base, async_session_factory
+from apps.CORE.helpers import utc_now
 from apps.CORE.repositories import BaseCoreRepository
 from apps.CORE.types import ModelType, SchemaType
-from apps.CORE.helpers import utc_now
 
 
 class AsyncPersistenceHandler(AsyncPersistenceProtocol):

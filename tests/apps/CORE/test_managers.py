@@ -5,9 +5,9 @@ from faker import Faker
 
 from apps.CORE.enums import TokenAudience
 from apps.CORE.exceptions import BackendException
+from apps.CORE.helpers import utc_now
 from apps.CORE.managers import PasswordsManager, TokensManager
 from apps.CORE.schemas import TokenOptionsSchema, TokenPayloadSchema
-from apps.CORE.helpers import utc_now
 
 
 class TestPasswordsManager:

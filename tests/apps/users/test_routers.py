@@ -5,8 +5,8 @@ from httpx import AsyncClient
 from pytest_mock import MockerFixture
 
 from apps.CORE.enums import JSENDStatus, TokenAudience
-from apps.CORE.managers import TokensManager
 from apps.CORE.helpers import get_timestamp
+from apps.CORE.managers import TokensManager
 from apps.users.enums import UsersStatuses
 from tests.apps.conftest import UsersHelper, assert_jsend_response
 from tests.apps.CORE.factories import UserFactory
