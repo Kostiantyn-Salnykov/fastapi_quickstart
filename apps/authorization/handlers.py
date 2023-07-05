@@ -17,7 +17,7 @@ from apps.authorization.services import (
     roles_service,
 )
 from apps.CORE.deps.pagination import NextTokenPagination
-from apps.CORE.exceptions import BackendException
+from apps.CORE.exceptions import BackendError
 from apps.CORE.helpers import to_db_encoder
 from apps.CORE.models import Group, Permission, Role
 from apps.CORE.types import StrOrUUID
@@ -67,7 +67,7 @@ class GroupsHandler:
     ) -> GroupResponse:
         values: dict[str, typing.Any] = to_db_encoder(obj=data, exclude={"roles_ids"})
         if not values:
-            raise BackendException(message="Nothing to update.")
+            raise BackendError(message="Nothing to update.")
         group: Group = await groups_service.read_or_not_found(session=session, id=id, message="Group no found.")
         if data.roles_ids:
             roles = await roles_service.list_or_not_found(
@@ -84,7 +84,7 @@ class GroupsHandler:
     async def delete_group(self, *, request: Request, session: AsyncSession, id: StrOrUUID, safe: bool = False) -> None:
         result: CursorResult = await groups_service.delete(session=session, id=id)
         if not result.rowcount and not safe:
-            raise BackendException(message="Group not found.", code=status.HTTP_404_NOT_FOUND)
+            raise BackendError(message="Group not found.", code=status.HTTP_404_NOT_FOUND)
         return None
 
 
@@ -111,7 +111,7 @@ class RolesHandler:
     async def read_role(self, *, request: Request, session: AsyncSession, id: StrOrUUID) -> RoleResponse:
         role: Role = await roles_service.read(session=session, id=id)
         if not role:
-            raise BackendException(message="Role not found.", code=status.HTTP_404_NOT_FOUND)
+            raise BackendError(message="Role not found.", code=status.HTTP_404_NOT_FOUND)
         return RoleResponse.from_orm(obj=role)
 
     async def list_roles(
@@ -135,7 +135,7 @@ class RolesHandler:
     async def delete_role(self, *, request: Request, session: AsyncSession, id: StrOrUUID, safe: bool = False) -> None:
         result: CursorResult = await roles_service.delete(session=session, id=id)
         if not result.rowcount and not safe:
-            raise BackendException(message="Role not found.", code=status.HTTP_404_NOT_FOUND)
+            raise BackendError(message="Role not found.", code=status.HTTP_404_NOT_FOUND)
         return None
 
 
@@ -143,7 +143,7 @@ class PermissionsHandler:
     async def read_permission(self, *, request: Request, session: AsyncSession, id: StrOrUUID) -> PermissionResponse:
         permission: Permission = await permissions_service.read(session=session, id=id)
         if not permission:
-            raise BackendException(message="Permission not found.", code=status.HTTP_404_NOT_FOUND)
+            raise BackendError(message="Permission not found.", code=status.HTTP_404_NOT_FOUND)
         return PermissionResponse.from_orm(obj=permission)
 
     async def list_permissions(

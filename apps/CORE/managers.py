@@ -12,7 +12,7 @@ import jwt
 from pydantic import BaseModel
 
 from apps.CORE.enums import TokenAudience
-from apps.CORE.exceptions import BackendException
+from apps.CORE.exceptions import BackendError
 from apps.CORE.helpers import utc_now
 from apps.CORE.schemas import TokenOptionsSchema
 from apps.CORE.types import DatetimeOrNone
@@ -212,15 +212,15 @@ class TokensManager:
             if convert_to:
                 payload = convert_to(**payload)
         except jwt.exceptions.InvalidIssuerError as error:
-            raise BackendException(message="Invalid JWT issuer.") from error
+            raise BackendError(message="Invalid JWT issuer.") from error
         except jwt.exceptions.InvalidAudienceError as error:
-            raise BackendException(message="Invalid JWT audience.") from error
+            raise BackendError(message="Invalid JWT audience.") from error
         except jwt.exceptions.ExpiredSignatureError as error:
-            raise BackendException(message="Expired JWT token.") from error
+            raise BackendError(message="Expired JWT token.") from error
         except jwt.exceptions.ImmatureSignatureError as error:
-            raise BackendException(message="The token is not valid yet.") from error
+            raise BackendError(message="The token is not valid yet.") from error
         # base error exception from pyjwt
         except jwt.exceptions.PyJWTError as error:
-            raise BackendException(message="Invalid JWT.") from error
+            raise BackendError(message="Invalid JWT.") from error
         else:
             return payload

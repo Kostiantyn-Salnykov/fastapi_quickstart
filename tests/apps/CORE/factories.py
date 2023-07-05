@@ -69,7 +69,7 @@ class PermissionFactory(BaseModelFactory):
     ) -> Permission:
         session = cls._meta.sqlalchemy_session
         am = AuthorizationManager(engine=session.bind)
-        permissions: list[str] = [table for table in am.get_db_table_names()]
+        permissions: list[str] = list(am.get_db_table_names())
         kwargs["object_name"] = random.choice(permissions)
         return super(BaseModelFactory, cls)._create(model_class=model_class, *args, **kwargs)
 

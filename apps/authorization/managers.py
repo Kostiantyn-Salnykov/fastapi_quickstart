@@ -97,7 +97,8 @@ class AuthorizationManager:
         return result
 
     async def setup_superusers(self, *, session: AsyncSession) -> None:
-        """
+        """Method to prepare Superuser Group (with Role and Permissions).
+
         1) Creates 4 superuser permissions ("__all__", "create|read|update|delete").
         2) Creates "Superuser" Role with these permissions.
         3) Creates "Superusers" Group and assign "Superuser" Role to it.

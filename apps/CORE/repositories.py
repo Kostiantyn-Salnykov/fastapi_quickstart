@@ -10,7 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.sql.elements import BinaryExpression, UnaryExpression
 
 from apps.CORE.enums import JSENDStatus
-from apps.CORE.exceptions import BackendException
+from apps.CORE.exceptions import BackendError
 from apps.CORE.types import ModelType, StrOrUUID
 
 __all__ = (
@@ -46,7 +46,7 @@ class _BaseCommonRepository:
     ) -> ModelType:
         obj: NoneModelType = await self.read(session=session, id=id, unique=unique, safe=True)
         if not obj:
-            raise BackendException(
+            raise BackendError(
                 message=message,
                 code=status.HTTP_404_NOT_FOUND,
                 status=JSENDStatus.FAIL,
@@ -59,7 +59,7 @@ class _BaseCommonRepository:
         result.unique()
         objs = result.scalars().all()
         if diff := set(ids) - {obj.id for obj in objs}:
-            raise BackendException(message=message, data=[i for i in diff], code=status.HTTP_404_NOT_FOUND)
+            raise BackendError(message=message, data=[i for i in diff], code=status.HTTP_404_NOT_FOUND)
         return objs
 
     async def list(
@@ -120,7 +120,7 @@ class BaseORMRepository(_BaseCommonRepository):
 
     @staticmethod
     async def create_many(*, session: AsyncSession, objs: typing.Iterable[ModelType]) -> list[ModelType]:
-        objects = [obj for obj in objs]
+        objects = list(objs)
         session.add_all(instances=objects)
         await session.flush()
         return objects
@@ -150,7 +150,7 @@ class BaseCoreRepository(_BaseCommonRepository):
     async def create_many(
         self, *, session: AsyncSession, values_list: list[dict[str, typing.Any]], unique: bool = True
     ) -> NoneModelTypeList:
-        insert_statement = insert(self.model).values([data for data in values_list]).returning(self.model)
+        insert_statement = insert(self.model).values(list(values_list)).returning(self.model)
         statement = select(self.model).from_statement(insert_statement).execution_options(populate_existing=True)
         result: ChunkedIteratorResult = await session.execute(statement=statement)
         await session.flush()

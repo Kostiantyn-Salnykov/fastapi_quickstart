@@ -9,10 +9,10 @@ packages = [{include = "fastapi_quickstart"}]
 
 [tool.poetry.dependencies]
 python = "^3.11"
-fastapi = {extras = ["standard"], version = "^0.98.0"}
+fastapi = {extras = ["standard"], version = "^0.99.1"}
 asyncpg = "^0.27.0"
 SQLAlchemy = {extras = ["asyncion", "mypy"], version = "^2.0.17"}
-pydantic = {extras = ["dotenv", "email"], version = "^1.10.6"}
+pydantic = {extras = ["dotenv", "email"], version = "^1.10.11"}
 alembic = "^1.10.2"
 orjson = "^3.8.7"
 uvicorn = {extras = ["standard"], version = "^0.22.0"}
@@ -155,10 +155,20 @@ select = [
     "F",  # pyflakes
     "UP", # pyupgrade
     "D",  # pydocstyle
-    "B",
+    "B",  # flake8-bugbear
+    "C4",  # flake8-comprehensions
+    "SIM",  # flake8-simplify
+    "PTH",  # flake8-use-pathlib
+    "DTZ",  # flake8-datetimez
+    #    "S",  # flake8-bandit
+    "N",  # PEP8-naming
+    "I",  # isort
+    "PT"  # flake8-pytest-style
 ]
 ignore = [
+    "F403",
     "B008",
+    "B026",
     "D100",
     "D101",
     "D102",
@@ -167,6 +177,7 @@ ignore = [
     "D105",
     "D106",
     "D107",
+    "N805",
 ]
 
 [tool.ruff.pydocstyle]

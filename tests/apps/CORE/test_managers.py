@@ -4,7 +4,7 @@ import pytest
 from faker import Faker
 
 from apps.CORE.enums import TokenAudience
-from apps.CORE.exceptions import BackendException
+from apps.CORE.exceptions import BackendError
 from apps.CORE.helpers import utc_now
 from apps.CORE.managers import PasswordsManager, TokensManager
 from apps.CORE.schemas import TokenOptionsSchema, TokenPayloadSchema
@@ -45,59 +45,59 @@ class TestTokensManager:
         iss = faker.pystr()
         token = self.tokens_manager.create_code(iss=iss)
 
-        with pytest.raises(BackendException) as exception_context:
+        with pytest.raises(BackendError) as exception_context:
             self.tokens_manager.read_code(code=token)
 
-        assert isinstance(exception_context.value, BackendException)
+        assert isinstance(exception_context.value, BackendError)
         assert exception_context.value.message == "Invalid JWT issuer."
 
     def test_aud_error(self, faker: Faker) -> None:
         aud = TokenAudience.REFRESH
         token = self.tokens_manager.create_code(aud=aud)
 
-        with pytest.raises(BackendException) as exception_context:
+        with pytest.raises(BackendError) as exception_context:
             self.tokens_manager.read_code(code=token)
 
-        assert isinstance(exception_context.value, BackendException)
+        assert isinstance(exception_context.value, BackendError)
         assert exception_context.value.message == "Invalid JWT audience."
 
     def test_exp_error(self, faker: Faker) -> None:
         exp = utc_now() - datetime.timedelta(minutes=30)
         token = self.tokens_manager.create_code(exp=exp)
 
-        with pytest.raises(BackendException) as exception_context:
+        with pytest.raises(BackendError) as exception_context:
             self.tokens_manager.read_code(code=token)
 
-        assert isinstance(exception_context.value, BackendException)
+        assert isinstance(exception_context.value, BackendError)
         assert exception_context.value.message == "Expired JWT token."
 
     def test_nbf_error(self, faker: Faker) -> None:
         nbf = utc_now() + datetime.timedelta(minutes=1)
         token = self.tokens_manager.create_code(nbf=nbf)
 
-        with pytest.raises(BackendException) as exception_context:
+        with pytest.raises(BackendError) as exception_context:
             self.tokens_manager.read_code(code=token)
 
-        assert isinstance(exception_context.value, BackendException)
+        assert isinstance(exception_context.value, BackendError)
         assert exception_context.value.message == "The token is not valid yet."
 
     def test_iat_error(self, faker: Faker) -> None:
         iat = utc_now() + datetime.timedelta(minutes=1)
         token = self.tokens_manager.create_code(iat=iat)
 
-        with pytest.raises(BackendException) as exception_context:
+        with pytest.raises(BackendError) as exception_context:
             self.tokens_manager.read_code(code=token)
 
-        assert isinstance(exception_context.value, BackendException)
+        assert isinstance(exception_context.value, BackendError)
         assert exception_context.value.message == "The token is not valid yet."
 
     def test_invalid_error(self, faker: Faker) -> None:
         token = TokensManager(secret_key="test").create_code()
 
-        with pytest.raises(BackendException) as exception_context:
+        with pytest.raises(BackendError) as exception_context:
             self.tokens_manager.read_code(code=token)
 
-        assert isinstance(exception_context.value, BackendException)
+        assert isinstance(exception_context.value, BackendError)
         assert exception_context.value.message == "Invalid JWT."
 
     def test_convert_to_success(self, faker: Faker) -> None:

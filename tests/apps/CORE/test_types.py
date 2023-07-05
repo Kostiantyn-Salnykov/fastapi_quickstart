@@ -33,7 +33,7 @@ class TestStrUUID:
     def test_validate_invalid(self, faker: Faker) -> None:
         value = faker.pystr()
 
-        with pytest.raises(ValueError) as exception_context:
+        with pytest.raises(ValueError, match="Invalid UUID") as exception_context:
             StrUUID.validate(v=value)
 
         assert str(exception_context.value) == "Invalid UUID"
@@ -102,20 +102,16 @@ class TestPhone:
         argvalues=["+12345678", "-12345678", "(123) 45678"],
     )
     def test_validate_error_must_be_digits(self, phone: str) -> None:
-        with pytest.raises(ValueError) as exception_context:
+        with pytest.raises(ValueError, match="Must be digits"):
             Phone.validate(v=phone)
-
-        assert str(exception_context.value) == str(ValueError("Must be digits"))
 
     @pytest.mark.parametrize(
         argnames="phone",
         argvalues=["012345678"],
     )
     def test_validate_error_invalid_number(self, phone: str) -> None:
-        with pytest.raises(ValueError) as exception_context:
+        with pytest.raises(ValueError, match="Invalid number"):
             Phone.validate(v=phone)
-
-        assert str(exception_context.value) == str(ValueError("Invalid number"))
 
     def test__modify_schema__(self, mocker: MockerFixture) -> None:
         field_schema_mock = mocker.MagicMock()

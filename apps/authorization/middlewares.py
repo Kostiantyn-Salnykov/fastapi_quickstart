@@ -3,7 +3,7 @@ from starlette.authentication import AuthCredentials, AuthenticationBackend, Aut
 from starlette.requests import HTTPConnection
 
 from apps.CORE.db import async_session_factory
-from apps.CORE.exceptions import BackendException
+from apps.CORE.exceptions import BackendError
 from apps.users.schemas import UserTokenPayloadSchema
 from apps.users.services import users_service
 
@@ -31,19 +31,20 @@ class JWTTokenBackend(AuthenticationBackend):
             # parse schema and token
             scheme, jwt_token = authorization.split()
         except Exception as error:
-            raise BackendException(
+            raise BackendError(
                 message="Could not parse Authorization scheme and token.", code=status.HTTP_401_UNAUTHORIZED
             ) from error
         else:
             # check schema
             if scheme.lower() != self.scheme_prefix_lower:
-                raise BackendException(
+                raise BackendError(
                     message=f"Authorization scheme {scheme} is not suppoerted.", code=status.HTTP_401_UNAUTHORIZED
                 )
             return jwt_token
 
     async def authenticate(self, conn: HTTPConnection) -> tuple[AuthCredentials | None, BaseUser | None] | None:
-        """
+        """Method for JWT authentication.
+
         1) Reads `Authorization` header.
         2) Parse check schema and parse JWT code.
         3) Validate JWT code and retrieve user's `id` from it.
@@ -76,7 +77,7 @@ class JWTTokenBackend(AuthenticationBackend):
 
             if user is None:
                 return AuthCredentials(), None
-        except BackendException as error:
+        except BackendError as error:
             raise AuthenticationError(error.message) from error
 
         # request.auth, request.user

@@ -18,14 +18,12 @@ class AsyncPersistenceHandler(AsyncPersistenceProtocol):
         self._service = BaseCoreRepository(model=self._model)
 
     async def save(self, data: SchemaType) -> ModelType:
-        async with async_session_factory() as db_session:
-            async with db_session.begin():
-                return await self._service.create(session=db_session, obj=data)
+        async with async_session_factory() as db_session, db_session.begin():
+            return await self._service.create(session=db_session, obj=data)
 
     async def save_many(self, data: list[SchemaType]) -> list[ModelType]:
-        async with async_session_factory() as db_session:
-            async with db_session.begin():
-                return await self._service.create_many(session=db_session, objs=data)
+        async with async_session_factory() as db_session, db_session.begin():
+            return await self._service.create_many(session=db_session, objs=data)
 
 
 class BaseRawFactory(ModelFactory):

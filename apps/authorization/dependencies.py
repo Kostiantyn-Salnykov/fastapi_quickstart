@@ -3,8 +3,8 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from fastapi.security.utils import get_authorization_scheme_param
 
 from apps.authorization.enums import PermissionActions
-from apps.authorization.exceptions import PermissionException
-from apps.CORE.exceptions import BackendException
+from apps.authorization.exceptions import PermissionError
+from apps.CORE.exceptions import BackendError
 from apps.CORE.types import ModelType
 
 
@@ -28,14 +28,14 @@ class NewHTTPBearer(HTTPBearer):
         scheme, credentials = get_authorization_scheme_param(authorization)
         if not (authorization and scheme and credentials):
             if self.auto_error:
-                raise BackendException(
+                raise BackendError(
                     message="Could not parse Authorization scheme and token.", code=status.HTTP_401_UNAUTHORIZED
                 )
             else:
                 return None
         if scheme.lower() != "bearer":
             if self.auto_error:
-                raise BackendException(
+                raise BackendError(
                     message=f"Authorization scheme {scheme} is not suppoerted.", code=status.HTTP_401_UNAUTHORIZED
                 )
             else:
@@ -62,7 +62,7 @@ class IsAuthenticated:
             request(Request): Proxies FastAPI Request.
         """
         if not request.user or not request.user.is_authenticated:
-            raise BackendException(message="Not authenticated.", code=status.HTTP_401_UNAUTHORIZED)
+            raise BackendError(message="Not authenticated.", code=status.HTTP_401_UNAUTHORIZED)
         return request
 
 
@@ -86,7 +86,7 @@ class HasPermissions:
             )
             if not transformed_superuser_actions <= user_permissions_set:
                 # user has not such PermissionAction in his superuser permissions.
-                raise PermissionException()
+                raise PermissionError()
 
         return request
 
@@ -106,7 +106,7 @@ class HasPermissions:
 
     @classmethod
     def actions_check_on_superuser(cls, actions: set[str]) -> set[tuple[str, str]]:
-        return set(("__all__", action) for action in actions)
+        return {("__all__", action) for action in actions}
 
 
 class HasRole:
@@ -116,7 +116,7 @@ class HasRole:
 
     async def __call__(self, request: Request = Depends(IsAuthenticated())) -> Request:
         if self._role not in (role.name.lower() for role in request.user.roles):
-            raise PermissionException()
+            raise PermissionError()
         return request
 
 
@@ -127,5 +127,5 @@ class HasGroup:
 
     async def __call__(self, request: Request = Depends(IsAuthenticated())) -> Request:
         if self._group not in (group.name.lower() for group in request.user.groups):
-            raise PermissionException()
+            raise PermissionError()
         return request

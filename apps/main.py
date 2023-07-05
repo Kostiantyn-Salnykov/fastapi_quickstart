@@ -2,8 +2,6 @@ import contextlib
 import datetime
 import typing
 
-import redis.asyncio as redis
-import redis.exceptions
 import sqlalchemy.ext.asyncio
 import sqlalchemy.orm
 from fastapi import APIRouter, Depends, FastAPI, Request, status
@@ -15,13 +13,15 @@ from sqlalchemy import text
 from starlette.middleware.authentication import AuthenticationMiddleware
 from uvicorn.middleware.proxy_headers import ProxyHeadersMiddleware
 
+import redis.asyncio as redis
+import redis.exceptions
 from apps.authorization.managers import AuthorizationManager
 from apps.authorization.middlewares import JWTTokenBackend
 from apps.authorization.routers import groups_router, permissions_router, roles_router
 from apps.CORE.db import async_engine, async_session_factory, engine, redis_engine, session_factory
 from apps.CORE.deps import get_async_session, get_redis, get_session
 from apps.CORE.enums import JSENDStatus
-from apps.CORE.exceptions import BackendException, RateLimitException
+from apps.CORE.exceptions import BackendError, RateLimitError
 from apps.CORE.handlers import backend_exception_handler, rate_limit_exception_handler, validation_exception_handler
 from apps.CORE.managers import TokensManager
 from apps.CORE.responses import Responses
@@ -118,9 +118,9 @@ app.state.tokens_manager = TokensManager(
 app.state.authorization_manager = AuthorizationManager(engine=engine)
 
 # Add exception handlers (<Error type>, <Error handler>)
-app.add_exception_handler(BackendException, backend_exception_handler)
+app.add_exception_handler(BackendError, backend_exception_handler)
 app.add_exception_handler(RequestValidationError, validation_exception_handler)
-app.add_exception_handler(RateLimitException, rate_limit_exception_handler)
+app.add_exception_handler(RateLimitError, rate_limit_exception_handler)
 
 # Add middlewares stack (FIRST IN => LATER EXECUTION)
 app.add_middleware(middleware_class=GZipMiddleware, minimum_size=512)  # №5

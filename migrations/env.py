@@ -7,7 +7,6 @@ from alembic import context
 from apps.CORE.db import Base, engine
 
 # You should import models explicitly to this file, to allow autogenerate migrations.
-from apps.CORE.models import User  # noqa
 from apps.CORE.models import (  # noqa
     Group,
     GroupRole,
@@ -17,6 +16,7 @@ from apps.CORE.models import (  # noqa
     Role,
     RolePermission,
     RoleUser,
+    User,
 )
 from apps.wishmaster.models import Category, Tag, Wish, WishList, WishTag  # noqa
 
@@ -48,10 +48,10 @@ def run_migrations_offline() -> None:
     script output.
 
     """
-    MIGRATIONS_DIR = pathlib.Path(__file__).parent.resolve()
-    SQL_VERSIONS_DIR = MIGRATIONS_DIR / "sql_versions"
-    if not SQL_VERSIONS_DIR.exists():
-        SQL_VERSIONS_DIR.mkdir()
+    migrations_dir = pathlib.Path(__file__).parent.resolve()
+    sql_versions_dir = migrations_dir / "sql_versions"
+    if not sql_versions_dir.exists():
+        sql_versions_dir.mkdir()
 
     context.configure(
         url=engine.url,
@@ -59,7 +59,7 @@ def run_migrations_offline() -> None:
         literal_binds=True,
         compare_type=True,
         transactional_ddl=False,
-        output_buffer=open(SQL_VERSIONS_DIR / f"{context.get_head_revision()}.sql", "w"),
+        output_buffer=pathlib.Path.open(sql_versions_dir / f"{context.get_head_revision()}.sql", "w"),
         dialect_name="postgresql",
         dialect_opts={"paramstyle": "named"},
     )

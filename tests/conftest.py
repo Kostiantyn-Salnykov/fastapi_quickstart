@@ -35,7 +35,7 @@ from tests.bases import BaseModelFactory
 
 
 @pytest.fixture(scope="session", autouse=True)
-def mock_db_url(monkeypatch_session: MonkeyPatch) -> None:
+def _mock_db_url(monkeypatch_session: MonkeyPatch) -> None:
     """Change all PostgreSQL URLs and environments to use `test` database."""
     db_url: URL = Settings.POSTGRES_URL
     async_db_url: URL = Settings.POSTGRES_URL_ASYNC
@@ -46,7 +46,7 @@ def mock_db_url(monkeypatch_session: MonkeyPatch) -> None:
 
 
 @pytest.fixture(scope="session", autouse=True)
-def create_database(mock_db_url: None) -> typing.Generator[None, None, None]:
+def _create_database(_mock_db_url: None) -> typing.Generator[None, None, None]:
     """Recreates `test` database for tests."""
     con = psycopg2.connect(
         f"postgresql://{Settings.POSTGRES_USER}:{Settings.POSTGRES_PASSWORD}@"
@@ -78,7 +78,7 @@ def monkeypatch_session() -> MonkeyPatch:
 
 
 @pytest.fixture(scope="session", autouse=True)
-def no_http_requests(monkeypatch_session: MonkeyPatch) -> None:
+def _no_http_requests(monkeypatch_session: MonkeyPatch) -> None:
     """Disable HTTP requests for 3-rd party libraries.
 
     Notes:
@@ -118,9 +118,9 @@ def event_loop() -> typing.Generator[asyncio.AbstractEventLoop, None, None]:
 
 
 @pytest.fixture(scope="session", autouse=True)
-async def mock_sessions_factories(
+async def _mock_sessions_factories(
     async_db_engine: AsyncEngine, sync_db_engine: Engine
-) -> typing.AsyncGenerator[None, None]:
+) -> None:
     """Mocks session_factory and async_session_factory from `apps.CORE.sessions`.
 
     Notes:
@@ -128,10 +128,9 @@ async def mock_sessions_factories(
     """
     AsyncSessionFactory.configure(bind=async_db_engine)
     SessionFactory.configure(bind=sync_db_engine)
-    yield
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture()
 async def app_fixture(
     db_session: AsyncSession, sync_db_session: Session, event_loop: asyncio.AbstractEventLoop
 ) -> fastapi.FastAPI:
@@ -153,10 +152,10 @@ async def app_fixture(
 
     app.dependency_overrides[get_async_session] = override_get_async_session
     app.dependency_overrides[get_session] = override_get_session
-    yield app
+    return app
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture()
 async def async_client(app_fixture: fastapi.FastAPI, event_loop: asyncio.AbstractEventLoop) -> httpx.AsyncClient:
     """Prepare async HTTP client with FastAPI app context.
 
@@ -169,7 +168,7 @@ async def async_client(app_fixture: fastapi.FastAPI, event_loop: asyncio.Abstrac
         yield httpx_client
 
 
-@pytest.fixture(scope="function", autouse=True)
+@pytest.fixture(autouse=True)
 def faker_seed() -> None:
     """Generate random seed for Faker instance."""
     return random.seed(version=3)
@@ -196,8 +195,8 @@ def alembic_runner(alembic_config: Config, alembic_engine: Engine) -> typing.Gen
 
 
 @pytest.fixture(scope="session", autouse=True)
-def apply_migrations(
-    create_database: None, alembic_runner: runner, alembic_engine: Engine
+def _apply_migrations(
+    _create_database: None, alembic_runner: runner, alembic_engine: Engine
 ) -> typing.Generator[None, None, None]:
     """Applies all migrations from base to head (via pytest_alembic)."""
     alembic_runner.migrate_up_to(revision="head")
@@ -235,13 +234,13 @@ async def async_db_engine(event_loop: asyncio.AbstractEventLoop) -> AsyncEngine:
         close_all_sessions()
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture()
 def sync_session_factory(sync_db_engine: Engine) -> sessionmaker:
     """Create async session factory."""
-    yield sessionmaker(bind=sync_db_engine, expire_on_commit=False, class_=Session)
+    return sessionmaker(bind=sync_db_engine, expire_on_commit=False, class_=Session)
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture()
 def sync_db_session(sync_session_factory: sessionmaker) -> typing.Generator[Session, None, None]:
     """Create sync session for database and rollback it after test."""
     with sync_session_factory() as session:
@@ -252,13 +251,13 @@ def sync_db_session(sync_session_factory: sessionmaker) -> typing.Generator[Sess
             session.close()
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture()
 async def session_factory(async_db_engine: AsyncEngine) -> sessionmaker:
     """Create async session factory."""
-    yield sessionmaker(bind=async_db_engine, expire_on_commit=False, class_=AsyncSession)
+    return sessionmaker(bind=async_db_engine, expire_on_commit=False, class_=AsyncSession)
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture()
 async def db_session(session_factory: sessionmaker) -> typing.AsyncGenerator[AsyncSession, None]:
     """Create async session for database and rollback it after test."""
     async with session_factory() as async_session:
@@ -281,7 +280,7 @@ def scoped_db_session() -> scoped_session:
 
 
 @pytest.fixture(autouse=True, scope="session")
-def set_session_for_factories(scoped_db_session: scoped_session) -> None:
+def _set_session_for_factories(scoped_db_session: scoped_session) -> None:
     """Registration of model factories to set up a scoped session during the test run."""
     known_factories: list[type[BaseModelFactory]] = [
         UserFactory,

@@ -4,13 +4,13 @@ from fastapi import status
 from pytest_mock import MockerFixture
 
 from apps.CORE.enums import JSENDStatus
-from apps.CORE.exceptions import BackendException
+from apps.CORE.exceptions import BackendError
 from apps.CORE.handlers import backend_exception_handler, integrity_error_handler, validation_exception_handler
 from settings import Settings
 
 
 def test_backend_exception_handler(faker: Faker, mocker: MockerFixture) -> None:
-    exception = BackendException(message=faker.pystr())
+    exception = BackendError(message=faker.pystr())
     expected_result = faker.pystr()
     orjson_response_mock = mocker.patch(target="apps.CORE.handlers.ORJSONResponse", return_value=expected_result)
 
@@ -46,11 +46,11 @@ class TestIntegrityErrorHandler:
         exception_mock = mocker.MagicMock()
         exception_mock.args = ["duplicate"]
 
-        with pytest.raises(BackendException) as exception_context:
+        with pytest.raises(BackendError) as exception_context:
             integrity_error_handler(error=exception_mock)
 
         assert str(exception_context.value) == str(
-            BackendException(message="Conflict error.", status=status.HTTP_409_CONFLICT)
+            BackendError(message="Conflict error.", status=status.HTTP_409_CONFLICT)
         )
 
     def test_integrity_error_handler_duplicate_debug(self, faker: Faker, mocker: MockerFixture, monkeypatch) -> None:
@@ -60,11 +60,11 @@ class TestIntegrityErrorHandler:
         expected_message = faker.pystr()
         exception_mock.orig.args = [f"1\n2\n{expected_message}"]
 
-        with pytest.raises(BackendException) as exception_context:
+        with pytest.raises(BackendError) as exception_context:
             integrity_error_handler(error=exception_mock)
 
         assert str(exception_context.value) == str(
-            BackendException(message=expected_message, status=status.HTTP_409_CONFLICT)
+            BackendError(message=expected_message, status=status.HTTP_409_CONFLICT)
         )
 
     def test_integrity_error_handler_other(self, faker: Faker, mocker: MockerFixture, monkeypatch) -> None:
@@ -72,11 +72,11 @@ class TestIntegrityErrorHandler:
         exception_mock = mocker.MagicMock()
         exception_mock.args = ["something"]
 
-        with pytest.raises(BackendException) as exception_context:
+        with pytest.raises(BackendError) as exception_context:
             integrity_error_handler(error=exception_mock)
 
         assert str(exception_context.value) == str(
-            BackendException(
+            BackendError(
                 status=JSENDStatus.ERROR, message="Internal server error.", code=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
         )
@@ -88,11 +88,11 @@ class TestIntegrityErrorHandler:
         exception_mock.__str__.return_value = expected_response
         exception_mock.args = ["something"]
 
-        with pytest.raises(BackendException) as exception_context:
+        with pytest.raises(BackendError) as exception_context:
             integrity_error_handler(error=exception_mock)
 
         assert str(exception_context.value) == str(
-            BackendException(
+            BackendError(
                 status=JSENDStatus.ERROR, message=expected_response, code=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
         )

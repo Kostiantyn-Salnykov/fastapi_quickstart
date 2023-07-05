@@ -3,7 +3,6 @@ import re
 import typing
 import uuid
 
-import redis.asyncio as aioredis
 import uuid_extensions
 from sqlalchemy import TIMESTAMP, MetaData, create_engine
 from sqlalchemy.dialects.postgresql import UUID
@@ -19,6 +18,7 @@ from sqlalchemy.orm import (
 )
 from sqlalchemy.sql import func
 
+import redis.asyncio as aioredis
 from settings import Settings
 
 __all__ = (

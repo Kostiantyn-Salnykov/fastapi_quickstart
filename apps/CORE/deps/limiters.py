@@ -4,12 +4,12 @@ import functools
 import typing
 
 import pendulum
-import redis.asyncio as aioredis
 from fastapi import Depends, Request, Response
 
+import redis.asyncio as aioredis
 from apps.CORE.deps import get_redis
 from apps.CORE.enums import RatePeriod
-from apps.CORE.exceptions import RateLimitException
+from apps.CORE.exceptions import RateLimitError
 from apps.CORE.utils import utc_now
 from loggers import get_logger
 
@@ -185,7 +185,7 @@ class FixedWindowRateLimiter(BaseRedisRateLimiter):
             next_window_start=self.next_window_start(now=now),
         )
         if counter > self.rate.number:
-            raise RateLimitException(
+            raise RateLimitError(
                 message=f"Request limit exceeded for this quota: '{self._rate}'.",
                 headers=rate_limit_headers,
             )
@@ -227,7 +227,7 @@ class SlidingWindowRateLimiter(BaseRedisRateLimiter):
         count = int(await redis_client.get(name=key) or 0)
         if int(count) >= self.rate.number:
             rate_limit_headers = self.get_and_update_headers(request=request, response=response, hits=count)
-            raise RateLimitException(
+            raise RateLimitError(
                 message=f"Request limit exceeded for this quota: '{self.rate}'.", headers=rate_limit_headers
             )
 
@@ -240,7 +240,7 @@ class SlidingWindowRateLimiter(BaseRedisRateLimiter):
             request=request, response=response, hits=count, weight_count=weight_count
         )
         if weight_count >= self.rate.number:
-            raise RateLimitException(
+            raise RateLimitError(
                 message=f"Request limit exceeded for this quota, overloaded "
                 f"{weight_count:0.3f}/{self.rate.number} for the latest window ({self.rate.window_period}).",
                 headers=rate_limit_headers,
@@ -302,7 +302,7 @@ class TokenBucketRateLimiter(BaseRedisRateLimiter):
         else:
             current_counter = int(await redis_client.hget(name=key, key="counter"))
             if current_counter <= 0:
-                raise RateLimitException(message=f"Request limit exceeded for this quota: '{self.rate}'.")
+                raise RateLimitError(message=f"Request limit exceeded for this quota: '{self.rate}'.")
 
         pipe = redis_client.pipeline(transaction=False)
         pipe.hincrby(name=key, key="counter", amount=-1)

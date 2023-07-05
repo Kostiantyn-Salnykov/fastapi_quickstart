@@ -6,7 +6,7 @@ from fastapi import Request
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from apps.CORE.enums import TokenAudience
-from apps.CORE.exceptions import BackendException
+from apps.CORE.exceptions import BackendError
 from apps.CORE.helpers import utc_now
 from apps.CORE.managers import PasswordsManager
 from apps.CORE.models import User
@@ -48,12 +48,12 @@ class UsersHandler:
     ) -> UserResponseSchema:
         values = data.dict(exclude_unset=True)
         if not values:
-            raise BackendException(message="Nothing to update.")
+            raise BackendError(message="Nothing to update.")
         if data.old_password:
             if not self.passwords_manager.check_password(
                 password=data.old_password, password_hash=request.user.password_hash
             ):
-                raise BackendException(message="Invalid credentials.")
+                raise BackendError(message="Invalid credentials.")
             values = data.dict(exclude_unset=True, exclude={"old_password", "new_password"})
             values |= {
                 "password_hash": self.passwords_manager.make_password(password=data.new_password),
@@ -105,7 +105,7 @@ class UsersHandler:
             and user.status == UsersStatuses.CONFIRMED.value
         ):
             return users_handler.generate_tokens(request=request, id=user.id)
-        raise BackendException(message="Invalid credentials.")
+        raise BackendError(message="Invalid credentials.")
 
     async def refresh(self, *, request: Request, session: AsyncSession, data: TokenRefreshSchema) -> LoginOutSchema:
         """Generate new tokens pair (access, refresh) from refresh token."""
@@ -115,7 +115,7 @@ class UsersHandler:
         user: User | None = await users_service.read(session=session, id=payload_schema.id)
         if user and user.status in (UsersStatuses.CONFIRMED.value, UsersStatuses.FORCE_CHANGE_PASSWORD.value):
             return self.generate_tokens(request=request, id=user.id)
-        raise BackendException(message="Inactive user.")
+        raise BackendError(message="Inactive user.")
 
 
 users_handler = UsersHandler()

@@ -10,7 +10,7 @@ from apps.CORE.deps.filters import QueryFilter, get_sqlalchemy_where_operations_
 from apps.CORE.deps.pagination import LimitOffsetPagination
 from apps.CORE.deps.sorting import BaseSorting
 from apps.CORE.enums import FOps
-from apps.CORE.exceptions import BackendException
+from apps.CORE.exceptions import BackendError
 from apps.CORE.schemas.responses import BaseResponseSchema
 
 
@@ -180,7 +180,7 @@ async def test_get_async_session(mocker: MockerFixture) -> None:
 # TODO: write test
 @pytest.mark.debug()
 def test_get_session(mocker: MockerFixture) -> None:
-    session_factory_mock = mocker.patch(
+    mocker.patch(
         target="apps.CORE.deps.session_factory",
         return_value=mocker.MagicMock(test=mocker.MagicMock(side_effect=IntegrityError("", "", ""))),
     )
@@ -242,11 +242,11 @@ class TestQueryFilter:
     def test_validate_obj_exception(self, filter_operation: FOps) -> None:
         schema = QueryFilter[str]  # not true generic schema.
 
-        with pytest.raises(BackendException) as exception_context:
+        with pytest.raises(BackendError) as exception_context:
             schema(field="test", operation=filter_operation, value="test")
 
         assert str(exception_context.value) == str(
-            BackendException(
+            BackendError(
                 message=f"Filters error. For operation '{filter_operation}', the value must be a list (Array[])."
             )
         )

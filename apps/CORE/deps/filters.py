@@ -8,7 +8,7 @@ from sqlalchemy import BinaryExpression
 from sqlalchemy.orm import ColumnProperty, InstrumentedAttribute
 
 from apps.CORE.enums import FOps
-from apps.CORE.exceptions import BackendException
+from apps.CORE.exceptions import BackendError
 from apps.CORE.types import ModelType, SchemaType
 from settings import Settings
 
@@ -71,7 +71,7 @@ class QueryFilter(GenericModel, typing.Generic[TypeA]):
         operation = values.get("operation", "=")
         if operation in {"in", "notin"}:
             if not isinstance(v, list):
-                raise BackendException(
+                raise BackendError(
                     message=f"Filters error. For operation '{operation}', the value must be a list (Array[])."
                 )
         elif operation in {"isnull", "notnull"}:
@@ -170,7 +170,7 @@ class BaseFilters:
         try:
             filters_list: list[dict[str, typing.Any]] = orjson.loads(json_filters)
         except orjson.JSONDecodeError as error:
-            raise BackendException(
+            raise BackendError(
                 message="Cannot parse 'filters' query parameter. It should be a valid urlencoded JSON string."
             ) from error
         else:
@@ -189,13 +189,13 @@ class BaseFilters:
                     try:
                         query_filters_list.append(parse_obj_as(self.filters_mapping[fltr_schema.field], fltr))
                     except Exception as error:
-                        raise BackendException(
+                        raise BackendError(
                             data={"Parsed filter (DEBUG)": fltr_schema.dict()} if Settings.DEBUG else None,
                             message=f"Can't parse filter value of '{fltr_schema.field}'. Check validity of "
                             f"filter Object{{}} or a possibility filtering by this field.",
                         ) from error
         except ValidationError as error:
-            raise BackendException(
+            raise BackendError(
                 data={"Parsed JSON (DEBUG)": filters_list} if Settings.DEBUG else None,
                 message="Invalid 'filters' Array[Filter{}]. Every filter should be an Object{} with three fields: "
                 "'field' or 'f', 'operator' or 'o', 'value' or 'v'.",
@@ -207,8 +207,7 @@ class BaseFilters:
     ) -> typing.Generator[BinaryExpression, None, None]:
         for filter_schema in query_filters:
             column = getattr(self.model, self.aliases_mapping.get(filter_schema.field), None)
-            if isinstance(column, InstrumentedAttribute):
-                if isinstance(column.property, ColumnProperty):
-                    selected_operation = get_sqlalchemy_where_operations_mapper(operation_type=filter_schema.operation)
-                    operation: BinaryExpression = getattr(column, selected_operation)(filter_schema.value)
-                    yield operation
+            if isinstance(column, InstrumentedAttribute) and isinstance(column.property, ColumnProperty):
+                selected_operation = get_sqlalchemy_where_operations_mapper(operation_type=filter_schema.operation)
+                operation: BinaryExpression = getattr(column, selected_operation)(filter_schema.value)
+                yield operation

@@ -1,11 +1,11 @@
 from fastapi import status as http_status
 
 from apps.CORE.enums import JSENDStatus
-from apps.CORE.exceptions import BackendException
+from apps.CORE.exceptions import BackendError
 from apps.CORE.types import DictStrOfAny, ListOfAny
 
 
-class PermissionException(BackendException):
+class PermissionError(BackendError):
     def __init__(
         self,
         *,

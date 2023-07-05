@@ -6,6 +6,9 @@ lint:
 	poetry run flake8 $(args)
 	poetry run xenon .
 
+lint_plus:
+	poetry run ruff check .
+
 isort:
 	poetry run isort . $(args)
 

@@ -6,11 +6,11 @@ from apps.CORE.enums import JSENDStatus
 from apps.CORE.types import DictStrOfAny, ListOfAny
 
 
-class BackendException(Exception):
+class BackendError(Exception):
     """Exception for Back-end with JSEND adaptation.
 
     Examples:
-        >>> raise BackendException(status=JSENDStatus.SUCCESS, data=["Something", "Interesting"],
+        >>> raise BackendError(status=JSENDStatus.SUCCESS, data=["Something", "Interesting"],
         ... message="Fascinating exception.", code=http_status.HTTP_200_OK)
     """
 
@@ -56,7 +56,7 @@ class BackendException(Exception):
         }
 
 
-class RateLimitException(BackendException):
+class RateLimitError(BackendError):
     def __init__(
         self,
         *,

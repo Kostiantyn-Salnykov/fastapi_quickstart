@@ -105,11 +105,7 @@ class NextTokenPagination(PaginationInterface):
         endpoint_name: str,
     ) -> PaginationResponse[SchemaType]:
         objects_count = len(objects)
-        has_more = objects_count >= self.limit
-        if has_more:
-            next_token = objects[-1].id
-        else:
-            next_token = None
+        next_token = objects[-1].id if objects_count >= self.limit else None
 
         next_url = (
             str(request.url_for(endpoint_name)) + "?" + urllib.parse.urlencode(query=self.next(next_token=next_token))
@@ -117,10 +113,7 @@ class NextTokenPagination(PaginationInterface):
             else None
         )
 
-        if total % self.limit == 0:
-            pages = total // self.limit
-        else:
-            pages = total // self.limit + 1
+        pages = total // self.limit if total % self.limit == 0 else total // self.limit + 1
 
         return PaginationResponse[schema](
             objects=(schema.from_orm(obj=obj) for obj in objects),  # type: ignore

@@ -7,7 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.sql.elements import BinaryExpression, UnaryExpression
 
 from apps.CORE.deps.pagination import NextTokenPagination
-from apps.CORE.exceptions import BackendException
+from apps.CORE.exceptions import BackendError
 from apps.CORE.helpers import to_db_encoder, utc_now
 from apps.CORE.types import StrOrUUID
 from apps.wishmaster.models import Tag, Wish, WishList
@@ -28,13 +28,13 @@ class WishHandler:
     async def read_or_not_found(self, *, session: AsyncSession, id: uuid.UUID | str) -> Wish:
         wish: Wish | None = await wish_service.read(session=session, id=id)
         if not wish:
-            raise BackendException(message="Wish not found.", code=status.HTTP_404_NOT_FOUND)
+            raise BackendError(message="Wish not found.", code=status.HTTP_404_NOT_FOUND)
         return wish
 
     async def read_wishlist_or_not_found(self, *, session: AsyncSession, id: uuid.UUID | str) -> WishList:
         wishlist: WishList | None = await wishlist_service.read(session=session, id=id)
         if not wishlist:
-            raise BackendException(message="WishList not found.", code=status.HTTP_404_NOT_FOUND)
+            raise BackendError(message="WishList not found.", code=status.HTTP_404_NOT_FOUND)
         return wishlist
 
     async def create(self, *, session: AsyncSession, request: Request, data: WishCreateSchema) -> WishResponseSchema:
@@ -95,7 +95,7 @@ class WishHandler:
     async def delete(self, *, session: AsyncSession, request: Request, id: uuid.UUID | str, safe: bool = False) -> None:
         result: CursorResult = await wish_service.delete(session=session, id=id)
         if not result.rowcount and not safe:
-            raise BackendException(message="Wish not found.", code=status.HTTP_404_NOT_FOUND)
+            raise BackendError(message="Wish not found.", code=status.HTTP_404_NOT_FOUND)
         return None
 
 
@@ -125,7 +125,7 @@ class WishlistHandler:
     async def delete(self, *, session: AsyncSession, request: Request, id: StrOrUUID, safe: bool = False) -> None:
         result = await wishlist_service.delete(session=session, id=id, owner_id=request.user.id)
         if not result.rowcount and not safe:
-            raise BackendException(message="WishList not found.", code=status.HTTP_404_NOT_FOUND)
+            raise BackendError(message="WishList not found.", code=status.HTTP_404_NOT_FOUND)
         return None
 
 

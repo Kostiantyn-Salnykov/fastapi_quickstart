@@ -4,16 +4,16 @@ from fastapi.responses import ORJSONResponse
 from sqlalchemy.exc import IntegrityError, NoResultFound
 
 from apps.CORE.enums import JSENDStatus
-from apps.CORE.exceptions import BackendException, RateLimitException
+from apps.CORE.exceptions import BackendError, RateLimitError
 from settings import Settings
 
 
-def backend_exception_handler(request: Request, exc: BackendException) -> ORJSONResponse:
+def backend_exception_handler(request: Request, exc: BackendError) -> ORJSONResponse:
     """Handler for BackendException.
 
     Args:
         request (Request): FastAPI Request instance.
-        exc (BackendException): Error that Back-end raises.
+        exc (BackendError): Error that Back-end raises.
 
     Returns:
         result (ORJSONResponse): Transformed JSON response from Back-end exception.
@@ -64,12 +64,12 @@ def integrity_error_handler(error: IntegrityError) -> None:
     """
     if "duplicate" in error.args[0]:
         # Parse duplication error and show it in debug mode, otherwise "update error".
-        raise BackendException(
+        raise BackendError(
             message=str(error.orig.args[0].split("\n")[-1]) if Settings.DEBUG else "Conflict error.",
             status=status.HTTP_409_CONFLICT,
         )
     else:
-        raise BackendException(
+        raise BackendError(
             message=str(error) if Settings.DEBUG else "Internal server error.",
             code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             status=JSENDStatus.ERROR,
@@ -85,19 +85,19 @@ def no_result_found_error_handler(error: NoResultFound) -> None:
     Raises:
         BackendException: Actually proxies these errors to `backend_exception_handler`.
     """
-    raise BackendException(
+    raise BackendError(
         message="Not found.",
         code=status.HTTP_404_NOT_FOUND,
         status=JSENDStatus.FAIL,
     )
 
 
-def rate_limit_exception_handler(request: Request, exc: RateLimitException) -> ORJSONResponse:
+def rate_limit_exception_handler(request: Request, exc: RateLimitError) -> ORJSONResponse:
     """Handler for RateLimitException.
 
     Args:
         request (Request): FastAPI Request instance.
-        exc (RateLimitException): Error that RateLimiter raises.
+        exc (RateLimitError): Error that RateLimiter raises.
 
     Returns:
         result (ORJSONResponse): Transformed JSON response from Back-end exception.

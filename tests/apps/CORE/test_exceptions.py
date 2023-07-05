@@ -3,17 +3,17 @@ from faker import Faker
 from fastapi import status
 
 from apps.CORE.enums import JSENDStatus
-from apps.CORE.exceptions import BackendException
+from apps.CORE.exceptions import BackendError
 
 
 class TestBackendException:
     def test__repr___defaults(self, faker: Faker):
         message = faker.pystr()
-        exception = BackendException(message=message)
+        exception = BackendError(message=message)
 
         assert (
             exception.__repr__()
-            == f'{BackendException.__name__}(status={exception.status}, data={exception.data}, message="'
+            == f'{BackendError.__name__}(status={exception.status}, data={exception.data}, message="'
             f'{exception.message}", code={exception.code})'
         )
 
@@ -32,7 +32,7 @@ class TestBackendException:
         fake_data = getattr(faker, faker_func)()
         fake_message = faker.pystr()
 
-        exception = BackendException(status=jsend_status, data=fake_data, message=fake_message, code=code)
+        exception = BackendError(status=jsend_status, data=fake_data, message=fake_message, code=code)
 
         assert exception.status == jsend_status
         assert exception.data == fake_data
@@ -40,23 +40,23 @@ class TestBackendException:
         assert exception.code == code
         assert (
             exception.__repr__()
-            == f'{BackendException.__name__}(status={exception.status}, data={exception.data}, message="'
+            == f'{BackendError.__name__}(status={exception.status}, data={exception.data}, message="'
             f'{exception.message}", code={exception.code})'
         )
 
     def test__str___defaults(self, faker: Faker):
         message = faker.pystr()
-        exception = BackendException(message=message)
+        exception = BackendError(message=message)
 
         assert (
             exception.__str__()
-            == f'{BackendException.__name__}(status={exception.status}, data={exception.data}, message="'
+            == f'{BackendError.__name__}(status={exception.status}, data={exception.data}, message="'
             f'{exception.message}", code={exception.code})'
         )
 
     def test_dict_default(self, faker: Faker):
         message = faker.pystr()
-        exception = BackendException(message=message)
+        exception = BackendError(message=message)
 
         result = exception.dict()
 
@@ -82,7 +82,7 @@ class TestBackendException:
         fake_data = getattr(faker, faker_func)()
         fake_message = faker.pystr()
 
-        exception = BackendException(status=jsend_status, data=fake_data, message=fake_message, code=code)
+        exception = BackendError(status=jsend_status, data=fake_data, message=fake_message, code=code)
 
         assert exception.status == jsend_status
         assert exception.data == fake_data
