@@ -1,3 +1,9 @@
+__all__ = (
+    "get_async_session",
+    "get_session",
+    "get_redis",
+)
+
 import typing
 
 from sqlalchemy.exc import IntegrityError, NoResultFound
@@ -8,12 +14,6 @@ import redis.asyncio as aioredis
 from apps.CORE.db import async_session_factory, redis_engine, session_factory
 from apps.CORE.handlers import integrity_error_handler, no_result_found_error_handler
 from loggers import get_logger
-
-__all__ = (
-    "get_async_session",
-    "get_session",
-    "get_redis",
-)
 
 logger = get_logger(name=__name__)
 

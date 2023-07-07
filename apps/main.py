@@ -206,7 +206,7 @@ if __name__ == "__main__":  # pragma: no cover
         host=Settings.HOST,
         port=Settings.PORT,
         loop="uvloop",
-        reload=True,  # FIXME: PyCharm debugger error: https://youtrack.jetbrains.com/issue/PY-57217
+        reload=True,
         reload_delay=5,
         log_level=Settings.LOG_LEVEL,
         use_colors=Settings.LOG_USE_COLORS,

@@ -1,3 +1,4 @@
+import string
 import typing
 
 import orjson
@@ -60,22 +61,30 @@ def get_sqlalchemy_where_operations_mapper(operation_type: FOps) -> str:
 
 class QueryFilter(GenericModel, typing.Generic[TypeA]):
     field: str = Field(default=..., alias="f")
-    operation: FOps = Field(default="=", alias="o")
+    operation: FOps = Field(default=FOps.EQ, alias="o")
     value: TypeA = Field(default=..., alias="v")
 
     class Config:
         allow_population_by_field_name = True
+        schema_extra = {"examples": [{"test": "test"}]}
 
     @validator("value")
     def validate_obj(cls, v, values: dict[str, typing.Any]):
-        operation = values.get("operation", "=")
-        if operation in {"in", "notin"}:
-            if not isinstance(v, list):
-                raise BackendError(
-                    message=f"Filters error. For operation '{operation}', the value must be a list (Array[])."
-                )
-        elif operation in {"isnull", "notnull"}:
-            return None
+        operation: FOps = values.get("operation", FOps.EQ)
+        match operation:
+            case FOps.IN | FOps.NOT_IN:
+                if not isinstance(v, list):
+                    raise BackendError(
+                        message=f"Filters error. For operation '{operation.value}', the value must be a list (Array[])."
+                    )
+            case FOps.ISNULL | FOps.NOT_NULL:
+                return None
+            case _ as operation:
+                if isinstance(v, list):
+                    raise BackendError(
+                        message=f"Filters error. For operation '{operation.value}', the value cannot be a list "
+                        f"(Array[])."
+                    )
         return v
 
 
@@ -113,25 +122,22 @@ class BaseFilters:
             default=None,
             alias="filters",
             title="Filtering system.",
-            description="You can filter by multiple fields." "\n\n TODO: WRITE",
-            examples={
-                "no filters": {"summary": "No filters.", "description": "", "value": None},
-                "title": {
-                    "summary": 'title = "test"',
-                    "description": "Filter by 'title' field where it is a 'test'.",
-                    "value": '[{"f": "title", "o": "=", "v": "test"}]',
-                },
-                "description": {
-                    "summary": "'description' IS NOT NULL",
-                    "description": "Filter by 'description' field where it is not NULL.",
-                    "value": '[{"f": "description", "o": "!=", "v": null}]',
-                },
-                "status": {
-                    "summary": "'status' IN ['CREATED', 'IN PROGRESS']",
-                    "description": "Filter by 'status' field where it has 'CREATED' and 'IN PROGRESS' values.",
-                    "value": '[{"f": "status", "o": "in", "v": ["CREATED", "IN PROGRESS"]}]',
-                },
-            },
+            description=str(
+                string.Template(
+                    """You can filter by multiple fields (Actually this applied as `AND` logic in result query).
+                \n\n**Structure**: Base64 URL encoded stringified JSON Array[Object{}]
+                \n\n**Possible Operations** (`"o"`, `"operation"`): $OPERATIONS
+                \n\n**Examples**:
+                \n\nfilters=`""` (No filters, same as omit the `&filters`);
+                \n\nfilters=`[{"f": "title", "o": "=", "v": "test"}]` (Filter by 'title' field where it is a 'test');
+                \n\nfilters=`[{"f": "status", "o": "in", "v": ["CREATED", "IN PROGRESS"]}]`
+                (Filter by 'status' field where it has 'CREATED' and 'IN PROGRESS' values);
+                \n\nfilters=`[{"f": "description", "o": "!=", "v": null},
+                {"f": "title", "o": "startswith", "v": "test"}]`
+                (Filter by 'description' field where it is not NULL `AND` by title which startswith 'test')
+            """
+                ).safe_substitute(OPERATIONS=", ".join(f"`{op.value}`" for op in FOps))
+            ),
         ),
     ) -> list[BinaryExpression]:
         result: list[BinaryExpression] = []

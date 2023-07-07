@@ -5,7 +5,7 @@ from typing import Generic
 import orjson
 import pydantic.json
 from fastapi import status as http_status
-from pydantic import AnyHttpUrl, Field, validate_model
+from pydantic import Field, validate_model
 from pydantic.generics import GenericModel
 from pydantic.main import object_setattr
 
@@ -83,7 +83,6 @@ class PaginationResponse(GenericModel, Generic[ObjectsVar]):
     objects: list[ObjectsVar]
     offset: int | None = Field(default=None, description="Number of objects to skip.")
     limit: int = Field(default=100, description="Number of objects returned per one page.")
-    count: int = Field(default=0, alias="objectsCount", description="Number of objects returned in this response.")
     total_count: int = Field(
         default=..., alias="totalCount", description="Numbed of objects counted inside db for this query."
     )
@@ -93,8 +92,6 @@ class PaginationResponse(GenericModel, Generic[ObjectsVar]):
         title="Next Token",
         description="This is the latest `id` of previous result.",
     )
-    next_url: AnyHttpUrl | None = Field(default=None, alias="nextURL", title="Next URL")
-    previous_url: AnyHttpUrl | None = Field(default=None, alias="previousURL", title="Previous URL")
     page: int | None = Field(default=None, title="Page", description="Current page (depends on offset, limit).")
     pages: int = Field(
         default=..., title="Pages", description="Total number of pages (depends on limit and total number of records)."

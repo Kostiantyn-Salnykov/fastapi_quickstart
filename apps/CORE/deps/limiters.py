@@ -10,7 +10,7 @@ import redis.asyncio as aioredis
 from apps.CORE.deps import get_redis
 from apps.CORE.enums import RatePeriod
 from apps.CORE.exceptions import RateLimitError
-from apps.CORE.utils import utc_now
+from apps.CORE.helpers import utc_now
 from loggers import get_logger
 
 __all__ = (

@@ -1,8 +1,12 @@
+from typing import Annotated
+
 from fastapi import APIRouter, Depends, Request, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from apps.authorization.dependencies import IsAuthenticated, bearer_auth
 from apps.CORE.deps import get_async_session
+from apps.CORE.deps.limiters import Rate, SlidingWindowRateLimiter
+from apps.CORE.enums import RatePeriod
 from apps.CORE.responses import Responses
 from apps.CORE.schemas.responses import JSENDResponse
 from apps.users.handlers import users_handler
@@ -62,7 +66,10 @@ async def whoami(request: Request) -> JSENDResponse[UserResponseSchema]:
     path="/login/", name="login", response_model=JSENDResponse[LoginOutSchema], status_code=status.HTTP_200_OK
 )
 async def login(
-    request: Request, data: LoginSchema, session: AsyncSession = Depends(get_async_session)
+    request: Request,
+    data: LoginSchema,
+    _limiter: Annotated[None, (Depends(SlidingWindowRateLimiter(rate=Rate(number=3, period=RatePeriod.MINUTE))))],
+    session: Annotated[AsyncSession, Depends(get_async_session)],
 ) -> JSENDResponse[LoginOutSchema]:
     return JSENDResponse[LoginOutSchema](
         data=await users_handler.login(request=request, session=session, data=data),

@@ -39,36 +39,6 @@ class TestBasePagination:
         assert self.pagination.offset == offset
         assert self.pagination.limit == limit
 
-    def test_next(self, faker: Faker) -> None:
-        offset = faker.pyint(min_value=0, max_value=100000)
-        limit = faker.pyint(min_value=1, max_value=1000)
-        pagination = self.pagination(offset=offset, limit=limit)
-        expected_result = {"offset": offset + limit, "limit": limit}
-
-        result = pagination.next()
-
-        assert result == expected_result
-
-    def test_previous_plus(self, faker: Faker) -> None:
-        offset = faker.pyint(min_value=1, max_value=100000)
-        limit = faker.pyint(min_value=1, max_value=1000)
-        pagination = self.pagination(offset=offset, limit=limit)
-        expected_result = {"offset": offset - limit, "limit": limit}
-
-        result = pagination.previous()
-
-        assert result == expected_result
-
-    def test_previous_zero(self, faker: Faker) -> None:
-        offset = faker.pyint(min_value=0, max_value=0)
-        limit = faker.pyint(min_value=1, max_value=1000)
-        pagination = self.pagination(offset=offset, limit=limit)
-        expected_result = {"offset": 0, "limit": limit}
-
-        result = pagination.previous()
-
-        assert result == expected_result
-
     def test_get_paginated_response(self, faker: Faker, mocker: MockerFixture) -> None:
         domain = faker.url()
         limit: int = faker.pyint(min_value=10, max_value=1000)
@@ -91,8 +61,6 @@ class TestBasePagination:
         assert response.objects == [schema.from_orm(obj) for obj in objects]
         assert response.offset == offset
         assert response.limit == limit
-        assert response.previous_url == f"{domain}?offset={offset-limit}&limit={limit}"
-        assert response.next_url is None
 
 
 class TestBaseSorting:
@@ -247,7 +215,7 @@ class TestQueryFilter:
 
         assert str(exception_context.value) == str(
             BackendError(
-                message=f"Filters error. For operation '{filter_operation}', the value must be a list (Array[])."
+                message=f"Filters error. For operation '{filter_operation.value}', the value must be a list (Array[])."
             )
         )
 

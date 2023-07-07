@@ -8,6 +8,7 @@ import httpx
 import psycopg2
 import pytest
 from _pytest.monkeypatch import MonkeyPatch
+from fastapi import Depends, Request, Response
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 from pytest_alembic import Config, runner
 from sqlalchemy import create_engine
@@ -15,9 +16,11 @@ from sqlalchemy.engine import URL, Engine
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, create_async_engine
 from sqlalchemy.orm import Session, close_all_sessions, scoped_session, sessionmaker
 
+import redis.asyncio as aioredis
 from apps.CORE.db import async_session_factory as AsyncSessionFactory  # noqa
 from apps.CORE.db import session_factory as SessionFactory  # noqa
-from apps.CORE.deps import get_async_session, get_session
+from apps.CORE.deps import get_async_session, get_redis, get_session
+from apps.CORE.deps.limiters import SlidingWindowRateLimiter
 from settings import Settings
 from tests.apps.CORE.factories import (
     GroupFactory,
@@ -118,9 +121,7 @@ def event_loop() -> typing.Generator[asyncio.AbstractEventLoop, None, None]:
 
 
 @pytest.fixture(scope="session", autouse=True)
-async def _mock_sessions_factories(
-    async_db_engine: AsyncEngine, sync_db_engine: Engine
-) -> None:
+async def _mock_sessions_factories(async_db_engine: AsyncEngine, sync_db_engine: Engine) -> None:
     """Mocks session_factory and async_session_factory from `apps.CORE.sessions`.
 
     Notes:
@@ -132,7 +133,7 @@ async def _mock_sessions_factories(
 
 @pytest.fixture()
 async def app_fixture(
-    db_session: AsyncSession, sync_db_session: Session, event_loop: asyncio.AbstractEventLoop
+    db_session: AsyncSession, sync_db_session: Session, event_loop: asyncio.AbstractEventLoop, monkeypatch
 ) -> fastapi.FastAPI:
     """Overrides dependencies for FastAPI and returns FastAPI instance (app).
 
@@ -153,6 +154,16 @@ async def app_fixture(
     app.dependency_overrides[get_async_session] = override_get_async_session
     app.dependency_overrides[get_session] = override_get_session
     return app
+
+
+@pytest.fixture(scope="session", autouse=True)
+async def _mock_limiters(monkeypatch_session: MonkeyPatch) -> None:
+    async def limiter_mock(
+        self, *, request: Request, response: Response, redis_client: aioredis.Redis = Depends(get_redis)
+    ):
+        return True
+
+    monkeypatch_session.setattr(target=SlidingWindowRateLimiter, name="__call__", value=limiter_mock, raising=False)
 
 
 @pytest.fixture()

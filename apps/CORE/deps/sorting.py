@@ -27,29 +27,8 @@ class BaseSorting:
             "\n\n**Examples**: "
             "\n\n`&sorting=field_name` (_This will sort `field_name` by ASC._)"
             "\n\n`&sorting=field_one&sorting=-field_two` (_This will sort `field_one` ASC, then `field_two` DESC._)"
+            "\n\n**Warning** `-id` automatically appends to end of  sorting list."
             "\n\n**P.S.** Order of `sorting` query parameters are matter!",
-            examples={
-                "no sorting": {
-                    "summary": "No sorting.",
-                    "description": "",
-                    "value": [],
-                },
-                "-id": {
-                    "summary": "-id",
-                    "description": "Sort by 'id' DESC.",
-                    "value": ["-id"],
-                },
-                "-createdAt": {
-                    "summary": "-createdAt",
-                    "description": "Sort by 'createdAt' DESC.",
-                    "value": ["-createdAt"],
-                },
-                "createdAt": {
-                    "summary": "createdAt",
-                    "description": "Sort by 'createdAt' ASC.",
-                    "value": ["createdAt"],
-                },
-            },
         ),
     ) -> list[UnaryExpression]:
         return self.build_sorting(sorting=sorting)

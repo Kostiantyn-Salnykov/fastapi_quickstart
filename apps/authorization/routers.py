@@ -2,7 +2,7 @@ import uuid
 
 from fastapi import APIRouter, Body, Depends, Path, Request, status
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.sql.elements import UnaryExpression
+from sqlalchemy.sql.elements import BinaryExpression, UnaryExpression
 
 from apps.authorization.dependencies import bearer_auth
 from apps.authorization.handlers import groups_handler, permissions_handler, roles_handler
@@ -16,8 +16,10 @@ from apps.authorization.schemas.responses import (
     RoleResponse,
 )
 from apps.CORE.deps import get_async_session
+from apps.CORE.deps.filters import BaseFilters, F
 from apps.CORE.deps.pagination import NextTokenPagination
 from apps.CORE.deps.sorting import BaseSorting
+from apps.CORE.enums import FOps
 from apps.CORE.models import Group, Permission, Role
 from apps.CORE.schemas.responses import JSENDResponse
 
@@ -47,9 +49,22 @@ async def list_groups(
     sorting: list[UnaryExpression] = Depends(
         BaseSorting(model=Group, schema=GroupResponse, available_columns=[Group.created_at, Group.title])
     ),
+    filters: list[BinaryExpression] = Depends(
+        BaseFilters(
+            model=Permission,
+            schema=PermissionResponse,
+            filters=[
+                F(
+                    query_field_name="title",
+                    possible_operations=[FOps.EQ, FOps.IN, FOps.NE, FOps.NOT_IN, FOps.STARTSWITH, FOps.ENDSWITH],
+                    value_type=list[str] | str,
+                )
+            ],
+        )
+    ),
 ) -> GroupListResponse:
     total, groups = await groups_handler.list_groups(
-        session=session, request=request, pagination=pagination, sorting=sorting
+        session=session, request=request, pagination=pagination, sorting=sorting, filters=filters
     )
     return GroupListResponse(
         data=pagination.paginate(
@@ -113,9 +128,22 @@ async def list_roles(
     sorting: list[UnaryExpression] = Depends(
         BaseSorting(model=Role, schema=RoleResponse, available_columns=[Role.created_at, Role.title])
     ),
+    filters: list[BinaryExpression] = Depends(
+        BaseFilters(
+            model=Permission,
+            schema=PermissionResponse,
+            filters=[
+                F(
+                    query_field_name="title",
+                    possible_operations=[FOps.EQ, FOps.IN, FOps.NE, FOps.NOT_IN, FOps.STARTSWITH, FOps.ENDSWITH],
+                    value_type=list[str] | str,
+                )
+            ],
+        )
+    ),
 ) -> RoleListResponse:
     total, roles = await roles_handler.list_roles(
-        session=session, request=request, pagination=pagination, sorting=sorting
+        session=session, request=request, pagination=pagination, sorting=sorting, filters=filters
     )
     return RoleListResponse(
         data=pagination.paginate(
@@ -167,7 +195,11 @@ async def delete_role(
 
 
 @permissions_router.get(
-    path="/", name="list_permissions", response_model=PermissionListResponse, status_code=status.HTTP_200_OK
+    path="/",
+    name="list_permissions",
+    response_model=PermissionListResponse,
+    status_code=status.HTTP_200_OK,
+    openapi_extra={"examples": [{"summary": "KEK", "description": "hz", "value": '{"f": }'}]},
 )
 async def list_permissions(
     request: Request,
@@ -177,12 +209,25 @@ async def list_permissions(
         BaseSorting(
             model=Permission,
             schema=PermissionResponse,
-            available_columns=[Permission.id, Permission.created_at, Permission.object_name],
+            available_columns=[Permission.id, Permission.created_at, Permission.object_name, Permission.action],
+        )
+    ),
+    filters: list[BinaryExpression] = Depends(
+        BaseFilters(
+            model=Permission,
+            schema=PermissionResponse,
+            filters=[
+                F(
+                    query_field_name="objectName",
+                    possible_operations=[FOps.EQ, FOps.IN, FOps.NE, FOps.NOT_IN, FOps.STARTSWITH, FOps.ENDSWITH],
+                    value_type=list[str] | str,
+                )
+            ],
         )
     ),
 ) -> PermissionListResponse:
     total, permissions = await permissions_handler.list_permissions(
-        session=session, request=request, pagination=pagination, sorting=sorting
+        session=session, request=request, pagination=pagination, sorting=sorting, filters=filters
     )
     return PermissionListResponse(
         data=pagination.paginate(
