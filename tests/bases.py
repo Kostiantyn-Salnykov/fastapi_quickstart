@@ -1,14 +1,8 @@
-import datetime
 import random
-import typing
-from typing import Any
 
 import factory
 
-from apps.CORE.db import Base, async_session_factory
-from apps.CORE.helpers import utc_now
-from apps.CORE.repositories import BaseCoreRepository
-from apps.CORE.types import ModelType, SchemaType
+from apps.CORE.db import Base
 
 # from pydantic_factories import AsyncPersistenceProtocol, ModelFactory, PostGenerated
 

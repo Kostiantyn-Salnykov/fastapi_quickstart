@@ -38,10 +38,10 @@ class _TestWishCRUDBase:
         await self.clear_wishes(session=db_session)
         wishes = await WishSchemaFactory.create_batch_async(size=faker.pyint(min_value=3, max_value=5))
 
-        total, todos_list = await self.service.list(session=db_session, sorting=[])
+        total, wishes_list = await self.service.list(session=db_session, sorting=[])
 
         assert total == len(wishes)
-        assert [todo.__repr__() for todo in todos_list] == [todo.__repr__() for todo in wishes]
+        assert [wish.__repr__() for wish in wishes_list] == [wish.__repr__() for wish in wishes]
 
     async def test_create(self, db_session: AsyncSession) -> None:
         equal_fields = {"text", "description"}

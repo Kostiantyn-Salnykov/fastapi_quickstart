@@ -44,10 +44,10 @@ class TestBaseOutSchema:
             # Note that ISO 8601 doesn't include months, so they will be converted to days.
             sign = "-" if total_seconds < 0 else ""
             total_seconds = abs(total_seconds)
-            days = total_seconds // (24 * 3600)
-            hours = (total_seconds % (24 * 3600)) // 3600
-            minutes = (total_seconds % 3600) // 60
-            seconds = total_seconds % 60
+            total_seconds // (24 * 3600)
+            (total_seconds % (24 * 3600)) // 3600
+            (total_seconds % 3600) // 60
+            total_seconds % 60
 
             # iso_string = f"{sign}P{int(days)}DT{int(hours)}H{int(minutes)}M{int(seconds)}S"
             iso_string = f"{sign}PT{int(total_seconds)}S"

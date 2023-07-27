@@ -9,6 +9,7 @@ import typing
 
 import click
 
+from apps.CORE.helpers import get_utc_timezone
 from settings import Settings
 
 LOG_FORMAT = "{name} | {filename}:{lineno} | {funcName} | {levelname} | {message} | ({asctime}/{created})"
@@ -202,7 +203,7 @@ class Styler:
 
 def _format_time(record: logging.LogRecord, datefmt: str = DATE_TIME_FORMAT_ISO_8601) -> str:
     """Format datetime to UTC datetime."""
-    date_time_utc = datetime.datetime.utcfromtimestamp(record.created)
+    date_time_utc = datetime.datetime.fromtimestamp(record.created, tz=get_utc_timezone())
     return datetime.datetime.strftime(date_time_utc, datefmt or DATE_TIME_FORMAT_ISO_8601)
 
 

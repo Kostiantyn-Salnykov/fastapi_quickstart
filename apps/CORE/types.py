@@ -41,16 +41,12 @@ StrUUID = typing.Annotated[
 
 def validate_timestamp(v: datetime.datetime) -> float:
     """Make from naive datetime a timezone aware (with UTC timezone)."""
-    if isinstance(v, (float, int)):
+    if isinstance(v, float | int):
         # parse value to datetime
-        v = datetime.datetime.utcfromtimestamp(v)
+        v = datetime.datetime.fromtimestamp(v, tz=get_utc_timezone())
 
-    # if datetime is naive, just replace it to UTC
-    if v.tzinfo is None:
-        result = v.replace(tzinfo=get_utc_timezone())
-    # else convert to utc
-    else:
-        result = as_utc(date_time=v)
+    # if datetime is naive, just replace it to UTC, else convert to utc
+    result = v.replace(tzinfo=get_utc_timezone()) if v.tzinfo is None else as_utc(date_time=v)
 
     return get_timestamp(v=result)
 
