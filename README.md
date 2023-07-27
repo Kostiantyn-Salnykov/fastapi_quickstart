@@ -101,7 +101,7 @@ make run
 ### Extra libraries
 - httpx (async client library)
 - orjson (fast JSON serialization/deserialization)
-- pydantic (JSON & data validation tool)
+- pydantic v2 (JSON & data validation tool)
 - uvicorn (ASGI web server implementation)
 - gunicorn (process management tool)
 - bcrypt (hashing library, passwords hashing)

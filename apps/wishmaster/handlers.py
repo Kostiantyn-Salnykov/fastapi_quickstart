@@ -6,7 +6,7 @@ from sqlalchemy.engine import CursorResult
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.sql.elements import BinaryExpression, UnaryExpression
 
-from apps.CORE.deps.pagination import NextTokenPagination
+from apps.CORE.deps.query.pagination import NextTokenPagination
 from apps.CORE.exceptions import BackendError
 from apps.CORE.helpers import to_db_encoder, utc_now
 from apps.CORE.types import StrOrUUID

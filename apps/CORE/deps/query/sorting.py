@@ -35,9 +35,9 @@ class BaseSorting:
 
     def collect_aliases(self) -> dict[str, str]:
         result = {}  # <alias_name>: <real_name>
-        for _, field in self.schema.__fields__.items():
-            if field.has_alias:
-                result.update({field.alias: field.name})
+        for name, field in self.schema.model_fields.items():
+            if field.alias:
+                result.update({field.alias: name})
         return result
 
     def build_sorting(self, sorting: list[str] | None) -> list[UnaryExpression]:

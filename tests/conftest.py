@@ -7,6 +7,7 @@ import fastapi
 import httpx
 import psycopg2
 import pytest
+import redis.asyncio as aioredis
 from _pytest.monkeypatch import MonkeyPatch
 from fastapi import Depends, Request, Response
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
@@ -16,7 +17,6 @@ from sqlalchemy.engine import URL, Engine
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, create_async_engine
 from sqlalchemy.orm import Session, close_all_sessions, scoped_session, sessionmaker
 
-import redis.asyncio as aioredis
 from apps.CORE.db import async_session_factory as AsyncSessionFactory  # noqa
 from apps.CORE.db import session_factory as SessionFactory  # noqa
 from apps.CORE.deps import get_async_session, get_redis, get_session

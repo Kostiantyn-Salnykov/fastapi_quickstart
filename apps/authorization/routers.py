@@ -16,9 +16,9 @@ from apps.authorization.schemas.responses import (
     RoleResponse,
 )
 from apps.CORE.deps import get_async_session
-from apps.CORE.deps.filters import BaseFilters, F
-from apps.CORE.deps.pagination import NextTokenPagination
-from apps.CORE.deps.sorting import BaseSorting
+from apps.CORE.deps.query.filters import BaseFilters, F
+from apps.CORE.deps.query.pagination import NextTokenPagination
+from apps.CORE.deps.query.sorting import BaseSorting
 from apps.CORE.enums import FOps
 from apps.CORE.models import Group, Permission, Role
 from apps.CORE.schemas.responses import JSENDResponse
@@ -112,10 +112,10 @@ async def update_group(
     )
 
 
-@groups_router.delete(path="/{id}/", name="delete_group", response_model=JSENDResponse[type[None]])
+@groups_router.delete(path="/{id}/", name="delete_group", response_model=JSENDResponse)
 async def delete_group(
     request: Request, id: uuid.UUID = Path(), session: AsyncSession = Depends(get_async_session)
-) -> JSENDResponse[type[None]]:
+) -> JSENDResponse:
     await groups_handler.delete_group(session=session, request=request, id=id)
     return JSENDResponse(data=None, message="Group deleted successfully.")
 
@@ -184,12 +184,12 @@ async def create_role(
 @roles_router.delete(
     path="/{id}/",
     name="delete_role",
-    response_model=JSENDResponse[type[None]],
+    response_model=JSENDResponse,
     status_code=status.HTTP_200_OK,
 )
 async def delete_role(
     request: Request, id: uuid.UUID = Path(), session: AsyncSession = Depends(get_async_session)
-) -> JSENDResponse[type[None]]:
+) -> JSENDResponse:
     await roles_handler.delete_role(session=session, request=request, id=id)
     return JSENDResponse(data=None, message="Role deleted successfully.")
 

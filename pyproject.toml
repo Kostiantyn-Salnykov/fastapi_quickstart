@@ -9,23 +9,25 @@ packages = [{include = "fastapi_quickstart"}]
 
 [tool.poetry.dependencies]
 python = "^3.11"
-fastapi = {extras = ["standard"], version = "^0.99.1"}
-asyncpg = "^0.27.0"
+fastapi = {extras = ["standard"], version = "^0.100.0"}
+asyncpg = "^0.28.0"
 SQLAlchemy = {extras = ["asyncion", "mypy"], version = "^2.0.17"}
-pydantic = {extras = ["dotenv", "email"], version = "^1.10.11"}
+pydantic = {extras = ["dotenv", "email"], version = "^2.1.1"}
 alembic = "^1.10.2"
 orjson = "^3.8.7"
-uvicorn = {extras = ["standard"], version = "^0.22.0"}
-gunicorn = "^20.1.0"
+uvicorn = {extras = ["standard"], version = "^0.23.1"}
+gunicorn = "^21.2.0"
 psycopg2-binary = "^2.9.3"
-phonenumbers = "^8.13.7"
+phonenumbers = "^8.13.17"
 httpx = "^0.24.1"
 bcrypt = "^4.0.1"
-PyJWT = "^2.6.0"
+PyJWT = "^2.8.0"
 typer = {extras = ["all"], version = "^0.9.0"}
 redis = {extras = ["hiredis"], version = "^4.4.1"}
 pendulum = "^2.1.2"
 uuid7 = "^0.1.0"
+setuptools = "^68.0.0"
+pydantic-settings = "^2.0.2"
 
 
 [tool.poetry.group.lint.dependencies]
@@ -53,6 +55,10 @@ factory-boy = "^3.2.1"
 
 [tool.poetry.group.dev.dependencies]
 ipython = "^8.5.0"
+
+
+[tool.poetry.group.def.dependencies]
+bump-pydantic = "^0.6.0"
 
 [build-system]
 requires = ["poetry-core"]

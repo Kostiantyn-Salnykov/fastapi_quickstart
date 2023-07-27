@@ -22,7 +22,7 @@ class TestUsersRouter:
             status=JSENDStatus.FAIL,
             message="Validation error.",
             code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-            data=[{"context": None, "location": ["body"], "message": "Field required.", "type": "value_error.missing"}],
+            data=[{"context": None, "location": ["body"], "message": "Field required.", "type": "missing"}],
         )
 
     async def test_create_user_200(self, async_client: AsyncClient, app_fixture: FastAPI, faker: Faker) -> None:
@@ -82,6 +82,7 @@ class TestUsersRouter:
             data=None,
         )
 
+    @pytest.mark.debug()
     async def test_whoami_200(self, async_client: AsyncClient, app_fixture: FastAPI, faker: Faker) -> None:
         users_helper = UsersHelper()
         response = await async_client.get(url=app_fixture.url_path_for("whoami"), headers=users_helper.get_headers())
@@ -116,7 +117,7 @@ class TestTokensRouter:
             status=JSENDStatus.FAIL,
             message="Validation error.",
             code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-            data=[{"context": None, "location": ["body"], "message": "Field required.", "type": "value_error.missing"}],
+            data=[{"context": None, "location": ["body"], "message": "Field required.", "type": "missing"}],
         )
 
     async def test_login_422_fields_required(self, async_client: AsyncClient, app_fixture: FastAPI) -> None:
@@ -132,13 +133,13 @@ class TestTokensRouter:
                 {
                     "location": ["body", "email"],
                     "message": "Field required.",
-                    "type": "value_error.missing",
+                    "type": "missing",
                     "context": None,
                 },
                 {
                     "location": ["body", "password"],
                     "message": "Field required.",
-                    "type": "value_error.missing",
+                    "type": "missing",
                     "context": None,
                 },
             ],
@@ -213,7 +214,7 @@ class TestTokensRouter:
     ) -> None:
         user = UserFactory(status=UsersStatuses.CONFIRMED)
         refresh_token = app_fixture.state.tokens_manager.create_code(
-            data={"id": str(user.id), "token_id": 1},
+            data={"id": str(user.id), "token_id": "1"},
             aud=TokenAudience.REFRESH,
         )
         access, refresh = faker.pystr(), faker.pystr()
@@ -238,7 +239,7 @@ class TestTokensRouter:
     ) -> None:
         user = UserFactory(status=user_status)
         refresh_token = app_fixture.state.tokens_manager.create_code(
-            data={"id": str(user.id), "token_id": 1},
+            data={"id": str(user.id), "token_id": "1"},
             aud=TokenAudience.REFRESH,
         )
 

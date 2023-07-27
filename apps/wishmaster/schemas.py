@@ -1,6 +1,6 @@
 import uuid
 
-from pydantic import Field, validator
+from pydantic import Field, field_validator
 
 from apps.CORE.schemas.mixins import CreatedUpdatedResponseMixin
 from apps.CORE.schemas.requests import BaseRequestSchema
@@ -29,7 +29,7 @@ class WishCreateToDBSchema(BaseRequestSchema):
 
 
 class WishCreateSchema(WishCreateToDBSchema):
-    tags: list[str] | None = Field(default_factory=list, max_items=10)
+    tags: list[str] | None = Field(default_factory=list, max_length=10)
 
 
 class WishUpdateToDBSchema(WishCreateSchema):
@@ -40,7 +40,7 @@ class WishUpdateToDBSchema(WishCreateSchema):
 
 
 class WishUpdateSchema(WishUpdateToDBSchema):
-    tags: list[str] | None = Field(default=None, max_items=10)
+    tags: list[str] | None = Field(default=None, max_length=10)
 
 
 class WishResponseSchema(BaseResponseSchema, CreatedUpdatedResponseMixin):
@@ -56,7 +56,8 @@ class WishResponseSchema(BaseResponseSchema, CreatedUpdatedResponseMixin):
     category: CategoryResponseSchema | None = Field(default=None)
     tags: list[str] = Field(default_factory=list)
 
-    @validator("tags", pre=True)
+    @field_validator("tags", mode="before")
+    @classmethod
     def validate_tag(cls, v: list[Tag | str]) -> list[str]:
         tags: list[str] = [tag.title if isinstance(tag, Tag) else tag for tag in v]
         return tags

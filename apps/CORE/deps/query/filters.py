@@ -3,8 +3,7 @@ import typing
 
 import orjson
 from fastapi import Query, Request
-from pydantic import Field, ValidationError, parse_obj_as, validator
-from pydantic.generics import GenericModel
+from pydantic import BaseModel, ConfigDict, Field, ValidationError, model_validator, parse_obj_as
 from sqlalchemy import BinaryExpression
 from sqlalchemy.orm import ColumnProperty, InstrumentedAttribute
 
@@ -59,33 +58,31 @@ def get_sqlalchemy_where_operations_mapper(operation_type: FOps) -> str:
             return "__eq__"  # default
 
 
-class QueryFilter(GenericModel, typing.Generic[TypeA]):
+class QueryFilter(BaseModel, typing.Generic[TypeA]):
+    model_config = ConfigDict(populate_by_name=True, json_schema_extra={"examples": [{"test": "test"}]})
+
     field: str = Field(default=..., alias="f")
     operation: FOps = Field(default=FOps.EQ, alias="o")
     value: TypeA = Field(default=..., alias="v")
 
-    class Config:
-        allow_population_by_field_name = True
-        schema_extra = {"examples": [{"test": "test"}]}
-
-    @validator("value")
-    def validate_obj(cls, v, values: dict[str, typing.Any]):
-        operation: FOps = values.get("operation", FOps.EQ)
+    @model_validator(mode="after")
+    def validate_obj(self) -> typing.Self:
+        operation: FOps = self.operation
         match operation:
             case FOps.IN | FOps.NOT_IN:
-                if not isinstance(v, list):
+                if not isinstance(self.value, list):
                     raise BackendError(
                         message=f"Filters error. For operation '{operation.value}', the value must be a list (Array[])."
                     )
             case FOps.ISNULL | FOps.NOT_NULL:
-                return None
+                self.value = None
             case _ as operation:
-                if isinstance(v, list):
+                if isinstance(self.value, list):
                     raise BackendError(
                         message=f"Filters error. For operation '{operation.value}', the value cannot be a list "
                         f"(Array[])."
                     )
-        return v
+        return self
 
 
 class F:
@@ -150,11 +147,11 @@ class BaseFilters:
     def collect_filtering(self) -> dict[str, type[QueryFilter[TypeValue]] | None]:
         fields: dict[str, type[QueryFilter[TypeValue]] | None] = {}
         # populate fields with aliases or names and empty None value
-        for _, field in self.schema.__fields__.items():
-            if field.has_alias:
+        for name, field in self.schema.model_fields.items():
+            if field.alias:
                 fields.update({field.alias: None})
             else:
-                fields.update({field.name: None})
+                fields.update({name: None})
         # populate fields with filters
         for f in self.filters:
             model_field_name = f.name
@@ -165,11 +162,11 @@ class BaseFilters:
 
     def collect_aliases(self) -> dict[str, str]:
         result = {}  # <alias_name>: <real_name> OR <real_name>: <real_name>
-        for _, field in self.schema.__fields__.items():
-            if field.has_alias:
-                result.update({field.alias: field.name})
+        for name, field in self.schema.model_fields.items():
+            if field.alias:
+                result.update({field.alias: name})
             else:
-                result.update({field.name: field.name})
+                result.update({name: name})
         return result
 
     def parse_json_filters(self, json_filters: str) -> list[dict[str, typing.Any]]:

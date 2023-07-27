@@ -57,7 +57,7 @@ class UsersHelper:
             return self._generate_user()
 
     def _generate_token(self) -> str:
-        self._token = self._tokens_manager.create_code(data={"id": str(self.user.id), "token_id": 1})
+        self._token = self._tokens_manager.create_code(data={"id": str(self.user.id), "token_id": "1"})
         return self._token
 
     def _generate_user(self) -> User:

@@ -1,7 +1,7 @@
 import typing
 import uuid
 
-from pydantic import Field, root_validator
+from pydantic import Field, model_validator
 
 from apps.authorization.schemas.responses import GroupResponse, PermissionResponse, RoleResponse
 from apps.CORE.schemas import TokenPayloadSchema
@@ -24,31 +24,31 @@ class UserUpdateSchema(BaseRequestSchema):
     old_password: StrOrNone = Field(default=None, min_length=8, max_length=255, example="!QAZxsw2", alias="oldPassword")
     new_password: StrOrNone = Field(default=None, min_length=8, max_length=255, example="!QAZxsw2", alias="newPassword")
 
-    @root_validator()
-    def validate_new_password(cls, values: dict[str, typing.Any]) -> dict[str, typing.Any]:
+    @model_validator(mode="after")
+    def validate_new_password(self) -> typing.Self:
         """Validate `new_password` field.
 
         Raises:
             ValueError: In case when user didn't provide `old_password` but provide `new_password`
         """
-        if values.get("new_password") is not None and values.get("old_password") is None:
+        if self.new_password is not None and self.old_password is None:
             raise ValueError("You should provide old password to set up new one.")
-        return values
+        return self
 
-    @root_validator()
-    def validate_old_password(cls, values: dict[str, typing.Any]) -> dict[str, typing.Any]:
+    @model_validator(mode="after")
+    def validate_old_password(self) -> typing.Self:
         """Validate `old_password` field.
 
         Raises:
             ValueError: In case when user didn't provide `new_password` but provide `old_password`
         """
-        if values.get("old_password") is not None and values.get("new_password") is None:
+        if self.old_password is not None and self.new_password is None:
             raise ValueError("It makes no sense to send the old password without sending the new one.")
-        return values
+        return self
 
 
 class UserToDBBaseSchema(BaseRequestSchema):
-    id: uuid.UUID | None
+    id: uuid.UUID | None = None
     first_name: StrOrNone = Field(default=None, title="First name", max_length=128, alias="firstName", example="John")
     last_name: StrOrNone = Field(default=None, title="Last name", max_length=128, alias="lastName", example="Doe")
     email: Email | None = Field(default=None, title="Email", example="kostiantyn.salnykov@gmail.com")
@@ -84,8 +84,8 @@ class LoginOutSchema(TokenRefreshSchema):
 
 
 class UserTokenPayloadSchema(TokenPayloadSchema):
-    id: uuid.UUID
-    token_id: StrOrNone
+    id: uuid.UUID = Field(default=...)
+    token_id: StrOrNone = Field(default=None)
 
 
 class LoginSchema(BaseRequestSchema):

@@ -4,9 +4,9 @@ import functools
 import typing
 
 import pendulum
+import redis.asyncio as aioredis
 from fastapi import Depends, Request, Response
 
-import redis.asyncio as aioredis
 from apps.CORE.deps import get_redis
 from apps.CORE.enums import RatePeriod
 from apps.CORE.exceptions import RateLimitError

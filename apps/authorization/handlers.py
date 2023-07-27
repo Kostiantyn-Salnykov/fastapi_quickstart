@@ -16,7 +16,7 @@ from apps.authorization.services import (
     role_permission_service,
     roles_service,
 )
-from apps.CORE.deps.pagination import NextTokenPagination
+from apps.CORE.deps.query.pagination import NextTokenPagination
 from apps.CORE.exceptions import BackendError
 from apps.CORE.helpers import to_db_encoder
 from apps.CORE.models import Group, Permission, Role

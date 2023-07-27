@@ -2,6 +2,8 @@ import contextlib
 import datetime
 import typing
 
+import redis.asyncio as redis
+import redis.exceptions
 import sqlalchemy.ext.asyncio
 import sqlalchemy.orm
 from fastapi import APIRouter, Depends, FastAPI, Request, status
@@ -13,8 +15,6 @@ from sqlalchemy import text
 from starlette.middleware.authentication import AuthenticationMiddleware
 from uvicorn.middleware.proxy_headers import ProxyHeadersMiddleware
 
-import redis.asyncio as redis
-import redis.exceptions
 from apps.authorization.managers import AuthorizationManager
 from apps.authorization.middlewares import JWTTokenBackend
 from apps.authorization.routers import groups_router, permissions_router, roles_router

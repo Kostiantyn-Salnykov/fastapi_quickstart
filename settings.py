@@ -1,25 +1,27 @@
 import functools
 import logging
 import pathlib
+import typing
 
-from pydantic import BaseSettings, Extra, Field, PostgresDsn, validator
+from pydantic import Extra, Field, PostgresDsn, model_validator
+from pydantic_settings import BaseSettings, SettingsConfigDict
 from sqlalchemy.engine.url import URL
 
 PROJECT_BASE_DIR = pathlib.Path(__file__).resolve().parent
 
 
-def _build_db_dsn(values: dict[str, str | int | bool], async_dsn: bool = False) -> URL:
+def _build_db_dsn(username: str, password: str, host: str, port: int, database: str, async_dsn: bool = False) -> URL:
     """Factory for PostgreSQL DSN."""
     driver_name = "postgresql"
     if async_dsn:
         driver_name += "+asyncpg"
     return URL.create(
         drivername=driver_name,
-        username=values.get("POSTGRES_USER"),
-        password=values.get("POSTGRES_PASSWORD"),
-        host=values.get("POSTGRES_HOST"),
-        port=values.get("POSTGRES_PORT"),
-        database=values.get("POSTGRES_DB"),
+        username=username,
+        password=password,
+        host=host,
+        port=port,
+        database=database,
     )
 
 
@@ -53,38 +55,49 @@ class MainSettings(BaseSettings):
     POSTGRES_PASSWORD: str = Field(default="postgres")
     POSTGRES_USER: str = Field(default="postgres")
     POSTGRES_PORT: int = Field(default=5432)
-    POSTGRES_URL: PostgresDsn = Field(default=None)
-    POSTGRES_URL_ASYNC: PostgresDsn = Field(default=None)
+    POSTGRES_URL: PostgresDsn | None = Field(default=None)
+    POSTGRES_URL_ASYNC: PostgresDsn | None = Field(default=None)
     # Redis settings
     REDIS_SECURE: bool = Field(default=True)
     REDIS_HOST: str = Field(default="0.0.0.0")
     REDIS_PORT: int = Field(default=6379)
-    REDIS_USER: str = Field(default=None)
+    REDIS_USER: str | None = Field(default=None)
     REDIS_PASSWORD: str = Field(default="redis")
     REDIS_DB: int = Field(default=0)
     REDIS_DECODE_RESPONSES: bool = Field(default=True)
     REDIS_ENCODING: str = Field(default="utf-8")
     REDIS_POOL_MAX_CONNECTIONS: int = Field(default=100)
 
-    class Config(BaseSettings.Config):
+    class Config(SettingsConfigDict):
         extra = Extra.ignore
         env_file = ".env"
         env_file_encoding = "UTF-8"
         env_nested_delimiter = "__"
 
-    @validator("POSTGRES_URL", always=True)
-    def validate_database_url(cls, value: str | None, values: dict[str, str | int | bool]) -> URL | str:
+    @model_validator(mode="after")
+    def validate_database_url(self) -> typing.Self:
         """Construct PostgreSQL DSN."""
-        if value is None:
-            return _build_db_dsn(values=values)
-        return value
+        self.POSTGRES_URL = _build_db_dsn(
+            username=self.POSTGRES_USER,
+            password=self.POSTGRES_PASSWORD,
+            host=self.POSTGRES_HOST,
+            port=self.POSTGRES_PORT,
+            database=self.POSTGRES_DB,
+        )
+        return self
 
-    @validator("POSTGRES_URL_ASYNC", always=True)
-    def validate_database_url_async(cls, value: str | None, values: dict[str, str | int | bool]) -> URL | str:
+    @model_validator(mode="after")
+    def validate_database_url_async(self) -> typing.Self:
         """Construct async (with asyncpg driver) PostgreSQL DSN."""
-        if value is None:
-            return _build_db_dsn(values=values, async_dsn=True)
-        return value
+        self.POSTGRES_URL_ASYNC = _build_db_dsn(
+            username=self.POSTGRES_USER,
+            password=self.POSTGRES_PASSWORD,
+            host=self.POSTGRES_HOST,
+            port=self.POSTGRES_PORT,
+            database=self.POSTGRES_DB,
+            async_dsn=True,
+        )
+        return self
 
 
 @functools.lru_cache

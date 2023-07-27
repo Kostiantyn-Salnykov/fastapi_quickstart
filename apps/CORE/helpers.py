@@ -48,7 +48,7 @@ def orjson_dumps(v: Any, *, default: typing.Any) -> str:
 
 def get_timestamp(v: datetime.datetime) -> float:
     """Extract timestamp from datetime object and round for 3 decimal digits."""
-    return round(v.timestamp() * 1000, 3)
+    return round(v.timestamp(), 3)
 
 
 def proxy_func(x: typing.Any) -> typing.Any:

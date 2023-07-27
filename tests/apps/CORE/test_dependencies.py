@@ -6,9 +6,9 @@ from sqlalchemy.exc import IntegrityError
 
 from apps.CORE.db import Base
 from apps.CORE.deps import get_async_session, get_redis, get_session
-from apps.CORE.deps.filters import QueryFilter, get_sqlalchemy_where_operations_mapper
-from apps.CORE.deps.pagination import LimitOffsetPagination
-from apps.CORE.deps.sorting import BaseSorting
+from apps.CORE.deps.query.filters import QueryFilter, get_sqlalchemy_where_operations_mapper
+from apps.CORE.deps.query.pagination import LimitOffsetPagination
+from apps.CORE.deps.query.sorting import BaseSorting
 from apps.CORE.enums import FOps
 from apps.CORE.exceptions import BackendError
 from apps.CORE.schemas.responses import BaseResponseSchema
@@ -156,8 +156,6 @@ def test_get_session(mocker: MockerFixture) -> None:
 
     result = next(gen_session)
     result.test()
-
-    print(True)
 
 
 async def test_get_redis() -> None:

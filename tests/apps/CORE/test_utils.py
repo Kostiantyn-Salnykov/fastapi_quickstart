@@ -82,7 +82,7 @@ def test_get_timestamp(faker: Faker) -> None:
 
     result = get_timestamp(v=date_time)
 
-    assert result == round(date_time.timestamp() * 1000, 3)
+    assert result == round(date_time.timestamp(), 3)
 
 
 def test_proxy_func(faker: Faker) -> None:

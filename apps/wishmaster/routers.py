@@ -8,9 +8,9 @@ from sqlalchemy.sql.elements import BinaryExpression, UnaryExpression
 
 from apps.authorization.dependencies import IsAuthenticated, bearer_auth
 from apps.CORE.deps import get_async_session
-from apps.CORE.deps.filters import BaseFilters, F
-from apps.CORE.deps.pagination import NextTokenPagination
-from apps.CORE.deps.sorting import BaseSorting
+from apps.CORE.deps.query.filters import BaseFilters, F
+from apps.CORE.deps.query.pagination import NextTokenPagination
+from apps.CORE.deps.query.sorting import BaseSorting
 from apps.CORE.enums import FOps
 from apps.CORE.responses import Responses
 from apps.CORE.schemas.responses import JSENDResponse
@@ -108,10 +108,10 @@ async def list_wishlists(
     )
 
 
-@wishlist_router.delete(path="/{id}/", name="delete_wishlist", response_model=JSENDResponse[type[None]])
+@wishlist_router.delete(path="/{id}/", name="delete_wishlist", response_model=JSENDResponse)
 async def delete_wishlist(
     request: Request, id: uuid.UUID = Path(), session: AsyncSession = Depends(get_async_session)
-) -> JSENDResponse[type[None]]:
+) -> JSENDResponse:
     await wishlist_handler.delete(session=session, request=request, id=id)
     return JSENDResponse(data=None, message="WishList deleted successfully.")
 
@@ -221,7 +221,7 @@ async def delete_wish(
     request: Request,
     id: uuid.UUID = Path(),
     session: AsyncSession = Depends(get_async_session),
-) -> JSENDResponse[type[None]]:
+) -> JSENDResponse:
     await wish_handler.delete(session=session, request=request, id=id)
     return JSENDResponse(data=None, message="Wish deleted successfully.")
 

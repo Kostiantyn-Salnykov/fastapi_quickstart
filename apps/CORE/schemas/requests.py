@@ -1,14 +1,13 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 
 class BaseRequestSchema(BaseModel):
     """Base schema for schemas that will be used in request validations."""
 
-    class Config:
-        """Schema configuration."""
-
-        orm_mode = True
-        arbitrary_types_allowed = True
-        validate_assignment = True
-        allow_population_by_field_name = True
-        use_enum_values = True
+    model_config = ConfigDict(
+        from_attributes=True,
+        arbitrary_types_allowed=True,
+        validate_assignment=True,
+        populate_by_name=True,
+        use_enum_values=True,
+    )
