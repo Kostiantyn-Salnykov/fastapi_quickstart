@@ -1,17 +1,16 @@
-import uuid
-
 from pydantic import Field, field_validator
 
 from apps.CORE.schemas.mixins import CreatedUpdatedResponseMixin
 from apps.CORE.schemas.requests import BaseRequestSchema
 from apps.CORE.schemas.responses import BaseResponseSchema, JSENDPaginationResponse, PaginationResponse
+from apps.CORE.types import StrUUID
 from apps.wishmaster.enums import WishComplexities, WishPriorities, WishStatuses
 from apps.wishmaster.models import Tag
 
 
 class CategoryResponseSchema(BaseResponseSchema):
     title: str = Field(default=..., max_length=128)
-    owner_id: uuid.UUID = Field(...)
+    owner_id: StrUUID = Field(...)
 
 
 class TagResponseSchema(BaseResponseSchema):
@@ -20,11 +19,11 @@ class TagResponseSchema(BaseResponseSchema):
 
 class WishCreateToDBSchema(BaseRequestSchema):
     title: str = Field(max_length=128, example="Do something.")
-    wishlist_id: uuid.UUID = Field(default=..., alias="wishlistId")
+    wishlist_id: StrUUID = Field(default=..., alias="wishlistId")
     status: WishStatuses = Field(default=WishStatuses.CREATED)
     complexity: WishComplexities = Field(default=WishComplexities.NORMAL)
     priority: WishPriorities = Field(default=WishPriorities.NORMAL)
-    category_id: uuid.UUID | None = Field(default=None, alias="categoryId")
+    category_id: StrUUID | None = Field(default=None, alias="categoryId")
     description: str | None = Field(default=None, max_length=255)
 
 
@@ -34,7 +33,7 @@ class WishCreateSchema(WishCreateToDBSchema):
 
 class WishUpdateToDBSchema(WishCreateSchema):
     title: str | None = Field(default=None, max_length=128)
-    wishlist_id: uuid.UUID | None = Field(default=None, alias="wishlistId")
+    wishlist_id: StrUUID | None = Field(default=None, alias="wishlistId")
     status: WishStatuses | None = Field(default=WishStatuses.CREATED)
     description: str | None = Field(default=None, max_length=255)
 
@@ -44,13 +43,13 @@ class WishUpdateSchema(WishUpdateToDBSchema):
 
 
 class WishResponseSchema(BaseResponseSchema, CreatedUpdatedResponseMixin):
-    id: uuid.UUID
+    id: StrUUID
     title: str = Field(max_length=128, example="Do something.")
-    wishlist_id: uuid.UUID = Field(default=..., alias="wishlistId")
+    wishlist_id: StrUUID = Field(default=..., alias="wishlistId")
     status: WishStatuses = Field(default=...)
     complexity: WishComplexities = Field(default=...)
     priority: WishPriorities = Field(default=...)
-    category_id: uuid.UUID | None = Field(default=None, alias="categoryId")
+    category_id: StrUUID | None = Field(default=None, alias="categoryId")
     description: str | None = Field(default=None, max_length=255)
 
     category: CategoryResponseSchema | None = Field(default=None)
@@ -72,13 +71,13 @@ class WishListCreateSchema(BaseRequestSchema):
 
 
 class WishListToDBCreateSchema(WishListCreateSchema):
-    owner_id: uuid.UUID = Field(...)
+    owner_id: StrUUID = Field(...)
 
 
 class WishListResponseSchema(BaseResponseSchema, CreatedUpdatedResponseMixin):
-    id: uuid.UUID
+    id: StrUUID
     title: str = Field(max_length=128, example="My Wishlist")
-    owner_id: uuid.UUID = Field(alias="ownerId")
+    owner_id: StrUUID = Field(alias="ownerId")
 
 
 class WishListWithWishesOutSchema(WishListResponseSchema):

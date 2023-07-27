@@ -39,14 +39,14 @@ class JSENDFailResponse(JSENDResponse[SchemaType]):
     """JSEND schema with 'fail' status (validation errors, client errors)."""
 
     status: JSENDStatus = Field(default=JSENDStatus.FAIL)
-    data: StrOrNone = Field(default=None)
+    data: SchemaType = Field(default=None)
 
 
 class JSENDErrorResponse(JSENDResponse[SchemaType]):
     """JSEND schema with 'error' status (server errors)."""
 
     status: JSENDStatus = Field(default=JSENDStatus.ERROR)
-    data: StrOrNone = Field(default=None)
+    data: SchemaType = Field(default=None)
 
 
 class UnprocessableEntityResponse(BaseResponseSchema):
@@ -54,14 +54,14 @@ class UnprocessableEntityResponse(BaseResponseSchema):
 
     location: list[str] = Field(example=["body", "field_1"])
     message: str = Field(example="Field required.")
-    type: str = Field(example="value_error.missing")
+    type: str = Field(example="missing")
     context: StrOrNone = Field(default=None)
 
 
 class PaginationResponse(BaseModel, Generic[ObjectsVar]):
     """Generic ResponseSchema that uses for pagination."""
 
-    model_config = ConfigDict(populate_by_name=True)
+    model_config = ConfigDict(populate_by_name=True, arbitrary_types_allowed=True)
 
     objects: list[ObjectsVar]
     offset: int | None = Field(default=None, description="Number of objects to skip.")

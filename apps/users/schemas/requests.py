@@ -1,14 +1,9 @@
 import typing
-import uuid
 
 from pydantic import Field, model_validator
 
-from apps.authorization.schemas.responses import GroupResponse, PermissionResponse, RoleResponse
-from apps.CORE.schemas import TokenPayloadSchema
 from apps.CORE.schemas.requests import BaseRequestSchema
-from apps.CORE.schemas.responses import BaseResponseSchema
-from apps.CORE.types import DatetimeOrNone, Email, StrOrNone, Timestamp
-from apps.users.enums import UsersStatuses
+from apps.CORE.types import Email, StrOrNone
 
 
 class UserCreateSchema(BaseRequestSchema):
@@ -47,45 +42,8 @@ class UserUpdateSchema(BaseRequestSchema):
         return self
 
 
-class UserToDBBaseSchema(BaseRequestSchema):
-    id: uuid.UUID | None = None
-    first_name: StrOrNone = Field(default=None, title="First name", max_length=128, alias="firstName", example="John")
-    last_name: StrOrNone = Field(default=None, title="Last name", max_length=128, alias="lastName", example="Doe")
-    email: Email | None = Field(default=None, title="Email", example="kostiantyn.salnykov@gmail.com")
-    status: UsersStatuses = Field(default=UsersStatuses.UNCONFIRMED, title="User status", alias="status")
-    created_at: DatetimeOrNone = Field(default=None, title="Created at", alias="createdAt")
-    updated_at: DatetimeOrNone = Field(default=None, title="Updated at", alias="updatedAt")
-    password_hash: StrOrNone = Field(default=None, max_length=1024)
-
-
-class UserCreateToDBSchema(UserToDBBaseSchema):
-    password_hash: str = Field(max_length=1024)
-
-
-class UserResponseSchema(BaseResponseSchema):
-    id: uuid.UUID
-    first_name: str = Field(title="First name", max_length=128, alias="firstName", example="John")
-    last_name: str = Field(title="Last name", max_length=128, alias="lastName", example="Doe")
-    email: Email = Field(title="Email", example="kostiantyn.salnykov@gmail.com")
-    status: UsersStatuses = Field(default=UsersStatuses.UNCONFIRMED, title="User status", alias="status")
-    created_at: Timestamp = Field(title="Created at", alias="createdAt")
-    updated_at: Timestamp = Field(title="Updated at", alias="updatedAt")
-    groups: list[GroupResponse] | None = Field(default_factory=list)
-    roles: list[RoleResponse] | None = Field(default_factory=list)
-    permissions: list[PermissionResponse] | None = Field(default_factory=list)
-
-
 class TokenRefreshSchema(BaseRequestSchema):
     refresh_token: str = Field(title="Refresh token", alias="refreshToken")
-
-
-class LoginOutSchema(TokenRefreshSchema):
-    access_token: str = Field(title="Access token", alias="accessToken")
-
-
-class UserTokenPayloadSchema(TokenPayloadSchema):
-    id: uuid.UUID = Field(default=...)
-    token_id: StrOrNone = Field(default=None)
 
 
 class LoginSchema(BaseRequestSchema):

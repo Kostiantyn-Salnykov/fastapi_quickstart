@@ -12,17 +12,9 @@ from apps.CORE.managers import PasswordsManager
 from apps.CORE.models import User
 from apps.CORE.types import StrOrUUID
 from apps.users.enums import UsersStatuses
-from apps.users.schemas import (
-    LoginOutSchema,
-    LoginSchema,
-    TokenRefreshSchema,
-    UserCreateSchema,
-    UserCreateToDBSchema,
-    UserResponseSchema,
-    UserToDBBaseSchema,
-    UserTokenPayloadSchema,
-    UserUpdateSchema,
-)
+from apps.users.schemas import UserCreateToDBSchema, UserToDBBaseSchema, UserTokenPayloadSchema
+from apps.users.schemas.requests import LoginSchema, UserCreateSchema, UserUpdateSchema
+from apps.users.schemas.responses import LoginOutSchema, TokenRefreshSchema, UserResponseSchema
 from apps.users.services import users_service
 from settings import Settings
 
@@ -46,7 +38,7 @@ class UsersHandler:
     async def update_user(
         self, *, request: Request, session: AsyncSession, data: UserUpdateSchema
     ) -> UserResponseSchema:
-        values = data.dict(exclude_unset=True)
+        values = data.model_dump(exclude_unset=True)
         if not values:
             raise BackendError(message="Nothing to update.")
         if data.old_password:
@@ -54,7 +46,7 @@ class UsersHandler:
                 password=data.old_password, password_hash=request.user.password_hash
             ):
                 raise BackendError(message="Invalid credentials.")
-            values = data.dict(exclude_unset=True, exclude={"old_password", "new_password"})
+            values = data.model_dump(exclude_unset=True, exclude={"old_password", "new_password"})
             values |= {
                 "password_hash": self.passwords_manager.make_password(password=data.new_password),
                 "status": UsersStatuses.CONFIRMED.value,

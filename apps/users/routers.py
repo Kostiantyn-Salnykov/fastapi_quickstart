@@ -10,7 +10,8 @@ from apps.CORE.enums import RatePeriod
 from apps.CORE.responses import Responses
 from apps.CORE.schemas.responses import JSENDResponse
 from apps.users.handlers import users_handler
-from apps.users.schemas import LoginOutSchema, LoginSchema, TokenRefreshSchema, UserCreateSchema, UserResponseSchema
+from apps.users.schemas.requests import LoginSchema, TokenRefreshSchema, UserCreateSchema
+from apps.users.schemas.responses import LoginOutSchema, UserResponseSchema
 
 __all__ = (
     "register_router",

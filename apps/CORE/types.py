@@ -35,7 +35,16 @@ def validate_uuid(v: StrOrUUID) -> str:
 
 
 StrUUID = typing.Annotated[
-    uuid.UUID, PlainSerializer(func=validate_uuid, return_type=str), AfterValidator(func=lambda val: str(val))
+    uuid.UUID,
+    PlainSerializer(func=validate_uuid, return_type=str),
+    AfterValidator(func=lambda val: str(val)),
+    WithJsonSchema(
+        json_schema={
+            "type": "string",
+            "example": "cafebabe-cafe-babe-cafe-babecafebabe",
+            "format": "uuid",
+        },
+    ),
 ]
 
 
@@ -56,7 +65,12 @@ Timestamp = typing.Annotated[
     PlainSerializer(func=lambda val: val, return_type=float),
     BeforeValidator(func=lambda val: validate_timestamp(v=val)),
     WithJsonSchema(
-        json_schema={"type": "integer", "examples": [1656080947257.345, 1656080975146], "example": 1656080975146.785},
+        json_schema={
+            "type": "number",
+            "format": "float",
+            "examples": [1656080947.257, 1656080975],
+            "example": 1656080975.146,
+        },
     ),
 ]
 

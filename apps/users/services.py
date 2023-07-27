@@ -10,7 +10,7 @@ from apps.CORE.helpers import to_db_encoder
 from apps.CORE.models import Group, Permission, Role, User
 from apps.CORE.repositories import BaseCoreRepository
 from apps.users.enums import UsersStatuses
-from apps.users.schemas import UserCreateSchema
+from apps.users.schemas.requests import UserCreateSchema
 
 __all__ = ("users_service",)
 
