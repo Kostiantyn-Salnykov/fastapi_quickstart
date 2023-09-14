@@ -16,11 +16,11 @@ from apps.authorization.services import (
     role_permission_service,
     roles_service,
 )
+from apps.CORE.custom_types import StrOrUUID
 from apps.CORE.deps.query.pagination import NextTokenPagination
 from apps.CORE.exceptions import BackendError
 from apps.CORE.helpers import to_db_encoder
 from apps.CORE.models import Group, Permission, Role
-from apps.CORE.types import StrOrUUID
 from loggers import get_logger
 
 logger = get_logger(name=__name__)
@@ -39,11 +39,11 @@ class GroupsHandler:
                     values_list=[{"group_id": group.id, "role_id": role_id} for role_id in data.roles_ids],
                 )
         await session.refresh(group)
-        return GroupResponse.from_orm(obj=group)
+        return GroupResponse.from_model(obj=group)
 
     async def read_group(self, *, request: Request, session: AsyncSession, id: StrOrUUID) -> GroupResponse:
         group: Group = await groups_service.read_or_not_found(session=session, id=id, message="Group not found.")
-        return GroupResponse.from_orm(obj=group)
+        return GroupResponse.from_model(obj=group)
 
     async def list_groups(
         self,

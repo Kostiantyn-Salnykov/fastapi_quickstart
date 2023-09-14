@@ -11,11 +11,11 @@ import bcrypt
 import jwt
 from pydantic import BaseModel
 
+from apps.CORE.custom_types import DatetimeOrNone
 from apps.CORE.enums import TokenAudience
 from apps.CORE.exceptions import BackendError
 from apps.CORE.helpers import utc_now
 from apps.CORE.schemas import TokenOptionsSchema
-from apps.CORE.types import DatetimeOrNone
 from settings import Settings
 
 
@@ -207,7 +207,7 @@ class TokensManager:
                 leeway=leeway,
                 audience=audience,
                 issuer=iss,
-                options=options.dict(),
+                options=options.model_dump(),
             )
             if convert_to:
                 payload = convert_to(**payload)

@@ -9,9 +9,13 @@ from sqlalchemy.engine import ChunkedIteratorResult, CursorResult
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.sql.elements import BinaryExpression, UnaryExpression
 
+from apps.CORE.custom_types import ModelType, StrOrUUID
+from apps.CORE.deps.body.filtration import Filtration
+from apps.CORE.deps.body.pagination import Pagination
+from apps.CORE.deps.body.projection import Projection
+from apps.CORE.deps.body.sorting import Sorting
 from apps.CORE.enums import JSENDStatus
 from apps.CORE.exceptions import BackendError
-from apps.CORE.types import ModelType, StrOrUUID
 
 __all__ = (
     "NoneModelType",
@@ -66,20 +70,26 @@ class _BaseCommonRepository:
         self,
         *,
         session: AsyncSession,
-        sorting: list[UnaryExpression],
-        limit: int = 100,
-        next_token: str = None,
-        filters: list[BinaryExpression] | None = None,
+        sorting: Sorting,
+        pagination: Pagination,
+        filtration: Filtration,
+        projection: Projection,
+        searching: list[UnaryExpression] = None,
         unique: bool = True,
     ) -> tuple[int, list[ModelType]]:
-        select_statement = select(self.model)
-        if filters:
-            select_statement = select_statement.where(*filters)
-        if next_token:
-            select_statement = select_statement.where(self.model.id > next_token)
-        select_statement = select_statement.order_by(*sorting).limit(limit).execution_options(populate_existing=True)
+        select_statement = (
+            select(self.model)
+            .options(projection.query)
+            .order_by(*sorting.query)
+            .limit(pagination.limit)
+            .execution_options(populate_existing=True)
+        )
+        count_statement = select(func.count(self.model.id)).select_from(self.model).where(*filtration)
+        select_statement = select_statement.where(*filtration)
 
-        count_statement = select(func.count(self.model.id)).select_from(self.model).where(*filters or {})
+        next_token = pagination.next_token
+        if pagination.next_token:
+            select_statement = select_statement.where(pagination.get_query(next_token=next_token))
 
         async with session.begin_nested():
             count_result: ChunkedIteratorResult = await session.execute(statement=count_statement)

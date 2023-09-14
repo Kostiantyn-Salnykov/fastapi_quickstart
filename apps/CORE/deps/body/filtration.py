@@ -1,26 +1,18 @@
-import string
 import typing
 
-import orjson
-from fastapi import Query, Request
-from pydantic import BaseModel, ConfigDict, Field, ValidationError, model_validator, parse_obj_as
+from fastapi import Body, Request
+from pydantic import BaseModel, ConfigDict, Field, TypeAdapter, ValidationError, model_validator
 from sqlalchemy import BinaryExpression
 from sqlalchemy.orm import ColumnProperty, InstrumentedAttribute
 
+from apps.CORE.custom_types import ModelType, SchemaType, StrOrNone
 from apps.CORE.enums import FOps
 from apps.CORE.exceptions import BackendError
-from apps.CORE.types import ModelType, SchemaType
+from apps.CORE.schemas.requests import BaseRequestSchema
 from settings import Settings
 
-__all__ = (
-    "get_sqlalchemy_where_operations_mapper",
-    "QueryFilter",
-    "F",
-    "BaseFilters",
-)
-
-
 TypeA = typing.TypeVar("TypeA")
+FilterValue: typing.TypeAlias = list[int | float | bool | StrOrNone] | int | float | bool | StrOrNone
 TypeValue = typing.TypeVar("TypeValue")
 
 
@@ -59,7 +51,9 @@ def get_sqlalchemy_where_operations_mapper(operation_type: FOps) -> str:
 
 
 class QueryFilter(BaseModel, typing.Generic[TypeA]):
-    model_config = ConfigDict(populate_by_name=True, json_schema_extra={"examples": [{"test": "test"}]})
+    model_config = ConfigDict(
+        populate_by_name=True, json_schema_extra={"examples": [{"field": "title", "operation": "=", "value": "Test"}]}
+    )
 
     field: str = Field(default=..., alias="f")
     operation: FOps = Field(default=FOps.EQ, alias="o")
@@ -103,46 +97,47 @@ class F:
         return self._name
 
 
-class BaseFilters:
-    def __init__(self, *, model: type[ModelType], schema: type[SchemaType], filters: list[F]) -> None:
-        self.model: type[ModelType] = model
-        self.schema: type[SchemaType] = schema
+class FiltrationRequest(BaseRequestSchema):
+    field: str = Field(default=..., title="Field", alias="f", description="Field name.", example="title")
+    operation: FOps = Field(default=FOps.EQ, title="Operation", alias="o", description="Operation type.", example="=")
+    value: FilterValue = Field(default=..., title="Value", alias="v", description="Value.", example="Test")
+
+
+class Filtration:
+    def __init__(self, model: type[ModelType], schema: type[SchemaType], filters: list[F]) -> None:
+        self.model = model
+        self.schema = schema
         self.filters: list[F] = filters
         self.filters_mapping = self.collect_filtering()
-        self.aliases_mapping = self.collect_aliases()
+        self.aliases_mapping = self.schema.collect_aliases()
+
+    @property
+    def query(self):
+        return self._filtration
+
+    def __iter__(self):
+        yield from self.query
 
     async def __call__(
         self,
         request: Request,
-        json_filters: str
-        | None = Query(
-            default=None,
-            alias="filters",
-            title="Filtering system.",
-            description=str(
-                string.Template(
-                    """You can filter by multiple fields (Actually this applied as `AND` logic in result query).
-                \n\n**Structure**: Base64 URL encoded stringified JSON Array[Object{}]
-                \n\n**Possible Operations** (`"o"`, `"operation"`): $OPERATIONS
-                \n\n**Examples**:
-                \n\nfilters=`""` (No filters, same as omit the `&filters`);
-                \n\nfilters=`[{"f": "title", "o": "=", "v": "test"}]` (Filter by 'title' field where it is a 'test');
-                \n\nfilters=`[{"f": "status", "o": "in", "v": ["CREATED", "IN PROGRESS"]}]`
-                (Filter by 'status' field where it has 'CREATED' and 'IN PROGRESS' values);
-                \n\nfilters=`[{"f": "description", "o": "!=", "v": null},
-                {"f": "title", "o": "startswith", "v": "test"}]`
-                (Filter by 'description' field where it is not NULL `AND` by title which startswith 'test')
-            """
-                ).safe_substitute(OPERATIONS=", ".join(f"`{op.value}`" for op in FOps))
+        filtration: typing.Annotated[
+            list[FiltrationRequest],
+            Body(
+                alias="filtration",
+                title="Filtration",
+                description="You can filter by multiple fields (Actually this applied as `AND` logic in result query).",
             ),
-        ),
-    ) -> list[BinaryExpression]:
+        ] = None,
+    ) -> typing.Self:
         result: list[BinaryExpression] = []
-        if json_filters:
-            filters_list = self.parse_json_filters(json_filters=json_filters)
-            query_filters_list = self.parse_query_filters(filters_list=filters_list)
+        if filtration:
+            query_filters_list = self.parse_query_filters(filters_list=filtration)
             result.extend(op for op in self.construct_sqlalchemy_operation(query_filters=query_filters_list))
-        return result
+
+        request.state.filtration = result
+        self._filtration = result
+        return self
 
     def collect_filtering(self) -> dict[str, type[QueryFilter[TypeValue]] | None]:
         fields: dict[str, type[QueryFilter[TypeValue]] | None] = {}
@@ -160,40 +155,19 @@ class BaseFilters:
 
         return fields
 
-    def collect_aliases(self) -> dict[str, str]:
-        result = {}  # <alias_name>: <real_name> OR <real_name>: <real_name>
-        for name, field in self.schema.model_fields.items():
-            if field.alias:
-                result.update({field.alias: name})
-            else:
-                result.update({name: name})
-        return result
-
-    def parse_json_filters(self, json_filters: str) -> list[dict[str, typing.Any]]:
-        try:
-            filters_list: list[dict[str, typing.Any]] = orjson.loads(json_filters)
-        except orjson.JSONDecodeError as error:
-            raise BackendError(
-                message="Cannot parse 'filters' query parameter. It should be a valid urlencoded JSON string."
-            ) from error
-        else:
-            return filters_list
-
-    def parse_query_filters(
-        self, filters_list: list[dict[str, typing.Any]]
-    ) -> list[QueryFilter[list[str] | str | None]]:
-        query_filters_list: list[QueryFilter[list[str] | str | None]] = []
+    def parse_query_filters(self, filters_list: list[FiltrationRequest]) -> list[QueryFilter[list[str] | StrOrNone]]:
+        query_filters_list: list[QueryFilter[list[str] | StrOrNone]] = []
         try:
             for fltr in filters_list:
-                fltr_schema: QueryFilter[list[str] | str | None] = parse_obj_as(
-                    QueryFilter[list[str] | str | None], fltr
-                )
+                fltr_adptr = TypeAdapter(QueryFilter[FilterValue])
+                fltr_schema = fltr_adptr.validate_python(fltr.model_dump())
                 if fltr_schema.field in self.filters_mapping:
                     try:
-                        query_filters_list.append(parse_obj_as(self.filters_mapping[fltr_schema.field], fltr))
+                        filter_model = self.filters_mapping[fltr_schema.field]
+                        query_filters_list.append(filter_model.model_validate(fltr.model_dump()))
                     except Exception as error:
                         raise BackendError(
-                            data={"Parsed filter (DEBUG)": fltr_schema.dict()} if Settings.DEBUG else None,
+                            data={"Parsed filter (DEBUG)": fltr_schema.model_dump()} if Settings.DEBUG else None,
                             message=f"Can't parse filter value of '{fltr_schema.field}'. Check validity of "
                             f"filter Object{{}} or a possibility filtering by this field.",
                         ) from error
@@ -206,7 +180,7 @@ class BaseFilters:
         return query_filters_list
 
     def construct_sqlalchemy_operation(
-        self, query_filters: list[QueryFilter[list[str] | str | None]]
+        self, query_filters: list[QueryFilter[list[str] | StrOrNone]]
     ) -> typing.Generator[BinaryExpression, None, None]:
         for filter_schema in query_filters:
             column = getattr(self.model, self.aliases_mapping.get(filter_schema.field), None)

@@ -41,7 +41,7 @@ class MainSettings(BaseSettings):
     CORS_ALLOW_METHODS: list[str] = Field(default=["*"])
     CORS_ALLOW_ORIGINS: list[str] = Field(default=["*"])
     # JWT tokens managements settings
-    TOKENS_ACCESS_LIFETIME_SECONDS: int = Field(default=3600)  # 1 HOUR
+    TOKENS_ACCESS_LIFETIME_SECONDS: int = Field(default=3600 * 10)  # 1 HOUR
     TOKENS_ISSUER: str = Field(default="FastAPI Quickstart")
     TOKENS_REFRESH_LIFETIME_SECONDS: int = Field(default=86400)  # 1 DAY
     TOKENS_SECRET_KEY: str = Field(default="TEST")
@@ -110,4 +110,4 @@ Settings: MainSettings = get_settings()
 if Settings.DEBUG and Settings.SHOW_SETTINGS:
     import pprint  # noqa
 
-    pprint.pprint(Settings.dict())
+    pprint.pprint(Settings.model_dump())

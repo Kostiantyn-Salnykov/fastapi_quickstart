@@ -3,9 +3,9 @@ import uuid
 from sqlalchemy import SMALLINT, VARCHAR, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
+from apps.CORE.custom_types import StrOrNone
 from apps.CORE.db import Base, CreatedAtMixin, CreatedUpdatedMixin, UUIDMixin
 from apps.CORE.models import CASCADES, User
-from apps.CORE.types import StrOrNone
 from apps.wishmaster.enums import WishComplexities, WishPriorities, WishStatuses
 
 

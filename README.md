@@ -1,5 +1,5 @@
 # fastapi_quickstart (In development, WIP)!!!
-Initial FastAPI project with SQLAlchemy (asyncpg), Alembic, Pydantic, Pytest, Poetry, Gunicorn, Docker, docker-compose, black, isort, flake8, coverage, factory-boy, pytest-alembic, pydantic-factories. 
+Initial FastAPI project with SQLAlchemy (asyncpg), Alembic, Pydantic v2, Pytest, Poetry, Gunicorn, Docker, docker-compose, ruff, black, isort, flake8, coverage, factory-boy, pytest-alembic, pydantic-factories. 
 
 ## Dependencies:
 - Python 3.11

@@ -1,3 +1,5 @@
+import datetime
+
 import pytest
 from faker import Faker
 from fastapi import FastAPI, status
@@ -5,7 +7,6 @@ from httpx import AsyncClient
 from pytest_mock import MockerFixture
 
 from apps.CORE.enums import JSENDStatus, TokenAudience
-from apps.CORE.helpers import get_timestamp
 from apps.CORE.managers import TokensManager
 from apps.users.enums import UsersStatuses
 from tests.apps.conftest import UsersHelper, assert_jsend_response
@@ -82,7 +83,6 @@ class TestUsersRouter:
             data=None,
         )
 
-    @pytest.mark.debug()
     async def test_whoami_200(self, async_client: AsyncClient, app_fixture: FastAPI, faker: Faker) -> None:
         users_helper = UsersHelper()
         response = await async_client.get(url=app_fixture.url_path_for("whoami"), headers=users_helper.get_headers())
@@ -100,8 +100,8 @@ class TestUsersRouter:
         assert response_data["firstName"] == user.first_name
         assert response_data["lastName"] == user.last_name
         assert response_data["email"] == user.email
-        assert response_data["createdAt"] == get_timestamp(user.created_at)
-        assert response_data["updatedAt"] == get_timestamp(user.updated_at)
+        assert response_data["createdAt"] == datetime.datetime.strftime(user.created_at, "%Y-%m-%dT%H:%M:%S.%fZ")
+        assert response_data["updatedAt"] == datetime.datetime.strftime(user.updated_at, "%Y-%m-%dT%H:%M:%S.%fZ")
         assert response_data["groups"] == user.groups
         assert response_data["roles"] == user.roles
         assert response_data["permissions"] == user.permissions

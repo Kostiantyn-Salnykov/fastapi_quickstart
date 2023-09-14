@@ -1,8 +1,8 @@
 from pydantic import Field
 
+from apps.CORE.custom_types import DatetimeOrNone, Email, StrOrNone, StrUUID
 from apps.CORE.schemas import TokenPayloadSchema
 from apps.CORE.schemas.requests import BaseRequestSchema
-from apps.CORE.types import DatetimeOrNone, Email, StrOrNone, StrUUID
 from apps.users.enums import UsersStatuses
 
 

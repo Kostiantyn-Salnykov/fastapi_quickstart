@@ -2,8 +2,8 @@ import typing
 
 from fastapi import status as http_status
 
+from apps.CORE.custom_types import DictStrOfAny, ListOfAny
 from apps.CORE.enums import JSENDStatus
-from apps.CORE.types import DictStrOfAny, ListOfAny
 
 
 class BackendError(Exception):

@@ -1,18 +1,16 @@
-from pydantic import BaseModel, Field
-
-from apps.CORE.types import Timestamp
+from pydantic import AwareDatetime, BaseModel, Field
 
 
 class CreatedAtResponseMixin(BaseModel):
     """Schema with `createdAt` Timestamp field."""
 
-    created_at: Timestamp = Field(title="Created at", alias="createdAt")
+    created_at: AwareDatetime | None = Field(default=None, title="Created at", alias="createdAt")
 
 
 class UpdatedAtResponseMixin(BaseModel):
     """Schema with `updatedAt` Timestamp field."""
 
-    updated_at: Timestamp = Field(title="Updated at", alias="updatedAt")
+    updated_at: AwareDatetime | None = Field(default=None, title="Updated at", alias="updatedAt")
 
 
 class CreatedUpdatedResponseMixin(CreatedAtResponseMixin, UpdatedAtResponseMixin):

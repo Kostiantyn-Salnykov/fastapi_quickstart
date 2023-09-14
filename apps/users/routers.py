@@ -69,7 +69,7 @@ async def whoami(request: Request) -> JSENDResponse[UserResponseSchema]:
 async def login(
     request: Request,
     data: LoginSchema,
-    _limiter: Annotated[None, (Depends(SlidingWindowRateLimiter(rate=Rate(number=3, period=RatePeriod.MINUTE))))],
+    _limiter: Annotated[None, (Depends(SlidingWindowRateLimiter(rate=Rate(number=10, period=RatePeriod.SECOND))))],
     session: Annotated[AsyncSession, Depends(get_async_session)],
 ) -> JSENDResponse[LoginOutSchema]:
     return JSENDResponse[LoginOutSchema](

@@ -6,11 +6,11 @@ __all__ = (
 
 import typing
 
-import redis.asyncio as aioredis
 from sqlalchemy.exc import IntegrityError, NoResultFound
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
 
+import redis.asyncio as aioredis
 from apps.CORE.db import async_session_factory, redis_engine, session_factory
 from apps.CORE.handlers import integrity_error_handler, no_result_found_error_handler
 from loggers import get_logger

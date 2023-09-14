@@ -3,9 +3,9 @@ from typing import Generic
 from fastapi import status as http_status
 from pydantic import BaseModel, ConfigDict, Field
 
+from apps.CORE.custom_types import ModelType, ObjectsVar, SchemaType, StrOrNone
 from apps.CORE.enums import JSENDStatus
 from apps.CORE.schemas.requests import BaseRequestSchema
-from apps.CORE.types import ModelType, ObjectsVar, SchemaType, StrOrNone, StrUUID
 
 
 class BaseResponseSchema(BaseRequestSchema):
@@ -14,15 +14,17 @@ class BaseResponseSchema(BaseRequestSchema):
     model_config = ConfigDict(
         validate_assignment=True,
         from_attributes=True,
+        strict=False,
+        defer_build=True,
     )
 
     @classmethod
-    def from_orm(cls, obj: SchemaType) -> ModelType:
+    def from_model(cls, obj: SchemaType) -> ModelType:
         # TableNameMixin.to_dict() logic.
         obj = obj.to_dict()
         # Pydantic from_orm logic.
         model = cls.__new__(cls)
-        model = model.model_validate(obj=obj)
+        model = model.model_validate(obj=obj, strict=False, from_attributes=True)
         return model
 
 
@@ -69,15 +71,15 @@ class PaginationResponse(BaseModel, Generic[ObjectsVar]):
     total_count: int = Field(
         default=..., alias="totalCount", description="Numbed of objects counted inside db for this query."
     )
-    next_token: StrUUID | None = Field(
+    next_token: StrOrNone = Field(
         default=None,
         alias="nextToken",
         title="Next Token",
         description="This is the latest `id` of previous result.",
     )
     page: int | None = Field(default=None, title="Page", description="Current page (depends on offset, limit).")
-    pages: int = Field(
-        default=..., title="Pages", description="Total number of pages (depends on limit and total number of records)."
+    pages: int | None = Field(
+        default=None, title="Pages", description="Total number of pages (depends on limit and total number of records)."
     )
 
 

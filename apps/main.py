@@ -2,8 +2,6 @@ import contextlib
 import datetime
 import typing
 
-import redis.asyncio as redis
-import redis.exceptions
 import sqlalchemy.ext.asyncio
 import sqlalchemy.orm
 from fastapi import APIRouter, Depends, FastAPI, Request, status
@@ -15,9 +13,10 @@ from sqlalchemy import text
 from starlette.middleware.authentication import AuthenticationMiddleware
 from uvicorn.middleware.proxy_headers import ProxyHeadersMiddleware
 
+import redis.asyncio as redis
+import redis.exceptions
 from apps.authorization.managers import AuthorizationManager
 from apps.authorization.middlewares import JWTTokenBackend
-from apps.authorization.routers import groups_router, permissions_router, roles_router
 from apps.CORE.db import async_engine, async_session_factory, engine, redis_engine, session_factory
 from apps.CORE.deps import get_async_session, get_redis, get_session
 from apps.CORE.enums import JSENDStatus
@@ -27,7 +26,7 @@ from apps.CORE.managers import TokensManager
 from apps.CORE.responses import Responses
 from apps.CORE.schemas.responses import JSENDResponse
 from apps.users.routers import register_router, tokens_router, users_router
-from apps.wishmaster.routers import wish_router, wishlist_router
+from apps.wishmaster.routers import wishlist_router
 from loggers import get_logger, setup_logging
 from settings import Settings
 
@@ -188,13 +187,9 @@ API_PREFIX = "/api/v1"
 # Include routers:
 app.include_router(router=api_router, prefix=API_PREFIX)
 app.include_router(router=wishlist_router, prefix=API_PREFIX)
-app.include_router(router=wish_router, prefix=API_PREFIX)
 app.include_router(router=register_router, prefix=API_PREFIX)
 app.include_router(router=users_router, prefix=API_PREFIX)
 app.include_router(router=tokens_router, prefix=API_PREFIX)
-app.include_router(router=groups_router, prefix=API_PREFIX)
-app.include_router(router=roles_router, prefix=API_PREFIX)
-app.include_router(router=permissions_router, prefix=API_PREFIX)
 
 
 if __name__ == "__main__":  # pragma: no cover

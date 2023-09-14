@@ -1,5 +1,6 @@
 import datetime
 import functools
+import json
 import typing
 import uuid
 import zoneinfo
@@ -66,3 +67,28 @@ to_db_encoder = functools.partial(
     by_alias=False,
     custom_encoder=encodings_dict,  # override `jsonable_encoder` default behaviour.
 )
+
+
+class ExtendedJSONEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, uuid.UUID):
+            # if the obj is uuid, we simply return the value of uuid
+            return obj.hex
+        elif isinstance(obj, datetime.datetime):
+            return obj.isoformat()
+        return json.JSONEncoder.default(self, obj)
+
+
+class ExtendedJSONDecoder(json.JSONDecoder):
+    def __init__(self, *args, **kwargs):
+        super().__init__(object_hook=self._iso_datetime_decoder, *args, **kwargs)
+
+    def _iso_datetime_decoder(self, dct: dict[str, str]):
+        for key, value in dct.items():
+            if isinstance(value, str):
+                try:
+                    iso_datetime = datetime.datetime.fromisoformat(value)
+                    dct[key] = iso_datetime
+                except ValueError:
+                    pass
+        return dct

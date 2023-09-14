@@ -5,12 +5,12 @@ import uuid
 from fastapi import Request
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from apps.CORE.custom_types import StrOrUUID
 from apps.CORE.enums import TokenAudience
 from apps.CORE.exceptions import BackendError
 from apps.CORE.helpers import utc_now
 from apps.CORE.managers import PasswordsManager
 from apps.CORE.models import User
-from apps.CORE.types import StrOrUUID
 from apps.users.enums import UsersStatuses
 from apps.users.schemas import UserCreateToDBSchema, UserToDBBaseSchema, UserTokenPayloadSchema
 from apps.users.schemas.requests import LoginSchema, UserCreateSchema, UserUpdateSchema
@@ -29,11 +29,11 @@ class UsersHandler:
         self, *, request: Request, session: AsyncSession, data: UserCreateSchema
     ) -> UserResponseSchema:
         create_to_db = UserCreateToDBSchema(
-            **data.dict(by_alias=True, exclude={"password"}),
+            **data.model_dump(by_alias=True, exclude={"password"}),
             password_hash=self.passwords_manager.make_password(password=data.password),
         )
         user: User = await users_service.create(session=session, obj=create_to_db)
-        return UserResponseSchema.from_orm(obj=user)
+        return UserResponseSchema.from_model(obj=user)
 
     async def update_user(
         self, *, request: Request, session: AsyncSession, data: UserUpdateSchema
@@ -52,7 +52,7 @@ class UsersHandler:
                 "status": UsersStatuses.CONFIRMED.value,
             }
         user = await users_service.update(session=session, id=request.user.id, obj=UserToDBBaseSchema(**values))
-        return UserResponseSchema.from_orm(user)
+        return UserResponseSchema.from_model(obj=user)
 
     @staticmethod
     def generate_tokens(*, request: Request, id: StrOrUUID) -> LoginOutSchema:

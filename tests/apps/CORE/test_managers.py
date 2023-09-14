@@ -112,7 +112,7 @@ class TestTokensManager:
 
         assert isinstance(payload_schema, Schema)
         assert payload_schema.something == data[data_key]
-        payload = payload_schema.dict()
+        payload = payload_schema.model_dump()
         assert payload[data_key] == data[data_key]
         assert self.default_keys.issubset(payload.keys())
 

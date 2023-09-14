@@ -2,8 +2,8 @@ import typing
 
 from pydantic import Field, model_validator
 
+from apps.CORE.custom_types import Email, StrOrNone
 from apps.CORE.schemas.requests import BaseRequestSchema
-from apps.CORE.types import Email, StrOrNone
 
 
 class UserCreateSchema(BaseRequestSchema):

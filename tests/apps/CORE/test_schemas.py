@@ -3,12 +3,11 @@ import uuid
 import zoneinfo
 
 import orjson
-import pytest
 from faker import Faker
 
+from apps.CORE.custom_types import Timestamp
 from apps.CORE.helpers import get_timestamp
 from apps.CORE.schemas.responses import BaseResponseSchema
-from apps.CORE.types import Timestamp
 
 
 class TestBaseOutSchema:
@@ -18,7 +17,6 @@ class TestBaseOutSchema:
         field_timedelta: datetime.timedelta
         field_uuid: uuid.UUID
 
-    @pytest.mark.debug()
     def test_config(self, faker: Faker) -> None:
         date_time, date_time_2 = faker.date_time(), faker.date_time(tzinfo=zoneinfo.ZoneInfo(key="UTC"))
         time_delta = faker.time_delta(datetime.timedelta(seconds=faker.pyint()))

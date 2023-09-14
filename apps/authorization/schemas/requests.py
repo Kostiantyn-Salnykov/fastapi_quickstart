@@ -2,6 +2,7 @@ import uuid
 
 from pydantic import Field
 
+from apps.CORE.custom_types import StrOrNone
 from apps.CORE.schemas.requests import BaseRequestSchema
 
 
@@ -11,7 +12,7 @@ class GroupCreateRequest(BaseRequestSchema):
 
 
 class GroupUpdateRequest(GroupCreateRequest):
-    title: str | None = Field(default=None, max_length=255, example="Group title")
+    title: StrOrNone = Field(default=None, max_length=255, example="Group title")
 
 
 class CreateGroupRoleRequest(BaseRequestSchema):

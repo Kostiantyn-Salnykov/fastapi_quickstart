@@ -3,7 +3,6 @@ import re
 import typing
 import uuid
 
-import redis.asyncio as aioredis
 import uuid_extensions
 from sqlalchemy import TIMESTAMP, MetaData, create_engine
 from sqlalchemy.dialects.postgresql import UUID
@@ -17,8 +16,10 @@ from sqlalchemy.orm import (
     mapped_column,
     sessionmaker,
 )
+from sqlalchemy.orm.collections import InstrumentedList
 from sqlalchemy.sql import func
 
+import redis.asyncio as aioredis
 from settings import Settings
 
 __all__ = (
@@ -48,7 +49,11 @@ class BaseTableModelMixin:
         return cls.pattern.sub("_", cls.__name__).lower()
 
     def to_dict(self) -> dict[str, typing.Any]:
-        return self.__dict__
+        result = self.__dict__
+        for k, v in result.items():
+            if isinstance(v, InstrumentedList):
+                result[k] = [obj.to_dict() for obj in v]
+        return result
 
 
 @declarative_mixin

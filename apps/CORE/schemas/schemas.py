@@ -2,19 +2,18 @@ __all__ = (
     "TokenPayloadSchema",
     "TokenOptionsSchema",
 )
-from pydantic import Field
+from pydantic import AwareDatetime, Field
 
 from apps.CORE.schemas.responses import BaseResponseSchema
-from apps.CORE.types import Timestamp
 
 
 class TokenPayloadSchema(BaseResponseSchema):
     """Base JWT token payloads."""
 
-    iat: Timestamp
+    iat: AwareDatetime
     aud: str
-    exp: Timestamp
-    nbf: Timestamp
+    exp: AwareDatetime
+    nbf: AwareDatetime
     iss: str
 
 

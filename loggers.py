@@ -9,6 +9,7 @@ import typing
 
 import click
 
+from apps.CORE.custom_types import StrOrNone
 from apps.CORE.helpers import get_utc_timezone
 from settings import Settings
 
@@ -75,6 +76,11 @@ LOGGING_CONFIG: dict[str, typing.Any] = {
         "debug_handler": {
             "class": "logging.StreamHandler",
             "level": "DEBUG",
+            "formatter": "colorful_formatter",
+        },
+        "debug_link_handler": {
+            "class": "logging.StreamHandler",
+            "level": "DEBUG",
             "formatter": "debug_link_formatter",
         },
         "colorful_handler": {
@@ -88,6 +94,7 @@ LOGGING_CONFIG: dict[str, typing.Any] = {
         "asyncio": {"level": "WARNING", "handlers": ["default_handler"], "propagate": False},
         "gunicorn": {"level": "WARNING", "handlers": ["default_handler"], "propagate": False},
         "uvicorn": {"level": "WARNING", "handlers": ["default_handler"], "propagate": False},
+        "casbin": {"level": "WARNING", "handlers": ["debug_handler"], "propagate": False},
         "local": {"level": "DEBUG", "handlers": ["debug_handler"], "propagate": False},
     },
 }
@@ -156,8 +163,8 @@ class Styler:
     def set_style(
         self,
         level: int,
-        fg: tuple[int, int, int] | str | None = None,
-        bg: tuple[int, int, int] | str | None = None,
+        fg: tuple[int, int, int] | StrOrNone = None,
+        bg: tuple[int, int, int] | StrOrNone = None,
         bold: bool | None = None,
         dim: bool | None = None,
         underline: bool | None = None,
@@ -227,11 +234,13 @@ class ColorfulFormatter(logging.Formatter):
             fmt += f"\n{FILE_FORMAT}{{pathname}}{LINE_FORMAT}{{lineno}}"
         super().__init__(fmt=fmt, datefmt=datefmt, style=style, validate=validate)
 
-    def formatTime(self, record: logging.LogRecord, datefmt: str | None = DATE_TIME_FORMAT_ISO_8601) -> str:
+    def formatTime(  # noqa: N802
+        self, record: logging.LogRecord, datefmt: str | None = DATE_TIME_FORMAT_ISO_8601
+    ) -> str:
         """Custom format datetime to UTC datetime."""
         return _format_time(record=record, datefmt=datefmt or DATE_TIME_FORMAT_ISO_8601)
 
-    def formatMessage(self, record: logging.LogRecord) -> str:
+    def formatMessage(self, record: logging.LogRecord) -> str:  # noqa: N802
         """Custom format message to new format.
 
         Args:

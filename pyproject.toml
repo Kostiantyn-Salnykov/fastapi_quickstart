@@ -9,13 +9,13 @@ packages = [{include = "fastapi_quickstart"}]
 
 [tool.poetry.dependencies]
 python = "^3.11"
-fastapi = {extras = ["standard"], version = "^0.100.0"}
+fastapi = {extras = ["standard"], version = "^0.103.0"}
 asyncpg = "^0.28.0"
 SQLAlchemy = {extras = ["asyncion", "mypy"], version = "^2.0.17"}
-pydantic = {extras = ["dotenv", "email"], version = "^2.1.1"}
-alembic = "^1.10.2"
+pydantic = {extras = ["dotenv", "email"], version = "^2.3.0"}
+alembic = "^1.12.0"
 orjson = "^3.8.7"
-uvicorn = {extras = ["standard"], version = "^0.23.1"}
+uvicorn = {extras = ["standard"], version = "^0.23.2"}
 gunicorn = "^21.2.0"
 psycopg2-binary = "^2.9.3"
 phonenumbers = "^8.13.17"
@@ -23,18 +23,20 @@ httpx = "^0.24.1"
 bcrypt = "^4.0.1"
 PyJWT = "^2.8.0"
 typer = {extras = ["all"], version = "^0.9.0"}
-redis = {extras = ["hiredis"], version = "^4.4.1"}
+redis = {extras = ["hiredis"], version = "^5.0.0"}
 pendulum = "^2.1.2"
 uuid7 = "^0.1.0"
 setuptools = "^68.0.0"
 pydantic-settings = "^2.0.2"
+casbin = "^1.27.0"
+casbin-redis-adapter = "^1.1.0"
 
 
 [tool.poetry.group.lint.dependencies]
 black = "^23.1.0"
 isort = "^5.10.1"
 flake8 = "^5.0.4"
-xenon = "^0.9.0"
+xenon = "^0.9.1"
 mypy = "^1.1.1"
 ruff = "^0.0.276"
 
@@ -45,7 +47,7 @@ pytest-asyncio = "^0.21.0"
 pytest-mock = "^3.8.2"
 pytest-sugar = "^0.9.5"
 pytest-cov = "^4.0.0"
-pytest-randomly = "^3.12.0"
+pytest-randomly = "^3.15.0"
 pytest-clarity = "^1.0.1"
 Faker = "^18.3.0"
 pydantic-factories = "^1.17.2"
@@ -115,6 +117,7 @@ pytest_alembic_tests_folder = "tests/migrations"
 # === Coverage ===
 [tool.coverage.run]
 parallel = true
+sigterm = true
 branch = true
 source = ["apps",]
 omit = ["*/*.local/*", "*/*.idea*/*", "*/*.venv*/*", "*/*test*", "*__init__*", "*/*migrations*" , "*/*interfaces.py"]

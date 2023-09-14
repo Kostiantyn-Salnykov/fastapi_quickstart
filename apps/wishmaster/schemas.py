@@ -1,9 +1,9 @@
 from pydantic import Field, field_validator
 
+from apps.CORE.custom_types import StrOrNone, StrUUID
 from apps.CORE.schemas.mixins import CreatedUpdatedResponseMixin
 from apps.CORE.schemas.requests import BaseRequestSchema
 from apps.CORE.schemas.responses import BaseResponseSchema, JSENDPaginationResponse, PaginationResponse
-from apps.CORE.types import StrUUID
 from apps.wishmaster.enums import WishComplexities, WishPriorities, WishStatuses
 from apps.wishmaster.models import Tag
 
@@ -24,7 +24,7 @@ class WishCreateToDBSchema(BaseRequestSchema):
     complexity: WishComplexities = Field(default=WishComplexities.NORMAL)
     priority: WishPriorities = Field(default=WishPriorities.NORMAL)
     category_id: StrUUID | None = Field(default=None, alias="categoryId")
-    description: str | None = Field(default=None, max_length=255)
+    description: StrOrNone = Field(default=None, max_length=255)
 
 
 class WishCreateSchema(WishCreateToDBSchema):
@@ -32,10 +32,10 @@ class WishCreateSchema(WishCreateToDBSchema):
 
 
 class WishUpdateToDBSchema(WishCreateSchema):
-    title: str | None = Field(default=None, max_length=128)
+    title: StrOrNone = Field(default=None, max_length=128)
     wishlist_id: StrUUID | None = Field(default=None, alias="wishlistId")
     status: WishStatuses | None = Field(default=WishStatuses.CREATED)
-    description: str | None = Field(default=None, max_length=255)
+    description: StrOrNone = Field(default=None, max_length=255)
 
 
 class WishUpdateSchema(WishUpdateToDBSchema):
@@ -50,7 +50,7 @@ class WishResponseSchema(BaseResponseSchema, CreatedUpdatedResponseMixin):
     complexity: WishComplexities = Field(default=...)
     priority: WishPriorities = Field(default=...)
     category_id: StrUUID | None = Field(default=None, alias="categoryId")
-    description: str | None = Field(default=None, max_length=255)
+    description: StrOrNone = Field(default=None, max_length=255)
 
     category: CategoryResponseSchema | None = Field(default=None)
     tags: list[str] = Field(default_factory=list)
@@ -75,9 +75,9 @@ class WishListToDBCreateSchema(WishListCreateSchema):
 
 
 class WishListResponseSchema(BaseResponseSchema, CreatedUpdatedResponseMixin):
-    id: StrUUID
-    title: str = Field(max_length=128, example="My Wishlist")
-    owner_id: StrUUID = Field(alias="ownerId")
+    id: StrUUID | None = Field(default=None)
+    title: StrOrNone = Field(default=None, max_length=128, example="My Wishlist")
+    owner_id: StrUUID | None = Field(default=None, alias="ownerId")
 
 
 class WishListWithWishesOutSchema(WishListResponseSchema):
