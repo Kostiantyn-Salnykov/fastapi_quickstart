@@ -7,12 +7,12 @@ from sqlalchemy import delete, func, select, update
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.engine import ChunkedIteratorResult, CursorResult
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.sql.elements import BinaryExpression, UnaryExpression
 
 from apps.CORE.custom_types import ModelType, StrOrUUID
 from apps.CORE.deps.body.filtration import Filtration
 from apps.CORE.deps.body.pagination import Pagination
 from apps.CORE.deps.body.projection import Projection
+from apps.CORE.deps.body.searching import Searching
 from apps.CORE.deps.body.sorting import Sorting
 from apps.CORE.enums import JSENDStatus
 from apps.CORE.exceptions import BackendError
@@ -74,7 +74,7 @@ class _BaseCommonRepository:
         pagination: Pagination,
         filtration: Filtration,
         projection: Projection,
-        searching: list[UnaryExpression] = None,
+        searching: Searching,
         unique: bool = True,
     ) -> tuple[int, list[ModelType]]:
         select_statement = (
@@ -84,8 +84,8 @@ class _BaseCommonRepository:
             .limit(pagination.limit)
             .execution_options(populate_existing=True)
         )
-        count_statement = select(func.count(self.model.id)).select_from(self.model).where(*filtration)
-        select_statement = select_statement.where(*filtration)
+        count_statement = select(func.count(self.model.id)).select_from(self.model).where(*filtration).where(*searching)
+        select_statement = select_statement.where(*filtration).where(*searching)
 
         next_token = pagination.next_token
         if pagination.next_token:

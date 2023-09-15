@@ -7,6 +7,7 @@ from apps.CORE.custom_types import StrOrUUID
 from apps.CORE.deps.body.filtration import Filtration
 from apps.CORE.deps.body.pagination import Pagination
 from apps.CORE.deps.body.projection import Projection
+from apps.CORE.deps.body.searching import Searching
 from apps.CORE.deps.body.sorting import Sorting
 from apps.CORE.exceptions import BackendError
 from apps.CORE.helpers import to_db_encoder
@@ -37,10 +38,16 @@ class WishlistHandler:
         pagination: Pagination,
         filtration: Filtration,
         projection: Projection,
+        searching: Searching,
     ) -> tuple[int, list[WishList]]:
         filtration.query.extend([WishList.owner_id == request.user.id])
         return await wishlist_service.list(
-            session=session, sorting=sorting, pagination=pagination, filtration=filtration, projection=projection
+            session=session,
+            sorting=sorting,
+            pagination=pagination,
+            filtration=filtration,
+            projection=projection,
+            searching=searching,
         )
 
     async def delete(self, *, session: AsyncSession, request: Request, id: StrOrUUID, safe: bool = False) -> None:

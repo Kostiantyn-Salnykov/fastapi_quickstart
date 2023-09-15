@@ -10,6 +10,7 @@ from apps.CORE.deps import get_async_session
 from apps.CORE.deps.body.filtration import F, Filtration
 from apps.CORE.deps.body.pagination import Pagination
 from apps.CORE.deps.body.projection import Projection
+from apps.CORE.deps.body.searching import Searching
 from apps.CORE.deps.body.sorting import Sorting
 from apps.CORE.enums import FOps
 from apps.CORE.responses import Responses
@@ -83,6 +84,10 @@ async def list_wishlists(
             ),
         ),
     ],
+    searching: typing.Annotated[
+        Searching,
+        Depends(Searching(model=WishList, schema=WishListWithWishesOutSchema, available_columns=[WishList.title])),
+    ],
     session: AsyncSession = Depends(get_async_session),
 ) -> WishListsResponseSchema:
     total, wishlists = await wishlist_handler.list(
@@ -92,6 +97,7 @@ async def list_wishlists(
         pagination=pagination,
         filtration=filtration,
         projection=projection,
+        searching=searching,
     )
     return WishListsResponseSchema(
         data=pagination.paginate(objects=wishlists, total=total),

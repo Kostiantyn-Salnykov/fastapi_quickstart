@@ -13,7 +13,7 @@ class TestWish:
         expected_result = (
             f'{obj.__class__.__name__}(title="{obj.title}", description="{obj.description}", status="{obj.status}")'
         )
-        assert expected_result == result
+        assert result == expected_result
 
 
 class TestWishList:
@@ -23,8 +23,14 @@ class TestWishList:
     async def test__repr__(self) -> None:
         obj: WishList = WishListFactory.create()
         result = obj.__repr__()
+        expected_result = f'{obj.__class__.__name__}(id="{obj.id}")'
+        assert result == expected_result
+
+    async def test__str__(self) -> None:
+        obj: WishList = WishListFactory.create()
+        result = obj.__str__()
         expected_result = f'{obj.__class__.__name__}(title="{obj.title}")'
-        assert expected_result == result
+        assert result == expected_result
 
 
 class TestCategory:
@@ -35,7 +41,7 @@ class TestCategory:
         obj: Category = CategoryFactory.create()
         result = obj.__repr__()
         expected_result = f'{obj.__class__.__name__}(title="{obj.title}", owner_id="{obj.owner_id}")'
-        assert expected_result == result
+        assert result == expected_result
 
 
 class TestTag:
@@ -46,7 +52,7 @@ class TestTag:
         obj: Tag = TagFactory.create()
         result = obj.__repr__()
         expected_result = f'{obj.__class__.__name__}(title="{obj.title}")'
-        assert expected_result == result
+        assert result == expected_result
 
 
 class TestWishTag:
@@ -57,4 +63,4 @@ class TestWishTag:
         obj: WishTag = WishTagFactory.create()
         result = obj.__repr__()
         expected_result = f'{obj.__class__.__name__}(wish_id="{obj.wish_id}", tag_id="{obj.tag_id}")'
-        assert expected_result == result
+        assert result == expected_result

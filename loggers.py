@@ -1,4 +1,10 @@
 """Module for logger settings."""
+__all__ = (
+    "get_logger",
+    "setup_logging",
+    "TRACE",
+    "SUCCESS",
+)
 import copy
 import datetime
 import functools
@@ -22,6 +28,8 @@ DATE_TIME_FORMAT_ISO_8601 = "%Y-%m-%dT%H:%M:%S.%fZ"  # ISO 8601
 DATE_TIME_FORMAT_WITHOUT_MICROSECONDS = "%Y-%m-%dT%H:%M:%SZ"  # ISO 8601 without microseconds
 FILE_FORMAT = click.style(text='╰───📑File "', fg="bright_white", bold=True)
 LINE_FORMAT = click.style(text='", line ', fg="bright_white", bold=True)
+SUCCESS = 25
+TRACE = 5
 
 
 def _get_root_handler() -> list[str]:
@@ -70,22 +78,22 @@ LOGGING_CONFIG: dict[str, typing.Any] = {
     "handlers": {
         "default_handler": {
             "class": "logging.StreamHandler",
-            "level": "DEBUG",
+            "level": "TRACE",
             "formatter": "default_formatter",
         },
         "debug_handler": {
             "class": "logging.StreamHandler",
-            "level": "DEBUG",
+            "level": "TRACE",
             "formatter": "colorful_formatter",
         },
         "debug_link_handler": {
             "class": "logging.StreamHandler",
-            "level": "DEBUG",
+            "level": "TRACE",
             "formatter": "debug_link_formatter",
         },
         "colorful_handler": {
             "class": "logging.StreamHandler",
-            "level": "DEBUG",
+            "level": "TRACE",
             "formatter": "colorful_formatter",
         },
     },
@@ -102,6 +110,8 @@ LOGGING_CONFIG: dict[str, typing.Any] = {
 
 def setup_logging() -> None:
     """Setup logging from dict configuration object. Setup AWS boto3 logging."""
+    logging.addLevelName(SUCCESS, "SUCCESS")
+    logging.addLevelName(TRACE, "TRACE")
     logging.config.dictConfig(config=LOGGING_CONFIG)
 
 
@@ -131,7 +141,9 @@ class Styler:
     """Style for logs."""
 
     _default_kwargs: list[dict[str, int | str | float | tuple | list | bool]] = [
+        {"level": TRACE, "fg": "white"},
         {"level": logging.DEBUG, "fg": (121, 85, 72)},
+        {"level": SUCCESS, "fg": "bright_green"},
         {"level": logging.INFO, "fg": "bright_blue"},
         {"level": logging.WARNING, "fg": "bright_yellow"},
         {"level": logging.ERROR, "fg": "bright_red"},

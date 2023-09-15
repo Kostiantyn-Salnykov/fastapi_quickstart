@@ -49,12 +49,17 @@ class Sorting:
             ),
         ] = None,
     ) -> typing.Self:
-        _logger.debug(msg=f"Sorting | __call__ | {sorting=}.")
+        _logger.debug(msg=f"{self.__class__.__name__} | __call__ | {sorting=}.")
         if sorting is None:
-            _logger.debug(msg=f"Sorting | __call__ | Sorting is empty, using `{self._default_sorting}`.")
+            _logger.debug(
+                msg=f"{self.__class__.__name__} | __call__ | Sorting is empty, using `{self._default_sorting}`."
+            )
             sorting = self._default_sorting
         else:
-            _logger.debug(msg="Sorting | __call__ | Sorting is not empty. Checking that the latest one field is `-id`.")
+            _logger.debug(
+                msg=f"{self.__class__.__name__} | __call__ | Sorting is not empty. Checking that the latest one field "
+                f"is `-id`."
+            )
             sorting.extend(self._default_sorting) if sorting[-1] != self._default_sorting[-1] else ...
 
         raw_sorting = []
@@ -71,6 +76,6 @@ class Sorting:
 
         self._sorting = result
         self._raw_sorting = raw_sorting
-        _logger.debug(msg=f"Sorting | __call__ | {self.query=}, {self.raw_sorting=}.")
+        _logger.debug(msg=f"{self.__class__.__name__} | __call__ | {self.query=}, {self.raw_sorting=}.")
         request.state.sorting = self
         return self

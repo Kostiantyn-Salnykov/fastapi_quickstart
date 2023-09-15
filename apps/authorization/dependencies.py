@@ -67,7 +67,7 @@ class IsAuthenticated:
         Returns:
             request(Request): Proxies FastAPI Request.
         """
-        logger.debug(msg=f"Depends({self.__class__.__name__}())")
+        logger.debug(msg=f"{self.__class__.__name__} | __call__ called.")
         if not request.user or not request.user.is_authenticated:
             raise BackendError(message="Not authenticated.", code=status.HTTP_401_UNAUTHORIZED)
         return request
@@ -152,7 +152,7 @@ class IsAuthorized:
         return who, obj, action
 
     async def __call__(self, request: Request = IsAuthenticated()) -> Request:
-        logger.debug(msg=f"Depends({self.__class__.__name__}())")
+        logger.debug(msg=f"{self.__class__.__name__} | __call__ called.")
 
         who, obj, action = self.parse_request(request=request)
         logger.warning(msg=f"{who=}, {obj=}, {action=}")

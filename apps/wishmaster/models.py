@@ -22,7 +22,7 @@ class WishList(Base, UUIDMixin, CreatedUpdatedMixin):
     )
     owner: Mapped["User"] = relationship(User, cascade="all, delete", backref="wishlists")
 
-    def __repr__(self) -> str:
+    def __str__(self) -> str:
         return f'{self.__class__.__name__}(title="{self.title}")'
 
 

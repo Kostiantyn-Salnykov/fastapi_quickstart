@@ -7,7 +7,7 @@ lint:
 	poetry run xenon .
 
 lint_plus:
-	poetry run ruff check .
+	poetry run ruff check . --fix
 
 isort:
 	poetry run isort . $(args)
