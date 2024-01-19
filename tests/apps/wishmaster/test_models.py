@@ -1,4 +1,4 @@
-from apps.wishmaster.models import Category, Tag, Wish, WishList, WishTag
+from apps.wishmaster.tables import Category, Tag, Wish, WishList, WishTag
 from tests.apps.wishmaster.factories import CategoryFactory, TagFactory, WishFactory, WishListFactory, WishTagFactory
 from tests.bases import BaseModelFactory
 
@@ -23,7 +23,7 @@ class TestWishList:
     async def test__repr__(self) -> None:
         obj: WishList = WishListFactory.create()
         result = obj.__repr__()
-        expected_result = f'{obj.__class__.__name__}(id="{obj.id}")'
+        expected_result = f'{obj.__class__.__name__}(title="{obj.title}", owner_id={obj.owner_id!r})'
         assert result == expected_result
 
     async def test__str__(self) -> None:
@@ -40,7 +40,7 @@ class TestCategory:
     async def test__repr__(self) -> None:
         obj: Category = CategoryFactory.create()
         result = obj.__repr__()
-        expected_result = f'{obj.__class__.__name__}(title="{obj.title}", owner_id="{obj.owner_id}")'
+        expected_result = f'{obj.__class__.__name__}(title="{obj.title}", owner_id={obj.owner_id!r})'
         assert result == expected_result
 
 

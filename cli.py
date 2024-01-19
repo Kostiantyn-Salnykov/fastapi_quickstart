@@ -1,4 +1,6 @@
 import asyncio
+import typing
+from collections.abc import Callable
 from functools import wraps
 
 import typer
@@ -12,24 +14,32 @@ logger = get_logger(name=__name__)
 auth_manager = AuthorizationManager(engine=engine)
 
 
-def make_async(func):  # type: ignore
+Function = typing.TypeVar("Function", bound=Callable[..., typing.Any])
+
+
+def make_async(func: Function) -> Function:  # type: ignore
     """Decorator to user Typer commands with asyncio."""
 
     @wraps(func)
-    def wrapper(*args, **kwargs):  # type: ignore
+    def wrapper(*args, **kwargs):  # type: ignore  # noqa: ANN202
         """Run function with asyncio."""
         return asyncio.run(func(*args, **kwargs))
 
     return wrapper
 
 
-app = typer.Typer(name="FastAPI Quickstart CLI", help="Command Line Interface for FastAPI application.")
+app = typer.Typer(
+    name="FastAPI Quickstart CLI",
+    help="Command Line Interface for FastAPI application.",
+)
 authorization_commands = typer.Typer(name="auth", help="Commands for 'Authorization' app.")
 permissions_commands = typer.Typer(name="permissions", help="Manage Permissions objects in db.")
 superusers_commands = typer.Typer(name="superusers", help="Manage superusers.")
 app.add_typer(typer_instance=authorization_commands)
 authorization_commands.add_typer(typer_instance=permissions_commands)
 authorization_commands.add_typer(typer_instance=superusers_commands)
+
+
 # app
 # --> auth
 # --|--> permissions
@@ -46,7 +56,10 @@ async def setup_permissions() -> None:
         await auth_manager.create_object_permissions(session=session)
 
 
-@superusers_commands.command(name="setup", help="Creates superusers Permissions, 'Superusers' Group, 'Superuser' Role.")
+@superusers_commands.command(
+    name="setup",
+    help="Creates superusers Permissions, 'Superusers' Group, 'Superuser' Role.",
+)
 @make_async
 async def setup_superusers() -> None:
     async with async_session_factory() as session:
@@ -54,15 +67,26 @@ async def setup_superusers() -> None:
 
 
 @superusers_commands.command(
-    name="create", help="Creates User and assign 'Superusers' Group, 'Superuser' Role and superusers Permissions."
+    name="create",
+    help="Creates User and assign 'Superusers' Group, 'Superuser' Role and superusers Permissions.",
 )
 @make_async
 async def create_superuser(
     first_name: str = typer.Option(
-        "Kostiantyn", "--first_name", "-f", prompt="Enter First name", show_default=True, help="First name of user."
+        "Kostiantyn",
+        "--first_name",
+        "-f",
+        prompt="Enter First name",
+        show_default=True,
+        help="First name of user.",
     ),
     last_name: str = typer.Option(
-        "Salnykov", "--last_name", "-l", prompt="Enter Last name", show_default=True, help="Last name of user."
+        "Salnykov",
+        "--last_name",
+        "-l",
+        prompt="Enter Last name",
+        show_default=True,
+        help="Last name of user.",
     ),
     email: str = typer.Option(
         "kostiantyn.salnykov@gmail.com",

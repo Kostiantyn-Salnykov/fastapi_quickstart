@@ -11,7 +11,7 @@ from apps.users.services import users_service
 class JWTTokenBackend(AuthenticationBackend):
     """Authorization Back-end that parse and retrieve user from authorization headers token."""
 
-    def __init__(self, scheme_prefix: str = "Bearer"):
+    def __init__(self, scheme_prefix: str = "Bearer") -> None:
         self.scheme_prefix_lower = scheme_prefix.lower()
 
     def get_token_from_header(self, *, authorization: str) -> str:
@@ -32,13 +32,15 @@ class JWTTokenBackend(AuthenticationBackend):
             scheme, jwt_token = authorization.split()
         except Exception as error:
             raise BackendError(
-                message="Could not parse Authorization scheme and token.", code=status.HTTP_401_UNAUTHORIZED
+                message="Could not parse Authorization scheme and token.",
+                code=status.HTTP_401_UNAUTHORIZED,
             ) from error
         else:
             # check schema
             if scheme.lower() != self.scheme_prefix_lower:
                 raise BackendError(
-                    message=f"Authorization scheme {scheme} is not suppoerted.", code=status.HTTP_401_UNAUTHORIZED
+                    message=f"Authorization scheme {scheme} is not suppoerted.",
+                    code=status.HTTP_401_UNAUTHORIZED,
                 )
             return jwt_token
 
@@ -70,10 +72,11 @@ class JWTTokenBackend(AuthenticationBackend):
 
         try:
             payload_schema: UserTokenPayloadSchema = conn.app.state.tokens_manager.read_code(
-                code=token, convert_to=UserTokenPayloadSchema
+                code=token,
+                convert_to=UserTokenPayloadSchema,
             )
             async with async_session_factory() as session:
-                user = await users_service.get_with_authorization(session=session, id=payload_schema.id)
+                user = await users_service.get_with_grp(session=session, id=payload_schema.id)
 
             if user is None:
                 return AuthCredentials(), None

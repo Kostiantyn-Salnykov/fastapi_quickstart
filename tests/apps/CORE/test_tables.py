@@ -1,4 +1,4 @@
-from apps.CORE.models import (
+from apps.CORE.tables import (
     Group,
     GroupRole,
     GroupUser,

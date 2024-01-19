@@ -1,21 +1,18 @@
 # === Linter's commands ===
-black:
-	poetry run black . $(args)
+ruff:
+	poetry run ruff format
 
 lint:
-	poetry run flake8 $(args)
 	poetry run xenon .
-
-lint_plus:
 	poetry run ruff check . --fix
 
-isort:
-	poetry run isort . $(args)
+lint_docs:
+	poetry run interrogate -v
 
 mypy:
 	poetry run mypy . $(args)
 
-fmt: black isort lint
+fmt: ruff lint
 
 # === Test's commands ===
 test:
@@ -37,6 +34,6 @@ migrate:
 	poetry run alembic upgrade head
 
 run:
-	poetry run gunicorn apps.main:app -c gunicorn.conf.py
+	poetry run gunicorn apps.__main__:app -c gunicorn.conf.py
 
 update: migrate run

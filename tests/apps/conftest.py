@@ -6,14 +6,19 @@ from httpx import Response
 
 from apps.CORE.enums import JSENDStatus
 from apps.CORE.managers import TokensManager
-from apps.CORE.models import User
+from apps.CORE.tables import User
 from apps.users.enums import UsersStatuses
 from settings import Settings
 from tests.apps.CORE.factories import UserFactory
 
 
 def assert_jsend_response(
-    response: Response, http_code: status, status: JSENDStatus, message: str, code: int, data: typing.Any = ...
+    response: Response,
+    http_code: status,
+    status: JSENDStatus,
+    message: str,
+    code: int,
+    data: typing.Any = ...,
 ) -> None:
     response_json = response.json()
     assert response.status_code == http_code
@@ -29,12 +34,17 @@ def assert_is_uuid(val: str) -> None:
         uuid.UUID(val)
         assert True, "Valid UUID"
     except ValueError as error:
-        raise AssertionError("Not uuid") from error
+        msg = "Not uuid"
+        raise AssertionError(msg) from error
 
 
 class UsersHelper:
     def __init__(
-        self, user: User = None, token: str = None, user_kwargs: dict = None, token_kwargs: dict = None
+        self,
+        user: User = None,
+        token: str | None = None,
+        user_kwargs: dict | None = None,
+        token_kwargs: dict | None = None,
     ) -> None:
         self._user = user
         self._token = token
@@ -44,17 +54,15 @@ class UsersHelper:
 
     @property
     def token(self) -> str:
-        if self._token:
-            return self._token
-        else:
+        if not self._token:
             return self._generate_token()
+        return self._token
 
     @property
     def user(self) -> User:
-        if self._user:
-            return self._user
-        else:
+        if not self._user:
             return self._generate_user()
+        return self._user
 
     def _generate_token(self) -> str:
         self._token = self._tokens_manager.create_code(data={"id": str(self.user.id), "token_id": "1"})

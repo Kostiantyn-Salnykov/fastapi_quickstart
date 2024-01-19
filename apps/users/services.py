@@ -7,8 +7,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import contains_eager
 
 from apps.CORE.helpers import to_db_encoder
-from apps.CORE.models import Group, Permission, Role, User
 from apps.CORE.repositories import BaseCoreRepository
+from apps.CORE.tables import Group, Permission, Role, User
 from apps.users.enums import UsersStatuses
 from apps.users.schemas.requests import UserCreateSchema
 
@@ -21,9 +21,9 @@ class UsersService(BaseCoreRepository):
         async with session.begin_nested():
             statement = insert(self.model).values(**to_db_encoder(obj=obj))
             result: CursorResult = await session.execute(statement=statement)
-            return await self.get_with_authorization(session=session, id=result.inserted_primary_key[0])
+            return await self.get_with_grp(session=session, id=result.inserted_primary_key[0])
 
-    async def get_with_authorization(self, *, session: AsyncSession, id: uuid.UUID) -> User | None:
+    async def get_with_grp(self, *, session: AsyncSession, id: uuid.UUID) -> User | None:
         statement = (
             select(self.model)
             .where(self.model.id == id)

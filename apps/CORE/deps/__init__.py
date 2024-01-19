@@ -65,4 +65,4 @@ async def get_redis() -> typing.AsyncGenerator[aioredis.Redis, None]:
         except aioredis.RedisError as error:
             logger.warning(msg=error)
         finally:
-            await conn.close()
+            await conn.aclose()

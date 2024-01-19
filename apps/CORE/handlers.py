@@ -32,16 +32,15 @@ def validation_exception_handler(request: Request, exc: RequestValidationError) 
         result (ORJSONResponse): Transformed JSON response from Back-end exception.
     """
     details = exc.errors()
-    modified_details = []
-    for error in details:
-        modified_details.append(
-            {
-                "location": error["loc"],
-                "message": error["msg"].capitalize() + ".",
-                "type": error["type"],
-                "context": error.get("ctx", None),
-            }
-        )
+    modified_details = [
+        {
+            "location": error["loc"],
+            "message": error["msg"].capitalize() + ".",
+            "type": error["type"],
+            "context": error.get("ctx", None),
+        }
+        for error in details
+    ]
     return ORJSONResponse(
         content={
             "status": JSENDStatus.FAIL,
@@ -68,12 +67,11 @@ def integrity_error_handler(error: IntegrityError) -> None:
             message=str(error.orig.args[0].split("\n")[-1]) if Settings.DEBUG else "Conflict error.",
             status=status.HTTP_409_CONFLICT,
         )
-    else:
-        raise BackendError(
-            message=str(error) if Settings.DEBUG else "Internal server error.",
-            code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            status=JSENDStatus.ERROR,
-        )
+    raise BackendError(
+        message=str(error) if Settings.DEBUG else "Internal server error.",
+        code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        status=JSENDStatus.ERROR,
+    )
 
 
 def no_result_found_error_handler(error: NoResultFound) -> None:

@@ -1,15 +1,13 @@
 import casbin
-from casbin_redis_adapter.adapter import Adapter
 from fastapi import Depends, Request, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from fastapi.security.utils import get_authorization_scheme_param
 
 from apps.authorization.enums import PermissionActions
 from apps.authorization.exceptions import PermissionError
-from apps.CORE.custom_types import ModelType
+from apps.CORE.custom_types import ModelInstance
 from apps.CORE.exceptions import BackendError
 from loggers import get_logger
-from settings import Settings
 
 logger = get_logger(name=__name__)
 
@@ -35,17 +33,17 @@ class NewHTTPBearer(HTTPBearer):
         if not (authorization and scheme and credentials):
             if self.auto_error:
                 raise BackendError(
-                    message="Could not parse Authorization scheme and token.", code=status.HTTP_401_UNAUTHORIZED
+                    message="Could not parse Authorization scheme and token.",
+                    code=status.HTTP_401_UNAUTHORIZED,
                 )
-            else:
-                return None
+            return None
         if scheme.lower() != "bearer":
             if self.auto_error:
                 raise BackendError(
-                    message=f"Authorization scheme {scheme} is not suppoerted.", code=status.HTTP_401_UNAUTHORIZED
+                    message=f"Authorization scheme {scheme} is not suppoerted.",
+                    code=status.HTTP_401_UNAUTHORIZED,
                 )
-            else:
-                return None
+            return None
         return HTTPAuthorizationCredentials(scheme=scheme, credentials=credentials)
 
 
@@ -74,22 +72,23 @@ class IsAuthenticated:
 
 
 class HasPermissions:
-    def __init__(self, permissions: list[tuple[ModelType, PermissionActions]]):
+    def __init__(self, permissions: list[tuple[ModelInstance, PermissionActions]]) -> None:
         """Initializer for required Permissions and Actions that must be in user's Permissions set."""
         self._permissions: set[tuple[str, str]] = self.construct_permissions_set(permissions=permissions)
 
     async def __call__(self, request: Request = IsAuthenticated()) -> Request:
         if not request.state.authorization_manager:
-            raise NotImplementedError(
-                "You should set up and AuthorizationManager to use this dependency,"
-                "app.state.authorization_manager = AuthorizationManager(engine=<SQLAlchemy Engine>)"
+            msg = (
+                "You should set up and AuthorizationManager to use this dependency,app.state.authorization_manager "
+                "= AuthorizationManager(engine=<SQLAlchemy Engine>)"
             )
+            raise NotImplementedError(msg)
         user_permissions_set = request.state.authorization_manager.get_permissions_set_from_user(user=request.user)
         # if no permissions set in user's permissions set
         if not self._permissions.issubset(user_permissions_set):
             # check by superuser actions.
             transformed_superuser_actions = self.actions_check_on_superuser(
-                actions=self.get_all_actions_from_permissions(permissions=self._permissions)
+                actions=self.get_all_actions_from_permissions(permissions=self._permissions),
             )
             if not transformed_superuser_actions <= user_permissions_set:
                 # user has not such PermissionAction in his superuser permissions.
@@ -98,7 +97,10 @@ class HasPermissions:
         return request
 
     @classmethod
-    def construct_permissions_set(cls, permissions: list[tuple[ModelType, PermissionActions]]) -> set[tuple[str, str]]:
+    def construct_permissions_set(
+        cls,
+        permissions: list[tuple[ModelInstance, PermissionActions]],
+    ) -> set[tuple[str, str]]:
         result = set()
         for model, action in permissions:
             result.add((model.__tablename__, action.value))
@@ -151,102 +153,97 @@ class IsAuthorized:
 
         return who, obj, action
 
-    async def __call__(self, request: Request = IsAuthenticated()) -> Request:
+    async def __call__(self, request: Request = IsAuthenticated()) -> Request:  # noqa: PLR0915
         logger.debug(msg=f"{self.__class__.__name__} | __call__ called.")
 
         who, obj, action = self.parse_request(request=request)
         logger.warning(msg=f"{who=}, {obj=}, {action=}")
 
-        adapter = Adapter(
-            host=Settings.REDIS_HOST,
-            port=Settings.REDIS_PORT,
-            db=Settings.REDIS_DB,
-            username=Settings.REDIS_USER,
-            password=Settings.REDIS_PASSWORD,
-            key="AUTHORIZATION",
-        )
+        import casbin_async_sqlalchemy_adapter
 
-        model = casbin.Model()
-        model.add_def("r", "r", "who, object, action")  # Request `r` structure
-        model.add_def("r", "r2", "who, object, action, expr")  # Request `r2` structure
-        model.add_def("p", "p", "who, object, action")  # Policy `p` structure
-        model.add_def("p", "p2", "who, object, action, expr")  # Policy `p2` structure
-        model.add_def("g", "g", "_, _")  # Role to Role / Action mapping
-        model.add_def("g", "g2", "_, _")  # Subscription Resource to group mapping
-        # model.add_def("e", "e", "some(where (p.eft == allow))")  # Simplified version
-        model.add_def("e", "e", "some(where (p.eft == allow)) && !some(where (p.eft == deny))")
-        model.add_def("e", "e2", "some(where (p2.eft == allow)) && !some(where (p2.eft == deny))")
-        func_name = "keyMatch5"  # - function to handle `{}` and `*` in `object.`
-        # `||` -> OR, `&&` -> AND
-        # `g` - function to handle roles / groups logic on `who`
-        or_superusers_check = '|| "Superuser" in r2.expr.roles || "Superusers" in r2.expr.groups'
-        model.add_def(
-            "m", "m", f"g(r.who, p.who) && {func_name}(r.object, p.object) && r.action == p.action"
-        )  # Matcher `m` structure
-        model.add_def(
-            "m",
-            "m2",
-            f"(eval(p2.expr) && g(r2.who, p2.who) && {func_name}(r2.object, p2.object) && r2.action == p2.action) "
-            f"{or_superusers_check}",
-        )  # Matcher `m2` structure
+        from apps.CORE.db import async_engine
 
-        # cur_dir = pathlib.Path(__file__).resolve().parent
+        adapter = casbin_async_sqlalchemy_adapter.Adapter(engine=async_engine, warning=False)
+
+        import pathlib
+
+        cur_dir = pathlib.Path(__file__).resolve().parent
         # adapter = casbin.FileAdapter(file_path=f'{cur_dir / "policy.csv"}')
-        # model_path = f'{cur_dir / "model.conf"}'
-        # enforcer = casbin.Enforcer(model=model_path, adapter=adapter)
-        enforcer = casbin.Enforcer(model=model, adapter=adapter)
+        model_path = f'{cur_dir / "model.conf"}'
+        enforcer = casbin.AsyncEnforcer(model=model_path, adapter=adapter)
 
-        owner_id = "064f9fdf-1ab1-7bed-8000-69b5810d275f"
-        superuser = "<USER_ID>"
+        user_id = "<USER>"
+        admin_id = "<ADMIN>"
+        superuser_id = "<SUPERUSER>"
         data_1 = "/data/{id}/*"
         super_data = "/superusers/{id}/*"
+        users_group = "Users"
+        admins_group = "Admins"
+        superusers_group = "Superusers"
 
-        enforcer.add_named_policy("p", owner_id, "abac_data", "read")
-        enforcer.add_named_policy("p", owner_id, data_1, "read")
-        enforcer.add_named_policy("p2", owner_id, data_1, "read", f"r2.expr.owner_id == '{owner_id}'")
+        await enforcer.add_named_policy("p", user_id, "abac_data", "read")
+        await enforcer.add_named_policy("p", user_id, data_1, "read")
+        await enforcer.add_named_policy("p2", user_id, data_1, "read", f'r2.expr.owner_id == "{user_id}"')
+        await enforcer.add_named_policy("p", admins_group, data_1, "*")  # `Admins` can write /data/{id}/<ANY>
+        await enforcer.add_named_policy(
+            "p",
+            superusers_group,
+            super_data,
+            "*",
+        )  # `Superusers` can do anything /superusers/{id}/<ANY>
 
-        enforcer.add_named_grouping_policy("g", owner_id, "Admins")  # User assigned to `Admins` role
-        enforcer.add_named_grouping_policy("g", "Superusers", "Admins")  # `Superusers` role contains `Admins` in it.
+        await enforcer.add_named_grouping_policy("g", user_id, users_group)  # User assigned to `Users` role
+        await enforcer.add_named_grouping_policy("g", admin_id, admins_group)  # Admin assigned to `Admins` role
+        await enforcer.add_named_grouping_policy(
+            "g",
+            superuser_id,
+            superusers_group,
+        )  # Superuser assigned to `Superusers` role.
 
-        enforcer.add_named_policy("p", "Admins", data_1, "write")  # `Admins` can write /data/{id}/<ANY>
-        enforcer.add_named_policy(
-            "p", "Superusers", super_data, "write"
-        )  # `Superusers` can write /superusers/{id}/<ANY>
-
-        # Superuser check
-        enforcer.add_named_grouping_policy("g", superuser, "Superusers")
+        await enforcer.add_named_grouping_policy("g", admins_group, users_group)  # `Admins` > `Users`.
+        await enforcer.add_named_grouping_policy("g", superusers_group, admins_group)  # `Superusers` > `Admins`.
 
         # Get implicit roles for users (need to load hierarchy)
-        # logger.info(enforcer.get_implicit_roles_for_user(name=owner_id))
-        # logger.info(enforcer.get_implicit_roles_for_user(name=superuser))
-        # logger.info(enforcer.get_implicit_permissions_for_user(user=owner_id))
-        # logger.info(enforcer.get_implicit_permissions_for_user(user=superuser))
+        logger.info(await enforcer.get_roles_for_user(name=user_id))
+        logger.info(await enforcer.get_roles_for_user(name=admin_id))
+        logger.info(await enforcer.get_roles_for_user(name=superuser_id))
+        logger.info(await enforcer.get_implicit_roles_for_user(name=user_id))
+        logger.info(await enforcer.get_implicit_roles_for_user(name=admin_id))
+        logger.info(await enforcer.get_implicit_roles_for_user(name=superuser_id))
+        logger.info(await enforcer.get_permissions_for_user(user=user_id))
+        logger.info(await enforcer.get_permissions_for_user(user=admin_id))
+        logger.info(await enforcer.get_permissions_for_user(user=superuser_id))
+        logger.info(await enforcer.get_implicit_permissions_for_user(user=user_id))
+        logger.info(await enforcer.get_implicit_permissions_for_user(user=admin_id))
+        logger.info(await enforcer.get_implicit_permissions_for_user(user=superuser_id))
 
         # enforcer.save_policy()  # Needs for FileAdapter
 
         requests = [
-            [owner_id, "abac_data", "read"],  # By object
-            [owner_id, "/data/1/", "read", {"groups": ["Superusers"], "roles": [], "owner_id": None}],  # By groups
-            [owner_id, "/data/1/", "read", {"groups": [], "roles": ["Superuser"], "owner_id": None}],  # By roles
-            [owner_id, "/data/1/", "read", {"groups": [], "roles": [], "owner_id": owner_id}],  # By owner_id
-            [owner_id, "/data/1/", "read"],  # By simple
-            [owner_id, "/data/1/", "write"],  # By role hierarchy
-            [superuser, "/superusers/1/", "write"],  # By role hierarchy (Should be accessed!!!)
-            [superuser, "/data/1/", "write"],  # By role hierarchy (Should be accessed!!!)
-            [owner_id, "/superusers/1/", "write"],  # By role hierarchy (Should be declined!!!)
+            [user_id, "abac_data", "read"],  # By object
+            [user_id, "/data/1/", "read", {"groups": [superusers_group], "roles": [], "owner_id": None}],  # By groups
+            [user_id, "/data/1/", "read", {"groups": [], "roles": ["Superuser"], "owner_id": None}],  # By roles
+            [user_id, "/data/1/", "read", {"groups": [], "roles": [], "owner_id": user_id}],  # By owner_id
+            [user_id, "/data/1/", "read"],  # By simple
+            [admin_id, "/data/1/", "write"],  # By admin policy
+            [superuser_id, "/data/1/", "write"],  # By role hierarchy (Should be accessed!!!)
+            [user_id, "/superusers/1/", "write"],  # By role hierarchy (Should be declined!!!)
+            [admin_id, "/superusers/1/", "write"],  # By role hierarchy (Should be declined!!!)
+            [superuser_id, "/superusers/1/", "write"],  # By role hierarchy (Should be accessed!!!)
         ]
+        policy_params = 4
 
         for req in requests:
-            if len(req) == 4:
+            if len(req) == policy_params:
                 ctx = enforcer.new_enforce_context(suffix="2")
                 if enforcer.enforce(ctx, *req):
-                    logger.info(msg=f"{req}, ENFORCED r2!")
+                    logger.success(msg=f"{req} => ENFORCED r2!")
                 else:
-                    logger.warning(msg=f"{req}, NOT ENFORCE r2!")
-            else:
+                    logger.warning(msg=f"{req} => NOT ENFORCE r2!")
+            else:  # noqa: PLR5501
                 if enforcer.enforce(*req):
-                    logger.info(msg=f"{req}, ENFORCED r!")
+                    logger.success(msg=f"{req} => ENFORCED r!")
                 else:
-                    logger.warning(msg=f"{req}, NOT ENFORCE r!")
+                    logger.warning(msg=f"{req} => NOT ENFORCE r!")
 
         return request

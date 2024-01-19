@@ -13,6 +13,7 @@ from sqlalchemy import text
 from starlette.middleware.authentication import AuthenticationMiddleware
 from uvicorn.middleware.proxy_headers import ProxyHeadersMiddleware
 
+import loggers
 import redis.asyncio as redis
 import redis.exceptions
 from apps.authorization.managers import AuthorizationManager
@@ -35,65 +36,65 @@ logger = get_logger(name=__name__)
 
 def enable_logging() -> None:
     setup_logging()
-    logger.debug(msg="Logging configuration completed.")
+    logger.success(msg="Logging configuration completed.")
 
 
 async def _check_sync_engine() -> None:
-    logger.debug(msg="Checking connection with sync engine 'SQLAlchemy + psycopg2'...")
+    logger.debug("Checking connection with sync engine 'SQLAlchemy + psycopg2'...")
     with session_factory() as session:
         result = session.execute(statement=text("SELECT current_timestamp;")).scalar()
-    logger.debug(msg=f"Result of sync 'SELECT current_timestamp;' is: {result.isoformat() if result else result}")
+    logger.success(msg=f"Result of sync 'SELECT current_timestamp;' is: {result.isoformat() if result else result}")
 
 
 async def _check_async_engine() -> None:
-    logger.debug(msg="Checking connection with async engine 'SQLAlchemy + asyncpg'...")
+    logger.debug("Checking connection with async engine 'SQLAlchemy + asyncpg'...")
     async with async_session_factory() as async_session:
         result = await async_session.execute(statement=text("SELECT current_timestamp;"))
         result = result.scalar()
-    logger.debug(msg=f"Result of async 'SELECT current_timestamp;' is: {result.isoformat() if result else result}")
+    logger.success(f"Result of async 'SELECT current_timestamp;' is: {result.isoformat() if result else result}")
 
 
 async def _setup_redis(app: FastAPI) -> None:
-    logger.debug(msg="Setting up global Redis `app.redis`...")
+    logger.debug("Setting up global Redis `app.redis`...")
     # proxy Redis client to request.app.state.redis
     app.redis = redis_engine
-    logger.debug(msg="Checking connection with Redis...")
+    logger.debug("Checking connection with Redis...")
     try:
         async with app.redis.client() as conn:
             result = await conn.ping()
             if result is not True:
                 msg = "Connection to Redis failed."
-                logger.error(msg=msg)
+                logger.error(msg)
                 raise RuntimeError(msg)
-            logger.debug(msg=f"Result of Redis 'PING' command: {result}")
+            logger.success(f"Result of Redis 'PING' command: {result}")
     except redis.exceptions.ConnectionError as e:
-        logger.error(msg=e)
+        logger.error(e)
 
 
 async def _dispose_all_connections() -> None:
-    logger.debug(msg="Closing PostgreSQL connections...")
+    logger.debug("Closing PostgreSQL connections...")
     await async_engine.dispose()  # Close sessions to async engine
     engine.dispose()  # Close sessions to sync engine
-    logger.debug(msg="All PostgreSQL connections closed.")
+    logger.success("All PostgreSQL connections closed.")
 
 
 async def _close_redis(app: FastAPI) -> None:
-    logger.debug(msg="Closing Redis connection...")
+    logger.debug("Closing Redis connection...")
     await app.redis.close(close_connection_pool=True)
-    logger.debug(msg="Redis connection closed.")
+    logger.success("Redis connection closed.")
 
 
 @contextlib.asynccontextmanager
 async def lifespan(app: FastAPI) -> typing.AsyncGenerator[None, None]:
-    setup_logging()
-    logger.info(msg="Lifespan started.")
+    enable_logging()
+    logger.info("Lifespan started.")
     await _setup_redis(app=app)
     await _check_sync_engine()
     await _check_async_engine()
     yield
     await _close_redis(app=app)
     await _dispose_all_connections()
-    logger.info(msg="Lifespan ended.")
+    logger.info("Lifespan ended.")
 
 
 app = FastAPI(
@@ -197,12 +198,13 @@ if __name__ == "__main__":  # pragma: no cover
     import uvicorn
 
     uvicorn.run(
-        app="apps.main:app",
+        app="apps.__main__:app",
         host=Settings.HOST,
         port=Settings.PORT,
         loop="uvloop",
         reload=True,
         reload_delay=5,
         log_level=Settings.LOG_LEVEL,
+        log_config=loggers.LOGGING_CONFIG,
         use_colors=Settings.LOG_USE_COLORS,
     )

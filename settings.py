@@ -1,16 +1,27 @@
+import enum
 import functools
 import logging
+import os
 import pathlib
 import typing
+from typing import TYPE_CHECKING, Any
 
-from pydantic import Extra, Field, PostgresDsn, model_validator
-from pydantic_settings import BaseSettings, SettingsConfigDict
+import boto3
+from botocore.exceptions import ClientError
+from dotenv import load_dotenv
+from pydantic import Field, PostgresDsn, model_validator
+from pydantic.fields import FieldInfo
+from pydantic_settings import BaseSettings, PydanticBaseSettingsSource, SettingsConfigDict
 from sqlalchemy.engine.url import URL
 
 PROJECT_BASE_DIR = pathlib.Path(__file__).resolve().parent
+load_dotenv(dotenv_path=PROJECT_BASE_DIR / ".env")
+
+if TYPE_CHECKING:
+    from boto3_type_annotations.ssm.paginator import GetParametersByPath
 
 
-def _build_db_dsn(username: str, password: str, host: str, port: int, database: str, async_dsn: bool = False) -> URL:
+def _build_db_dsn(*, username: str, password: str, host: str, port: int, database: str, async_dsn: bool = False) -> URL:
     """Factory for PostgreSQL DSN."""
     driver_name = "postgresql"
     if async_dsn:
@@ -25,7 +36,31 @@ def _build_db_dsn(username: str, password: str, host: str, port: int, database: 
     )
 
 
+class Environment(enum.Enum):
+    """Enum for environments types.
+
+    Notes:
+        It uses as prefixes for BaseSettings builder, e.g.:
+
+        - **DEV** = "dev" - `dev` prefix
+        - **TEST** = "test" - `test` prefix
+        - **PROD** = "prod" - `prod` prefix
+    """
+
+    DEV = "dev"
+    TEST = "test"
+    PROD = "prod"
+
+
 class MainSettings(BaseSettings):
+    model_config = SettingsConfigDict(
+        extra="allow",
+        env_file=".env",
+        env_file_encoding="UTF-8",
+        env_nested_delimiter="__",
+        env_prefix="",
+    )
+
     # Back-end settings
     DEBUG: bool = Field(default=False)
     SHOW_SETTINGS: bool = Field(default=False)
@@ -67,12 +102,19 @@ class MainSettings(BaseSettings):
     REDIS_DECODE_RESPONSES: bool = Field(default=True)
     REDIS_ENCODING: str = Field(default="utf-8")
     REDIS_POOL_MAX_CONNECTIONS: int = Field(default=100)
-
-    class Config(SettingsConfigDict):
-        extra = Extra.ignore
-        env_file = ".env"
-        env_file_encoding = "UTF-8"
-        env_nested_delimiter = "__"
+    # Google settings
+    GOOGLE_CLIENT_ID: str = Field()
+    GOOGLE_CLIENT_SECRET: str = Field()
+    # AWS settings
+    AWS_LOG_LEVEL: int = Field(default=logging.WARNING)
+    AWS_REGION: str = Field(default="eu-central-1")
+    AWS_ACCESS_KEY: str = Field()
+    AWS_SECRET_ACCESS_KEY: str = Field()
+    # Cognito
+    AWS_USER_POOL_ID: str = Field()
+    # SES
+    AWS_SMTP_SERVICE_USERNAME: str = Field()
+    AWS_SMTP_SERVICE_PASSWORD: str = Field()
 
     @model_validator(mode="after")
     def validate_database_url(self) -> typing.Self:
@@ -99,6 +141,55 @@ class MainSettings(BaseSettings):
         )
         return self
 
+    @classmethod
+    def settings_customise_sources(
+        cls,
+        settings_cls: type[BaseSettings],
+        init_settings: PydanticBaseSettingsSource,
+        env_settings: PydanticBaseSettingsSource,
+        dotenv_settings: PydanticBaseSettingsSource,
+        file_secret_settings: PydanticBaseSettingsSource,
+    ) -> tuple[PydanticBaseSettingsSource, ...]:
+        return (
+            SSMSettingsSource(settings_cls=settings_cls),
+            env_settings,
+            init_settings,
+            dotenv_settings,
+            file_secret_settings,
+        )  # first - more priority.
+
+
+class SSMSettingsSource(PydanticBaseSettingsSource):
+    def __call__(self) -> dict[str, str]:
+        env = os.environ.get("ENVIRONMENT", Environment.DEV.value)
+        path = pathlib.Path(f"/{env}/")
+        session = boto3.Session(
+            aws_access_key_id=os.environ.get("AWS_ACCESS_KEY"),
+            aws_secret_access_key=os.environ.get("AWS_SECRET_ACCESS_KEY"),
+            region_name=os.environ.get("AWS_REGION"),
+        )
+        return self.get_parameters_by_path(session=session, path=path)
+
+    def get_field_value(self, field: FieldInfo, field_name: str) -> tuple[Any, str, bool]:
+        ...
+
+    @staticmethod
+    def get_parameters_by_path(session: boto3.Session, path: pathlib.Path | str) -> dict[str, str]:
+        result = {}
+        try:
+            client = session.client(service_name="ssm")
+            paginator: GetParametersByPath = client.get_paginator("get_parameters_by_path")
+            response_iterator = paginator.paginate(Path=str(path), WithDecryption=True)
+            result = {
+                str(pathlib.Path(parameter["Name"]).relative_to(path)): parameter["Value"]
+                for page in response_iterator
+                for parameter in page["Parameters"]
+            }
+        except ClientError:
+            ...
+
+        return result
+
 
 @functools.lru_cache
 def get_settings() -> MainSettings:
@@ -108,6 +199,6 @@ def get_settings() -> MainSettings:
 Settings: MainSettings = get_settings()
 
 if Settings.DEBUG and Settings.SHOW_SETTINGS:
-    import pprint  # noqa
+    import pprint
 
-    pprint.pprint(Settings.model_dump())
+    pprint.pprint(Settings.model_dump())  # noqa: T203

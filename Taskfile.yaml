@@ -1,0 +1,134 @@
+version: 3
+
+includes:
+  test:
+    taskfile: ./tests/Taskfile.yaml
+    optional: true
+
+vars:
+  RUNNER: "poetry run"
+
+dotenv:
+  - ".env"
+
+tasks:
+  lint:
+    desc: "Run linters, not change code."
+    vars:
+      ABSOLUTE: "A"
+      MODULES: "A"
+      AVERAGE: "A"
+      EXCLUDE: "tests*"
+    cmds:
+      - '{{.RUNNER}} xenon . -b {{.ABSOLUTE}} -m {{.MODULES}} -a {{.AVERAGE}} -e "{{.EXCLUDE}}"'
+      - "{{.RUNNER}} ruff check ."
+    ignore_error: true
+
+
+  lint:docs:
+    desc: "Run coverage for documentation."
+    cmd: "{{.RUNNER}} interrogate -v"
+
+  lint:types:
+    desc: "Run mypy (type annotations linter)."
+    cmd: "{{.RUNNER}} mypy ."
+
+  lint:plus:
+    desc: "Run all linters and ignore errors."
+    cmds:
+      - task: lint
+      - task: lint:docs
+      - task: lint:types
+    ignore_error: true
+
+  format:
+    desc: "Run formatters and auto fixing errors."
+    cmds:
+      - "{{.RUNNER}} ruff format"
+      - "{{.RUNNER}} ruff check . --fix"
+
+  pre:
+    desc: "Run `format` then `lint`."
+    cmds:
+      - task: format
+      - task: lint
+      - task: test:cov
+
+  mig:head:
+    desc: "Run migrations to `head`."
+    cmd: "{{.RUNNER}} alembic upgrade head"
+
+  mig:base:
+    desc: "Downgrade migration to `base`."
+    prompt: "Are you sure that you need to rollback all migrations? All existing data will be removed from DB!"
+    cmd: "{{.RUNNER}} alembic downgrade base"
+
+  mig:current:
+    desc: "Returns information about `current` migration applied."
+    cmd: "{{.RUNNER}} alembic current"
+
+  mig:up:
+    desc: "Upgrade `+1` migration from `current`."
+    cmd: "{{.RUNNER}} alembic upgrade +1"
+    ignore_error: true
+
+  mig:down:
+    desc: "Downgrade `-1` migration from `current`."
+    cmd: "{{.RUNNER}} alembic downgrade -1"
+
+  mig:check:
+    desc: "Check for new upgrade operations."
+    cmd: "{{.RUNNER}} alembic check"
+
+  mig:show:
+    desc: "Get details about migration by revision ID."
+    cmd: "{{.RUNNER}} alembic show {{.ID}}"
+    requires:
+      vars:
+        - ID
+    ignore_error: true
+
+  mig:move:
+    desc: "Get details about migration by revision ID."
+    cmd: "{{.RUNNER}} alembic stamp {{.ID}}"
+    requires:
+      vars:
+        - ID
+    ignore_error: true
+
+  mig:history:
+    desc: "Draw all migrations history output."
+    summary: "Returns migrations history output, latest at the start and then older."
+    cmd: "{{.RUNNER}} alembic history"
+
+  run:gu:
+    desc: "Start web server via `Gunicorn` (production mode)."
+    cmd: "{{.RUNNER}} gunicorn apps.__main__:app -c gunicorn.conf.py"
+
+  run:py:
+    desc: "Start web server via `Uvicorn` (development mode)."
+    cmd: "{{.RUNNER}} python -m apps"
+
+  run:
+    desc: "Run migrations and then start web."
+    cmds:
+      - task: mig:head
+      - task: run:gu
+
+  req:
+    desc: "Generate main `requirements.txt` file from Poetry."
+    vars:
+      FORMAT: "requirements.txt"
+    cmd: "poetry export --without-hashes --only main -f {{.FORMAT}} -o requirements.txt"
+
+  test:
+    desc: "Run tests."
+    cmd: "{{.RUNNER}} pytest --test-alembic --randomly-dont-reset-seed"
+
+  test:cov:
+    desc: "Run tests with the coverage report."
+    cmd: "{{.RUNNER}} pytest --test-alembic --randomly-dont-reset-seed --cov"
+
+  test:cov:html:
+    desc: "Run tests with the coverage report and write to HTML."
+    cmd: "{{.RUNNER}} pytest --test-alembic --randomly-dont-reset-seed --cov --cov-report=html"

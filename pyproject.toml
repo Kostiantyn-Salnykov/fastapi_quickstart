@@ -9,90 +9,59 @@ packages = [{include = "fastapi_quickstart"}]
 
 [tool.poetry.dependencies]
 python = "^3.11"
-fastapi = {extras = ["standard"], version = "^0.103.0"}
-asyncpg = "^0.28.0"
-SQLAlchemy = {extras = ["asyncion", "mypy"], version = "^2.0.17"}
-pydantic = {extras = ["dotenv", "email"], version = "^2.3.0"}
-alembic = "^1.12.0"
-orjson = "^3.9.7"
-uvicorn = {extras = ["standard"], version = "^0.23.2"}
+alembic = "^1.13.0"
+asyncpg = "^0.29.0"
+bcrypt = "^4.1.2"
+boto3 = "^1.34.2"
+casbin = "^1.33.0"
+fastapi = {extras = ["standard"], version = "^0.105.0"}
 gunicorn = "^21.2.0"
-psycopg2-binary = "^2.9.3"
-phonenumbers = "^8.13.20"
-httpx = "^0.25.0"
-bcrypt = "^4.0.1"
+httpx = "^0.26.0"
+orjson = "^3.9.10"
+pendulum = "^3.0.0"
+phonenumbers = "^8.13.26"
+psycopg2-binary = "^2.9.9"
+pydantic = {extras = ["email"], version = "^2.5.2"}
+pydantic-settings = {extras = ["dotenv"], version = "^2.1.0"}
 PyJWT = "^2.8.0"
+redis = {extras = ["hiredis"], version = "^5.0.1"}
+setuptools = "^69.0.2"
+SQLAlchemy = {extras = ["asyncio", "mypy"], version = "^2.0.23"}
 typer = {extras = ["all"], version = "^0.9.0"}
-redis = {extras = ["hiredis"], version = "^5.0.0"}
-pendulum = "^2.1.2"
 uuid7 = "^0.1.0"
-setuptools = "^68.2.2"
-pydantic-settings = "^2.0.2"
-casbin = "^1.27.0"
-casbin-redis-adapter = "^1.1.0"
+uvicorn = {extras = ["standard"], version = "^0.25.0"}
+casbin-async-sqlalchemy-adapter = "^1.3.0"
 
 
 [tool.poetry.group.lint.dependencies]
-black = "^23.1.0"
-isort = "^5.10.1"
-flake8 = "^5.0.4"
+mypy = "^1.8.0"
+ruff = "^0.1.9"
 xenon = "^0.9.1"
-mypy = "^1.1.1"
-ruff = "^0.0.276"
+interrogate = "^1.5.0"
 
 
 [tool.poetry.group.test.dependencies]
-pytest = "^7.1.3"
-pytest-asyncio = "^0.21.0"
-pytest-mock = "^3.8.2"
-pytest-sugar = "^0.9.5"
-pytest-cov = "^4.0.0"
-pytest-randomly = "^3.15.0"
+factory-boy = "^3.3.0"
+Faker = "^18.13.0"
+pydantic-factories = "^1.17.3"
+pytest = "^7.4.3"
+pytest-alembic = "^0.10.7"
+pytest-asyncio = "^0.21.1"
 pytest-clarity = "^1.0.1"
-Faker = "^18.3.0"
-pydantic-factories = "^1.17.2"
-pytest-alembic = "^0.10.0"
-factory-boy = "^3.2.1"
+pytest-cov = "^4.1.0"
+pytest-mock = "^3.12.0"
+pytest-randomly = "^3.15.0"
+pytest-sugar = "^0.9.7"
 
 
 [tool.poetry.group.dev.dependencies]
-ipython = "^8.5.0"
-
-
-[tool.poetry.group.def.dependencies]
-bump-pydantic = "^0.6.0"
+boto3-type-annotations-with-docs = "^0.3.1"
+bump-pydantic = "^0.6.1"
+ipython = "^8.18.0"
 
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
-
-
-# === Black ===
-[tool.black]
-line-length = 120
-include = '\.pyi?$'
-extend-exclude = '''
-/(
-  | dist
-  | .pytest_cache
-  | .tox
-  | docs
-  | docs_src
-  | .venv
-  | .mypy_cache
-)/
-'''
-
-# === Isort ===
-[tool.isort]
-multi_line_output = 3
-include_trailing_comma = true
-force_grid_wrap = 0
-use_parentheses = true
-ensure_newline_before_comments = true
-line_length = 120
-skip_glob = []
-
 
 # === Pytest ===
 [tool.pytest.ini_options]
@@ -124,16 +93,21 @@ omit = ["*/*.local/*", "*/*.idea*/*", "*/*.venv*/*", "*/*test*", "*__init__*", "
 
 [tool.coverage.report]
 ignore_errors = true
-sort = "-Cover"
+sort = "-cover"
 precision = 2
 omit = ["*/*.local/*", "*/*.idea*/*", "*/*.venv*/*", "*/*test*", "*__init__*", "*/*migrations*" , "*/*interfaces.py"]
-exclude_lines = ["pragma: no cover", "if __name__ = .__main__.:"]
+exclude_lines = [
+    "pragma: no cover",
+    "if __name__ = .__main__.:",
+    "@abc",
+    "@abstract",
+]
 
 [tool.coverage.html]
-directory = ".coverage"
+directory = ".coverage_dir"
 
 [tool.mypy]
-python_version = "3.10"
+python_version = "3.11"
 files = ['*.py', '**/*.py']
 exclude = ["docs*", "coverage", "tests"]
 plugins = ["pydantic.mypy", "sqlalchemy.ext.mypy.plugin"]
@@ -160,22 +134,39 @@ warn_untyped_fields = true
 [tool.ruff]
 line-length = 120
 select = [
-    "E",  # pycodestyle
-    "F",  # pyflakes
-    "UP", # pyupgrade
-    "D",  # pydocstyle
+    "F",  # Pyflakes
     "B",  # flake8-bugbear
     "C4",  # flake8-comprehensions
-    "SIM",  # flake8-simplify
-    "PTH",  # flake8-use-pathlib
+    "D",  # pydocstyle
     "DTZ",  # flake8-datetimez
-    #    "S",  # flake8-bandit
-    "N",  # PEP8-naming
+    "E",  # pycodestyle (error)
+    "W",  # pycodestyle (warning)
+    "F",  # pyflakes
     "I",  # isort
-    "PT"  # flake8-pytest-style
+    "N",  # PEP8-naming
+    "PT",  # flake8-pytest-style
+    "PTH",  # flake8-use-pathlib
+    "SIM",  # flake8-simplify
+    "UP", # pyupgrade
+    "S",  # flake8-bandit
+    "EM",  # flake8-errmsg
+    "T20",  # flake8-print
+    "Q",  # flake8-quotes
+    "RET",  # flake8-return
+    "PL",  # Pylint
+    "FLY",  # flynt
+    "PERF",  # Perflint
+    "RUF",  # Ruff linter
+    "DTZ",  # flake8-datetimez
+    "ANN",  # flake8-annotations
+    "G",  # flake8-logging-format
+    "ICN",  # flake8-import-conventions
+    "FBT",
+    # Preview features
+#    "LOG",  # flake8-logging
+#    "FURB",  # refurb
 ]
 ignore = [
-    "F403",
     "B008",
     "B026",
     "D100",
@@ -186,8 +177,49 @@ ignore = [
     "D105",
     "D106",
     "D107",
+    "F403",
     "N805",
+    "PLR0913",  # Too many argument to function call ({INTEGER} > 5)
+    "S104",  # Possible binding to all interfaces
+    "S105",  # Possible hardcoded password assigned to: "{STRING}"
+    "ANN101",  # Missing type annotation for `self` in method
+    "ANN102",  # Missing type annotation for `cls` in classmethod
+    "G004",  # Logging statement uses f-string
 ]
+[tool.ruff.extend-per-file-ignores]
+"test*.py" = ["S101", "S106", "S311", "D", "ANN001", "ANN002", "ANN003", "ANN102", "ANN401"]
+"migrations**" = ["ANN"]
+"loggers.py" = ["ANN002", "ANN003"]
+"cli.py" = ["ANN002", "ANN003"]
+"helpers.py" = ["ANN401", "ANN002", "ANN003"]
 
 [tool.ruff.pydocstyle]
 convention = "google"
+
+[tool.ruff.format]
+quote-style = "double"
+docstring-code-format = true
+
+# === Interrogate ===
+[tool.interrogate]
+ignore-init-method = true
+ignore-init-module = true
+ignore-magic = true
+ignore-semiprivate = false
+ignore-private = false
+ignore-property-decorators = true
+ignore-module = true
+ignore-nested-functions = true
+ignore-nested-classes = true
+ignore-setters = true
+fail-under = 90
+exclude = ["setup.py", "docs", "build", "tests", "migrations", "venv", ".venv"]
+ignore-regex = [".*Base*.", ".*Interface*."]
+# possible values: 0 (minimal output), 1 (-v), 2 (-vv)
+verbose = 1
+quiet = false
+whitelist-regex = []
+color = true
+omit-covered-files = false
+#generate-badge = "."
+#badge-format = "svg"

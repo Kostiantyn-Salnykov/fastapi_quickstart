@@ -1,9 +1,11 @@
 """Module for logger settings."""
+
 __all__ = (
     "get_logger",
     "setup_logging",
     "TRACE",
     "SUCCESS",
+    "LOGGING_CONFIG",
 )
 import copy
 import datetime
@@ -13,6 +15,7 @@ import logging.config
 import logging.handlers
 import typing
 
+import boto3
 import click
 
 from apps.CORE.custom_types import StrOrNone
@@ -24,12 +27,15 @@ LOG_FORMAT_AWS = (
     "%(name)s | %(filename)s:%(lineno)s | %(funcName)s | %(levelname)s | %(message)s | (%(asctime)s/" "%(created)s)"
 )
 LOG_FORMAT_RAW = "{levelname} | {name} | {filename}:{lineno} | {funcName} | {message} | ({asctime}/{created})"
-DATE_TIME_FORMAT_ISO_8601 = "%Y-%m-%dT%H:%M:%S.%fZ"  # ISO 8601
-DATE_TIME_FORMAT_WITHOUT_MICROSECONDS = "%Y-%m-%dT%H:%M:%SZ"  # ISO 8601 without microseconds
-FILE_FORMAT = click.style(text='╰───📑File "', fg="bright_white", bold=True)
-LINE_FORMAT = click.style(text='", line ', fg="bright_white", bold=True)
+LOG_DATE_TIME_FORMAT_ISO_8601 = "%Y-%m-%dT%H:%M:%S.%fZ"  # ISO 8601
+LOG_DATE_TIME_FORMAT_WITHOUT_MICROSECONDS = "%Y-%m-%dT%H:%M:%SZ"  # ISO 8601 without microseconds
+LOG_FILE_FORMAT = click.style(text='╰───📑File "', fg="bright_white", bold=True)
+LOG_LINE_FORMAT = click.style(text='", line ', fg="bright_white", bold=True)
 SUCCESS = 25
 TRACE = 5
+LOG_DEFAULT_HANDLER_CLASS = "logging.StreamHandler"
+logging.addLevelName(SUCCESS, "SUCCESS")
+logging.addLevelName(TRACE, "TRACE")
 
 
 def _get_root_handler() -> list[str]:
@@ -45,8 +51,25 @@ def _get_root_handler() -> list[str]:
     """
     result = ["default_handler"]
     if Settings.LOG_USE_COLORS and Settings.DEBUG:
-        return ["colorful_handler"]
+        return ["debug_handler"]
     return result
+
+
+def _get_main_handler() -> list[str]:
+    result = ["default_handler"]
+    if Settings.DEBUG:
+        result = ["debug_handler"]
+    return result
+
+
+def _get_default_formatter() -> dict[str, typing.Any]:
+    return {
+        "format": LOG_FORMAT_RAW,
+        "style": "{",
+        "datefmt": LOG_DATE_TIME_FORMAT_WITHOUT_MICROSECONDS,
+        "validate": True,
+        "use_colors": Settings.LOG_USE_COLORS,
+    }
 
 
 LOGGING_CONFIG: dict[str, typing.Any] = {
@@ -57,81 +80,72 @@ LOGGING_CONFIG: dict[str, typing.Any] = {
             "()": "loggers.ColorfulFormatter",
             "fmt": "{levelname} {message} | {asctime}",
             "style": "{",
-            "datefmt": DATE_TIME_FORMAT_ISO_8601,
+            "datefmt": LOG_DATE_TIME_FORMAT_ISO_8601,
             "validate": True,
         },
-        "default_formatter": {
-            "format": LOG_FORMAT,
-            "style": "{",
-            "datefmt": DATE_TIME_FORMAT_WITHOUT_MICROSECONDS,
-            "validate": True,
-            "use_colors": Settings.LOG_USE_COLORS,
-        },
+        "default": _get_default_formatter(),
+        "access": _get_default_formatter(),
         "colorful_formatter": {
             "()": "loggers.ColorfulFormatter",
-            "fmt": "{levelname} {message} | {asctime}",
+            "fmt": LOG_FORMAT_RAW,
             "style": "{",
-            "datefmt": DATE_TIME_FORMAT_ISO_8601,
+            "datefmt": LOG_DATE_TIME_FORMAT_ISO_8601,
             "link_format": False,
         },
     },
     "handlers": {
-        "default_handler": {
-            "class": "logging.StreamHandler",
-            "level": "TRACE",
-            "formatter": "default_formatter",
-        },
-        "debug_handler": {
-            "class": "logging.StreamHandler",
-            "level": "TRACE",
-            "formatter": "colorful_formatter",
-        },
-        "debug_link_handler": {
-            "class": "logging.StreamHandler",
-            "level": "TRACE",
-            "formatter": "debug_link_formatter",
-        },
-        "colorful_handler": {
-            "class": "logging.StreamHandler",
-            "level": "TRACE",
-            "formatter": "colorful_formatter",
-        },
+        "default_handler": {"class": LOG_DEFAULT_HANDLER_CLASS, "level": TRACE, "formatter": "default"},
+        "debug_handler": {"class": LOG_DEFAULT_HANDLER_CLASS, "level": TRACE, "formatter": "colorful_formatter"},
+        "debug_link_handler": {"class": LOG_DEFAULT_HANDLER_CLASS, "level": TRACE, "formatter": "debug_link_formatter"},
     },
     "root": {"level": Settings.LOG_LEVEL, "handlers": _get_root_handler()},
     "loggers": {
-        "asyncio": {"level": "WARNING", "handlers": ["default_handler"], "propagate": False},
-        "gunicorn": {"level": "WARNING", "handlers": ["default_handler"], "propagate": False},
-        "uvicorn": {"level": "WARNING", "handlers": ["default_handler"], "propagate": False},
-        "casbin": {"level": "WARNING", "handlers": ["debug_handler"], "propagate": False},
-        "local": {"level": "DEBUG", "handlers": ["debug_handler"], "propagate": False},
+        "asyncio": {"level": "WARNING", "handlers": _get_main_handler(), "propagate": False},
+        "gunicorn.error": {"level": "INFO", "handlers": _get_main_handler(), "propagate": False},
+        "gunicorn.access": {"level": "INFO", "handlers": _get_main_handler(), "propagate": False},
+        "uvicorn.default": {"level": "INFO", "handlers": _get_main_handler(), "propagate": False},
+        "uvicorn.access": {"level": "INFO", "handlers": _get_main_handler(), "propagate": False},
+        "casbin": {"level": "WARNING", "handlers": _get_main_handler(), "propagate": False},
+        "debug": {"level": "DEBUG", "handlers": ["debug_link_handler"], "propagate": False},
     },
 }
 
 
+class ExtendedLogger(logging.Logger):
+    def trace(self, msg: str, *args, **kwargs) -> None:
+        if self.isEnabledFor(TRACE):
+            self._log(TRACE, msg, args, **kwargs, stacklevel=2)
+
+    def success(self, msg: str, *args, **kwargs) -> None:
+        if self.isEnabledFor(SUCCESS):
+            self._log(SUCCESS, msg, args, **kwargs, stacklevel=2)
+
+
+logging.setLoggerClass(klass=ExtendedLogger)
+
+
 def setup_logging() -> None:
     """Setup logging from dict configuration object. Setup AWS boto3 logging."""
-    logging.addLevelName(SUCCESS, "SUCCESS")
-    logging.addLevelName(TRACE, "TRACE")
     logging.config.dictConfig(config=LOGGING_CONFIG)
+    boto3.set_stream_logger(level=Settings.AWS_LOG_LEVEL, format_string=LOG_FORMAT_AWS)
 
 
-def get_logger(name: str | None = "local") -> logging.Logger:
+def get_logger(name: str | None = "local") -> ExtendedLogger:
     """Get logger instance by name.
 
     Args:
-        name (str): Name of logger
+        name (str): Name of logger.
 
     Returns:
-        logging.Logger: Instance of logging.Logger
+        logging.Logger: Instance of logging.Logger.
 
     Examples:
-        from loggers import get_logger
+        >>>from loggers import get_logger
 
-        logger = get_logger(name=__name__)
-        logger.debug(msg="Debug message")
+        >>>logger = get_logger(name=__name__)
+        >>>logger.debug(msg="Debug message")
     """
-    _logger = logging.getLogger(name=name)
-    return _logger
+    return logging.getLogger(name=name)
 
 
 logger = get_logger(name="root")
@@ -140,19 +154,14 @@ logger = get_logger(name="root")
 class Styler:
     """Style for logs."""
 
-    _default_kwargs: list[dict[str, int | str | float | tuple | list | bool]] = [
+    _default_kwargs: typing.ClassVar[list[dict[str, int | str | float | tuple | list | bool]]] = [
         {"level": TRACE, "fg": "white"},
         {"level": logging.DEBUG, "fg": (121, 85, 72)},
         {"level": SUCCESS, "fg": "bright_green"},
         {"level": logging.INFO, "fg": "bright_blue"},
         {"level": logging.WARNING, "fg": "bright_yellow"},
         {"level": logging.ERROR, "fg": "bright_red"},
-        {
-            "level": logging.CRITICAL,
-            "fg": (126, 87, 194),
-            "bold": True,
-            "underline": True,
-        },
+        {"level": logging.CRITICAL, "fg": (126, 87, 194), "bold": True, "underline": True},
     ]
 
     def __init__(self) -> None:
@@ -170,10 +179,11 @@ class Styler:
         Returns:
             Style for logs.
         """
-        return self.colors_map.get(level, lambda text: text)
+        return self.colors_map.get(level, lambda x: True)
 
     def set_style(
         self,
+        *,
         level: int,
         fg: tuple[int, int, int] | StrOrNone = None,
         bg: tuple[int, int, int] | StrOrNone = None,
@@ -193,15 +203,15 @@ class Styler:
             level (int): Log level.
             fg (): set foreground color.
             bg (): set background color.
-            bold (): Bold on text.
+            bold (): Bold on the text.
             dim (): Enable/Disable dim mode.  (This is badly supported).
             underline (): Enable/Disable underline.
             overline (): Enable/Disable overline
             italic (): Enable/Disable italic.
-            blink (): Enable/Disable blinking on text.
+            blink (): Enable/Disable blinking on the text.
             reverse (): Enable/Disable inverse rendering (foreground becomes background and the other way round).
             strikethrough (): Enable/Disable striking through text
-            reset (): by default a reset-all code is added at the end of the string which means that styles do not
+            reset (): by default, a reset-all code is added at the end of the string which means that styles do not
                 carry over.  This can be disabled to compose styles.
         """
         self.colors_map[level] = functools.partial(
@@ -220,10 +230,10 @@ class Styler:
         )
 
 
-def _format_time(record: logging.LogRecord, datefmt: str = DATE_TIME_FORMAT_ISO_8601) -> str:
+def _format_time(record: logging.LogRecord, datefmt: str = LOG_DATE_TIME_FORMAT_ISO_8601) -> str:
     """Format datetime to UTC datetime."""
     date_time_utc = datetime.datetime.fromtimestamp(record.created, tz=get_utc_timezone())
-    return datetime.datetime.strftime(date_time_utc, datefmt or DATE_TIME_FORMAT_ISO_8601)
+    return datetime.datetime.strftime(date_time_utc, datefmt or LOG_DATE_TIME_FORMAT_ISO_8601)
 
 
 class ColorfulFormatter(logging.Formatter):
@@ -231,8 +241,9 @@ class ColorfulFormatter(logging.Formatter):
 
     def __init__(
         self,
+        *,
         fmt: str = LOG_FORMAT_RAW,
-        datefmt: str = DATE_TIME_FORMAT_ISO_8601,
+        datefmt: str = LOG_DATE_TIME_FORMAT_ISO_8601,
         style: typing.Literal["%", "$", "{"] = "{",
         validate: bool = True,
         # Custom setup
@@ -243,14 +254,16 @@ class ColorfulFormatter(logging.Formatter):
         self.accent_color = accent_color
         self._styler = styler or Styler()
         if link_format:
-            fmt += f"\n{FILE_FORMAT}{{pathname}}{LINE_FORMAT}{{lineno}}"
+            fmt += f"\n{LOG_FILE_FORMAT}{{pathname}}{LOG_LINE_FORMAT}{{lineno}}"
         super().__init__(fmt=fmt, datefmt=datefmt, style=style, validate=validate)
 
     def formatTime(  # noqa: N802
-        self, record: logging.LogRecord, datefmt: str | None = DATE_TIME_FORMAT_ISO_8601
+        self,
+        record: logging.LogRecord,
+        datefmt: str | None = LOG_DATE_TIME_FORMAT_ISO_8601,
     ) -> str:
         """Custom format datetime to UTC datetime."""
-        return _format_time(record=record, datefmt=datefmt or DATE_TIME_FORMAT_ISO_8601)
+        return _format_time(record=record, datefmt=datefmt or LOG_DATE_TIME_FORMAT_ISO_8601)
 
     def formatMessage(self, record: logging.LogRecord) -> str:  # noqa: N802
         """Custom format message to new format.
@@ -265,7 +278,7 @@ class ColorfulFormatter(logging.Formatter):
         for key in record_copy.__dict__:
             if key == "message":
                 record_copy.__dict__["message"] = self._styler.get_style(level=record_copy.levelno)(
-                    text=record_copy.message
+                    text=record_copy.message,
                 )
             elif key == "levelname":
                 separator = " " * (8 - len(record_copy.levelname))

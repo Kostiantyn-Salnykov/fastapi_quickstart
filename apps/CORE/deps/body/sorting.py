@@ -3,7 +3,7 @@ import typing
 from fastapi import Body, Request
 from sqlalchemy import UnaryExpression
 
-from apps.CORE.custom_types import ModelColumnVar, ModelType, SchemaType
+from apps.CORE.custom_types import ModelColumnInstance, ModelType, SchemaType
 from loggers import get_logger
 
 _logger = get_logger(name=__name__)
@@ -12,10 +12,10 @@ _logger = get_logger(name=__name__)
 class Sorting:
     def __init__(
         self,
-        model: type[ModelType],
-        schema: type[SchemaType],
-        default_sorting: list[str] = None,
-        available_columns: list[ModelColumnVar] | None = None,
+        model: ModelType,
+        schema: SchemaType,
+        default_sorting: list[str] | None = None,
+        available_columns: list[ModelColumnInstance] | None = None,
     ) -> None:
         self.model = model
         self.schema = schema
@@ -35,7 +35,7 @@ class Sorting:
         self,
         request: Request,
         sorting: typing.Annotated[
-            list[str],
+            list[str] | None,
             Body(
                 alias="sorting",
                 title="Sorting",
@@ -45,20 +45,20 @@ class Sorting:
                 '\n\n`"sorting": ["title", "-createdAt"]` (_This will sort `title` ASC, then `createdAt` DESC order._)'
                 "\n\n**Warning** `-id` automatically appends to end of  sorting list."
                 "\n\n**P.S.** Order of `sorting` query parameters are matter!",
-                examples=[["-id"]],
+                examples=[None, ["-id"]],
             ),
         ] = None,
     ) -> typing.Self:
         _logger.debug(msg=f"{self.__class__.__name__} | __call__ | {sorting=}.")
-        if sorting is None:
+        if not sorting:
             _logger.debug(
-                msg=f"{self.__class__.__name__} | __call__ | Sorting is empty, using `{self._default_sorting}`."
+                msg=f"{self.__class__.__name__} | __call__ | Sorting is empty, using `{self._default_sorting}`.",
             )
             sorting = self._default_sorting
         else:
             _logger.debug(
                 msg=f"{self.__class__.__name__} | __call__ | Sorting is not empty. Checking that the latest one field "
-                f"is `-id`."
+                f"is `-id`.",
             )
             sorting.extend(self._default_sorting) if sorting[-1] != self._default_sorting[-1] else ...
 

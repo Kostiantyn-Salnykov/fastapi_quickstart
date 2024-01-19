@@ -90,7 +90,11 @@ class BaseRedisRateLimiter(abc.ABC):
 
     @abc.abstractmethod
     async def __call__(
-        self, *, request: Request, response: Response, redis_client: aioredis.Redis = Depends(get_redis)
+        self,
+        *,
+        request: Request,
+        response: Response,
+        redis_client: aioredis.Redis = Depends(get_redis),
     ) -> None:
         raise NotImplementedError
 
@@ -102,12 +106,12 @@ class BaseRedisRateLimiter(abc.ABC):
     def key_prefix(self) -> str:
         return self._key_prefix
 
-    def key(self, request: Request, now: pendulum.DateTime, previous: bool = False) -> str:
+    def key(self, *, request: Request, now: pendulum.DateTime, previous: bool = False) -> str:
         """Construct key for Redis.
 
         e.g. key="limiter:/api/v1/login/:127.0.0.1:2023-03-12T13:32:00+00:00:minute:5"
 
-        Args:
+        Keyword Args:
             request (Request): FastAPI Request instance.
             now (pendulum.DateTime): DateTime instance from pendulum package.
             previous (bool): Select previous windows instead of current.
@@ -134,7 +138,8 @@ class BaseRedisRateLimiter(abc.ABC):
         return user_id_or_ip
 
     def now(self) -> pendulum.DateTime:
-        return pendulum.instance(dt=utc_now())
+        default_datetime_now = utc_now()
+        return pendulum.from_timestamp(timestamp=default_datetime_now.timestamp(), tz=default_datetime_now.tzinfo)
 
     def previous_window_start(self, now: pendulum.DateTime) -> pendulum.DateTime:
         return self.current_window_start(now=now) - datetime.timedelta(seconds=self.rate.seconds)
@@ -145,13 +150,17 @@ class BaseRedisRateLimiter(abc.ABC):
     def next_window_start(self, now: pendulum.DateTime) -> pendulum.DateTime:
         return self.current_window_start(now=now) + datetime.timedelta(seconds=self.rate.seconds)
 
-    def expiration(self, now: pendulum.DateTime) -> pendulum.Period:
+    def expiration(self, now: pendulum.DateTime) -> pendulum.Duration:
         return self.next_window_start(now=now) - now
 
 
 class FixedWindowRateLimiter(BaseRedisRateLimiter):
     async def __call__(
-        self, *, request: Request, response: Response, redis_client: aioredis.Redis = Depends(get_redis)
+        self,
+        *,
+        request: Request,
+        response: Response,
+        redis_client: aioredis.Redis = Depends(get_redis),
     ) -> None:
         """FastAPI "Depends" compatibility method, to check User's quotas.
 
@@ -196,7 +205,7 @@ class FixedWindowRateLimiter(BaseRedisRateLimiter):
         request: Request,
         response: Response,
         hits: int,
-        next_reset_in_seconds: pendulum.Period,
+        next_reset_in_seconds: pendulum.Duration,
         next_window_start: pendulum.datetime,
     ) -> dict[str, str]:
         hits_remaining = val if (val := self.rate.number - hits) >= 0 else 0
@@ -218,7 +227,10 @@ class FixedWindowRateLimiter(BaseRedisRateLimiter):
 
 class SlidingWindowRateLimiter(BaseRedisRateLimiter):
     async def __call__(
-        self, request: Request, response: Response, redis_client: aioredis.Redis = Depends(get_redis)
+        self,
+        request: Request,
+        response: Response,
+        redis_client: aioredis.Redis = Depends(get_redis),
     ) -> None:
         now = self.now()
         key = self.key(request=request, now=now)
@@ -228,7 +240,8 @@ class SlidingWindowRateLimiter(BaseRedisRateLimiter):
         if int(count) >= self.rate.number:
             rate_limit_headers = self.get_and_update_headers(request=request, response=response, hits=count)
             raise RateLimitError(
-                message=f"Request limit exceeded for this quota: '{self.rate}'.", headers=rate_limit_headers
+                message=f"Request limit exceeded for this quota: '{self.rate}'.",
+                headers=rate_limit_headers,
             )
 
         prev_key = self.key(request=request, now=now, previous=True)
@@ -237,7 +250,10 @@ class SlidingWindowRateLimiter(BaseRedisRateLimiter):
         weight_count = prev_count * (1 - prev_percentage) + count
 
         rate_limit_headers = self.get_and_update_headers(
-            request=request, response=response, hits=count, weight_count=weight_count
+            request=request,
+            response=response,
+            hits=count,
+            weight_count=weight_count,
         )
         if weight_count >= self.rate.number:
             raise RateLimitError(
@@ -259,12 +275,12 @@ class SlidingWindowRateLimiter(BaseRedisRateLimiter):
         request: Request,
         response: Response,
         hits: int,
-        weight_count: float = None,
+        weight_count: float | None = None,
     ) -> dict[str, str]:
         if weight_count is not None:
             remaining = int(self.rate.number - weight_count)
             rate_limit_remaining = {
-                "RateLimit-Remaining": f'{remaining};comment="flood weight={weight_count:0.3f}/{self.rate.number}"'
+                "RateLimit-Remaining": f'{remaining};comment="flood weight={weight_count:0.3f}/{self.rate.number}"',
             }
         else:
             remaining = val if (val := self.rate.number - hits - 1) >= 0 else 0
@@ -285,7 +301,10 @@ class SlidingWindowRateLimiter(BaseRedisRateLimiter):
 
 class TokenBucketRateLimiter(BaseRedisRateLimiter):
     async def __call__(
-        self, request: Request, response: Response, redis_client: aioredis.Redis = Depends(get_redis)
+        self,
+        request: Request,
+        response: Response,
+        redis_client: aioredis.Redis = Depends(get_redis),
     ) -> None:
         now = self.now()
         key = self.key(request=request, now=now)
@@ -293,11 +312,13 @@ class TokenBucketRateLimiter(BaseRedisRateLimiter):
         # === Redis Logic starts ===
         data: dict[str, str] = await redis_client.hgetall(name=key)
         latest_reset_time = data.get(
-            "latest_reset_time", (now - datetime.timedelta(seconds=self.rate.seconds)).timestamp()
+            "latest_reset_time",
+            (now - datetime.timedelta(seconds=self.rate.seconds)).timestamp(),
         )
         if (now - pendulum.from_timestamp(timestamp=int(latest_reset_time))).seconds >= self.rate.seconds:
             await redis_client.hset(
-                name=key, mapping={"counter": self.rate.number, "latest_reset_time": int(now.timestamp())}
+                name=key,
+                mapping={"counter": self.rate.number, "latest_reset_time": int(now.timestamp())},
             )
         else:
             current_counter = int(await redis_client.hget(name=key, key="counter"))

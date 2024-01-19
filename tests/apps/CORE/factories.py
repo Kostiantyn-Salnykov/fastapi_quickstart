@@ -6,7 +6,7 @@ import factory
 from apps.authorization.enums import PermissionActions
 from apps.authorization.managers import AuthorizationManager
 from apps.CORE.managers import PasswordsManager
-from apps.CORE.models import (
+from apps.CORE.tables import (
     Group,
     GroupRole,
     GroupUser,
@@ -32,13 +32,19 @@ class UserFactory(BaseModelFactory):
     password_hash = factory.LazyAttribute(function=lambda obj: passwords_manager.make_password(password=obj.password))
 
     groups = factory.RelatedFactoryList(
-        factory="tests.apps.CORE.factories.GroupUserFactory", factory_related_name="user", size=0
+        factory="tests.apps.CORE.factories.GroupUserFactory",
+        factory_related_name="user",
+        size=0,
     )
     roles = factory.RelatedFactoryList(
-        factory="tests.apps.CORE.factories.RoleUserFactory", factory_related_name="user", size=0
+        factory="tests.apps.CORE.factories.RoleUserFactory",
+        factory_related_name="user",
+        size=0,
     )
     permissions = factory.RelatedFactoryList(
-        factory="tests.apps.CORE.factories.PermissionUserFactory", factory_related_name="user", size=0
+        factory="tests.apps.CORE.factories.PermissionUserFactory",
+        factory_related_name="user",
+        size=0,
     )
 
     class Meta:
@@ -53,10 +59,14 @@ class PermissionFactory(BaseModelFactory):
     action = factory.Faker("word", ext_word_list=list(PermissionActions))
 
     roles = factory.RelatedFactoryList(
-        factory="tests.apps.CORE.factories.RolePermissionFactory", factory_related_name="permission", size=0
+        factory="tests.apps.CORE.factories.RolePermissionFactory",
+        factory_related_name="permission",
+        size=0,
     )
     users = factory.RelatedFactoryList(
-        factory="tests.apps.CORE.factories.PermissionUserFactory", factory_related_name="permission", size=0
+        factory="tests.apps.CORE.factories.PermissionUserFactory",
+        factory_related_name="permission",
+        size=0,
     )
 
     class Meta:
@@ -65,7 +75,10 @@ class PermissionFactory(BaseModelFactory):
 
     @classmethod
     def _create(
-        cls, model_class: type[Permission], *args: tuple[typing.Any], **kwargs: dict[str, typing.Any]
+        cls,
+        model_class: type[Permission],
+        *args: tuple[typing.Any],
+        **kwargs: dict[str, typing.Any],
     ) -> Permission:
         session = cls._meta.sqlalchemy_session
         am = AuthorizationManager(engine=session.bind)
@@ -92,11 +105,15 @@ class RoleFactory(BaseModelFactory):
     title = factory.Faker("pystr", max_chars=128)
 
     groups = factory.RelatedFactoryList(
-        factory="tests.apps.CORE.factories.GroupRoleFactory", factory_related_name="roles", size=0
+        factory="tests.apps.CORE.factories.GroupRoleFactory",
+        factory_related_name="roles",
+        size=0,
     )
     permissions = factory.RelatedFactoryList(factory=RolePermissionFactory, factory_related_name="role", size=1)
     users = factory.RelatedFactoryList(
-        factory="tests.apps.CORE.factories.RoleUserFactory", factory_related_name="role", size=0
+        factory="tests.apps.CORE.factories.RoleUserFactory",
+        factory_related_name="role",
+        size=0,
     )
 
     class Meta:
@@ -123,7 +140,9 @@ class GroupFactory(BaseModelFactory):
 
     roles = factory.RelatedFactoryList(factory=GroupRoleFactory, factory_related_name="group", size=1)
     users = factory.RelatedFactoryList(
-        factory="tests.apps.CORE.factories.GroupUserFactory", factory_related_name="group", size=0
+        factory="tests.apps.CORE.factories.GroupUserFactory",
+        factory_related_name="group",
+        size=0,
     )
 
     class Meta:

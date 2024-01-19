@@ -41,7 +41,7 @@ through the docker compose.
 
 #### Uvicorn (local)
 ```commandline
-poetry run python -m apps.main
+poetry run python -m apps
 ```
 
 #### With Gunicorn & UvicornWorker (like a prod)

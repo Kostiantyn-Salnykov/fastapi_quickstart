@@ -7,7 +7,7 @@ from apps.CORE.exceptions import BackendError
 
 
 class TestBackendException:
-    def test__repr___defaults(self, faker: Faker):
+    def test__repr___defaults(self, faker: Faker) -> None:
         message = faker.pystr()
         exception = BackendError(message=message)
 
@@ -28,7 +28,7 @@ class TestBackendException:
             (JSENDStatus.ERROR, "pyfloat", status.HTTP_501_NOT_IMPLEMENTED),
         ),
     )
-    def test__repr__custom(self, jsend_status: JSENDStatus, faker_func: str, code: int, faker: Faker):
+    def test__repr__custom(self, jsend_status: JSENDStatus, faker_func: str, code: int, faker: Faker) -> None:
         fake_data = getattr(faker, faker_func)()
         fake_message = faker.pystr()
 
@@ -44,7 +44,7 @@ class TestBackendException:
             f'{exception.message}", code={exception.code})'
         )
 
-    def test__str___defaults(self, faker: Faker):
+    def test__str___defaults(self, faker: Faker) -> None:
         message = faker.pystr()
         exception = BackendError(message=message)
 
@@ -54,7 +54,7 @@ class TestBackendException:
             f'{exception.message}", code={exception.code})'
         )
 
-    def test_dict_default(self, faker: Faker):
+    def test_dict_default(self, faker: Faker) -> None:
         message = faker.pystr()
         exception = BackendError(message=message)
 
@@ -78,7 +78,7 @@ class TestBackendException:
             (JSENDStatus.ERROR, "pyfloat", status.HTTP_501_NOT_IMPLEMENTED),
         ),
     )
-    def test_dict_custom(self, jsend_status: JSENDStatus, faker_func: str, code: int, faker: Faker):
+    def test_dict_custom(self, jsend_status: JSENDStatus, faker_func: str, code: int, faker: Faker) -> None:
         fake_data = getattr(faker, faker_func)()
         fake_message = faker.pystr()
 

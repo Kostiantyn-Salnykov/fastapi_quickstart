@@ -5,7 +5,7 @@ from apps.CORE.schemas.mixins import CreatedUpdatedResponseMixin
 from apps.CORE.schemas.requests import BaseRequestSchema
 from apps.CORE.schemas.responses import BaseResponseSchema, JSENDPaginationResponse, PaginationResponse
 from apps.wishmaster.enums import WishComplexities, WishPriorities, WishStatuses
-from apps.wishmaster.models import Tag
+from apps.wishmaster.tables import Tag
 
 
 class CategoryResponseSchema(BaseResponseSchema):
@@ -18,7 +18,7 @@ class TagResponseSchema(BaseResponseSchema):
 
 
 class WishCreateToDBSchema(BaseRequestSchema):
-    title: str = Field(max_length=128, example="Do something.")
+    title: str = Field(max_length=128)
     wishlist_id: StrUUID = Field(default=..., alias="wishlistId")
     status: WishStatuses = Field(default=WishStatuses.CREATED)
     complexity: WishComplexities = Field(default=WishComplexities.NORMAL)
@@ -44,7 +44,7 @@ class WishUpdateSchema(WishUpdateToDBSchema):
 
 class WishResponseSchema(BaseResponseSchema, CreatedUpdatedResponseMixin):
     id: StrUUID
-    title: str = Field(max_length=128, example="Do something.")
+    title: str = Field(max_length=128)
     wishlist_id: StrUUID = Field(default=..., alias="wishlistId")
     status: WishStatuses = Field(default=...)
     complexity: WishComplexities = Field(default=...)
@@ -67,7 +67,7 @@ class WishesOutSchema(JSENDPaginationResponse):
 
 
 class WishListCreateSchema(BaseRequestSchema):
-    title: str = Field(max_length=128, example="My Wishlist")
+    title: str = Field(max_length=128)
 
 
 class WishListToDBCreateSchema(WishListCreateSchema):
@@ -76,7 +76,7 @@ class WishListToDBCreateSchema(WishListCreateSchema):
 
 class WishListResponseSchema(BaseResponseSchema, CreatedUpdatedResponseMixin):
     id: StrUUID | None = Field(default=None)
-    title: StrOrNone = Field(default=None, max_length=128, example="My Wishlist")
+    title: StrOrNone = Field(default=None, max_length=128)
     owner_id: StrUUID | None = Field(default=None, alias="ownerId")
 
 

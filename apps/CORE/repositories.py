@@ -1,14 +1,21 @@
 """Basic CRUD for services."""
+
 import typing
-from typing import TypeAlias
 
 from fastapi import status
-from sqlalchemy import delete, func, select, update
+from sqlalchemy import BinaryExpression, delete, func, select, update
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.engine import ChunkedIteratorResult, CursorResult
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from apps.CORE.custom_types import ModelType, StrOrUUID
+from apps.CORE.custom_types import (
+    CountModelListResult,
+    ModelInstance,
+    ModelListOrNone,
+    ModelOrNone,
+    ModelType,
+    StrOrUUID,
+)
 from apps.CORE.deps.body.filtration import Filtration
 from apps.CORE.deps.body.pagination import Pagination
 from apps.CORE.deps.body.projection import Projection
@@ -18,37 +25,32 @@ from apps.CORE.enums import JSENDStatus
 from apps.CORE.exceptions import BackendError
 
 __all__ = (
-    "NoneModelType",
-    "NoneModelTypeList",
     "BaseORMRepository",
     "BaseCoreRepository",
 )
 
-NoneModelType: TypeAlias = ModelType | None
-NoneModelTypeList: TypeAlias = list[ModelType] | None
-
 
 class _BaseCommonRepository:
-    def __init__(self, *, model: type[ModelType]):
+    def __init__(self, *, model: ModelType) -> None:
         self._model = model
 
     @property
-    def model(self) -> type[ModelType]:
+    def model(self) -> ModelType:
         return self._model
 
     async def read(
         self, *, session: AsyncSession, id: StrOrUUID, unique: bool = True, safe: bool = True
-    ) -> NoneModelType:
+    ) -> ModelOrNone:
         statement = select(self.model).where(self.model.id == id)
         result: ChunkedIteratorResult = await session.execute(statement=statement)
         result.unique() if unique else ...
-        data: NoneModelType = result.scalar_one_or_none() if safe else result.scalar_one()
+        data: ModelOrNone = result.scalar_one_or_none() if safe else result.scalar_one()
         return data
 
     async def read_or_not_found(
         self, *, session: AsyncSession, id: StrOrUUID, unique: bool = True, message: str = "Not found."
-    ) -> ModelType:
-        obj: NoneModelType = await self.read(session=session, id=id, unique=unique, safe=True)
+    ) -> ModelInstance:
+        obj: ModelOrNone = await self.read(session=session, id=id, unique=unique, safe=True)
         if not obj:
             raise BackendError(
                 message=message,
@@ -57,13 +59,15 @@ class _BaseCommonRepository:
             )
         return obj
 
-    async def list_or_not_found(self, *, session: AsyncSession, ids: list[StrOrUUID], message: str = "Not found."):
+    async def list_or_not_found(
+        self, *, session: AsyncSession, ids: list[StrOrUUID], message: str = "Not found."
+    ) -> list[ModelInstance]:
         statement = select(self.model).where(self.model.id.in_(ids))
         result = await session.execute(statement=statement)
         result.unique()
         objs = result.scalars().all()
         if diff := set(ids) - {obj.id for obj in objs}:
-            raise BackendError(message=message, data=[i for i in diff], code=status.HTTP_404_NOT_FOUND)
+            raise BackendError(message=message, data=list(diff), code=status.HTTP_404_NOT_FOUND)
         return objs
 
     async def list(
@@ -76,7 +80,7 @@ class _BaseCommonRepository:
         projection: Projection,
         searching: Searching,
         unique: bool = True,
-    ) -> tuple[int, list[ModelType]]:
+    ) -> CountModelListResult:
         select_statement = (
             select(self.model)
             .options(projection.query)
@@ -97,12 +101,12 @@ class _BaseCommonRepository:
 
         total: int = count_result.scalar()  # number of counted results.
         select_result.unique() if unique else ...  # Logic for M2M joins
-        objects: list[ModelType] = select_result.scalars().all()
+        objects: list[ModelInstance] = select_result.scalars().all()
         return total, objects
 
     async def update(
         self, *, session: AsyncSession, id: StrOrUUID, values: dict[str, typing.Any], unique: bool = True
-    ) -> NoneModelType:
+    ) -> ModelOrNone:
         update_statement = (
             update(self.model)
             .where(self.model.id == id)
@@ -116,60 +120,65 @@ class _BaseCommonRepository:
         result: ChunkedIteratorResult = await session.execute(statement=statement)
         await session.flush()
         result.unique() if unique else ...  # Logic for M2M joins
-        obj: NoneModelType = result.scalar_one_or_none()
+        obj: ModelOrNone = result.scalar_one_or_none()
         return obj
 
 
 class BaseORMRepository(_BaseCommonRepository):
     @staticmethod
-    async def create(*, session: AsyncSession, obj: ModelType) -> ModelType:
+    async def create(*, session: AsyncSession, obj: ModelInstance) -> ModelInstance:
         session.add(instance=obj)
         await session.flush()
         # await session.refresh(instance=obj)
         return obj
 
     @staticmethod
-    async def create_many(*, session: AsyncSession, objs: typing.Iterable[ModelType]) -> list[ModelType]:
+    async def create_many(*, session: AsyncSession, objs: typing.Iterable[ModelInstance]) -> list[ModelInstance]:
         objects = list(objs)
         session.add_all(instances=objects)
         await session.flush()
         return objects
 
     @staticmethod
-    async def update(*, session: AsyncSession, obj: ModelType) -> ModelType:
+    async def update(*, session: AsyncSession, obj: ModelInstance) -> ModelInstance:
         await session.flush()
         return obj
 
     @staticmethod
-    async def delete(*, session: AsyncSession, obj: ModelType) -> ModelType:
+    async def delete(*, session: AsyncSession, obj: ModelInstance) -> ModelInstance:
         await session.delete(instance=obj)
         await session.flush()
         return obj
 
 
 class BaseCoreRepository(_BaseCommonRepository):
-    async def create(self, *, session: AsyncSession, values: dict[str, typing.Any], unique: bool = True) -> ModelType:
+    async def create(
+        self, *, session: AsyncSession, values: dict[str, typing.Any], unique: bool = True
+    ) -> ModelInstance:
         insert_statement = insert(self.model).values(**values).returning(self.model)
         statement = select(self.model).from_statement(insert_statement).execution_options(populate_existing=True)
         result: ChunkedIteratorResult = await session.execute(statement=statement)
         await session.flush()
         result.unique() if unique else ...
-        obj: ModelType = result.scalar_one()
+        obj: ModelInstance = result.scalar_one()
         return obj
 
     async def create_many(
         self, *, session: AsyncSession, values_list: list[dict[str, typing.Any]], unique: bool = True
-    ) -> NoneModelTypeList:
+    ) -> ModelListOrNone:
         insert_statement = insert(self.model).values(list(values_list)).returning(self.model)
         statement = select(self.model).from_statement(insert_statement).execution_options(populate_existing=True)
         result: ChunkedIteratorResult = await session.execute(statement=statement)
         await session.flush()
         result.unique() if unique else ...
-        objects: NoneModelTypeList = result.scalars().all()
+        objects: ModelListOrNone = result.scalars().all()
         return objects
 
-    async def delete(self, *, session: AsyncSession, id: StrOrUUID) -> CursorResult:
-        delete_statement = delete(self.model).where(self.model.id == id)
+    async def delete_by_id(self, *, session: AsyncSession, id: StrOrUUID) -> CursorResult:
+        return await self.delete(session=session, filtration=[self.model.id == id])
+
+    async def delete(self, *, session: AsyncSession, filtration: Filtration | list[BinaryExpression]) -> CursorResult:
+        delete_statement = delete(self.model).where(*filtration)
         result: CursorResult = await session.execute(statement=delete_statement)
         await session.flush()
         return result

@@ -10,7 +10,7 @@ from apps.CORE.enums import TokenAudience
 from apps.CORE.exceptions import BackendError
 from apps.CORE.helpers import utc_now
 from apps.CORE.managers import PasswordsManager
-from apps.CORE.models import User
+from apps.CORE.tables import User
 from apps.users.enums import UsersStatuses
 from apps.users.schemas import UserCreateToDBSchema, UserToDBBaseSchema, UserTokenPayloadSchema
 from apps.users.schemas.requests import LoginSchema, UserCreateSchema, UserUpdateSchema
@@ -26,7 +26,11 @@ class UsersHandler:
         self.passwords_manager = PasswordsManager()
 
     async def create_user(
-        self, *, request: Request, session: AsyncSession, data: UserCreateSchema
+        self,
+        *,
+        request: Request,
+        session: AsyncSession,
+        data: UserCreateSchema,
     ) -> UserResponseSchema:
         create_to_db = UserCreateToDBSchema(
             **data.model_dump(by_alias=True, exclude={"password"}),
@@ -36,14 +40,19 @@ class UsersHandler:
         return UserResponseSchema.from_model(obj=user)
 
     async def update_user(
-        self, *, request: Request, session: AsyncSession, data: UserUpdateSchema
+        self,
+        *,
+        request: Request,
+        session: AsyncSession,
+        data: UserUpdateSchema,
     ) -> UserResponseSchema:
         values = data.model_dump(exclude_unset=True)
         if not values:
             raise BackendError(message="Nothing to update.")
         if data.old_password:
             if not self.passwords_manager.check_password(
-                password=data.old_password, password_hash=request.user.password_hash
+                password=data.old_password,
+                password_hash=request.user.password_hash,
             ):
                 raise BackendError(message="Invalid credentials.")
             values = data.model_dump(exclude_unset=True, exclude={"old_password", "new_password"})
@@ -102,7 +111,9 @@ class UsersHandler:
     async def refresh(self, *, request: Request, session: AsyncSession, data: TokenRefreshSchema) -> LoginOutSchema:
         """Generate new tokens pair (access, refresh) from refresh token."""
         payload_schema: UserTokenPayloadSchema = request.app.state.tokens_manager.read_code(
-            aud=TokenAudience.REFRESH, code=data.refresh_token, convert_to=UserTokenPayloadSchema
+            aud=TokenAudience.REFRESH,
+            code=data.refresh_token,
+            convert_to=UserTokenPayloadSchema,
         )
         user: User | None = await users_service.read(session=session, id=payload_schema.id)
         if user and user.status in (UsersStatuses.CONFIRMED.value, UsersStatuses.FORCE_CHANGE_PASSWORD.value):

@@ -1,8 +1,8 @@
 import datetime
 import uuid
-import zoneinfo
 
 import pytest
+import zoneinfo
 from faker import Faker
 from pytest_mock import MockerFixture
 

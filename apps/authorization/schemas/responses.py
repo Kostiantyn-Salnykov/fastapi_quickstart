@@ -14,7 +14,7 @@ class PermissionResponse(BaseResponseSchema):
 
 class RoleResponse(BaseResponseSchema):
     id: uuid.UUID
-    title: str = Field(default=..., max_length=128, example="Role title")
+    title: str = Field(default=..., max_length=128)
     permissions: list[PermissionResponse] | None = Field(default_factory=list)
 
 

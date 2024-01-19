@@ -5,7 +5,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from apps.CORE.custom_types import StrOrNone
 from apps.CORE.db import Base, CreatedAtMixin, CreatedUpdatedMixin, UUIDMixin
-from apps.CORE.models import CASCADES, User
+from apps.CORE.tables import CASCADES, User
 from apps.wishmaster.enums import WishComplexities, WishPriorities, WishStatuses
 
 
@@ -22,6 +22,9 @@ class WishList(Base, UUIDMixin, CreatedUpdatedMixin):
     )
     owner: Mapped["User"] = relationship(User, cascade="all, delete", backref="wishlists")
 
+    def __repr__(self) -> str:
+        return f'{self.__class__.__name__}(title="{self.title}", owner_id={self.owner_id!r})'
+
     def __str__(self) -> str:
         return f'{self.__class__.__name__}(title="{self.title}")'
 
@@ -33,7 +36,10 @@ class Category(Base, UUIDMixin, CreatedUpdatedMixin):
     owner: Mapped["User"] = relationship(User, backref="categories")
 
     def __repr__(self) -> str:
-        return f'{self.__class__.__name__}(title="{self.title}", owner_id="{self.owner_id}")'
+        return f'{self.__class__.__name__}(title="{self.title}", owner_id={self.owner_id!r})'
+
+    def __str__(self) -> str:
+        return f'{self.__class__.__name__}(title="{self.title}")'
 
 
 class Wish(Base, UUIDMixin, CreatedUpdatedMixin):
@@ -67,6 +73,9 @@ class Wish(Base, UUIDMixin, CreatedUpdatedMixin):
         return (
             f'{self.__class__.__name__}(title="{self.title}", description="{self.description}", status="{self.status}")'
         )
+
+    def __str__(self) -> str:
+        return f'{self.__class__.__name__}(title="{self.title}")'
 
 
 class Tag(Base, UUIDMixin, CreatedAtMixin):

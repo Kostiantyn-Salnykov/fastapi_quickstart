@@ -1,8 +1,8 @@
 import datetime
 import uuid
-import zoneinfo
 
 import orjson
+import zoneinfo
 from faker import Faker
 
 from apps.CORE.custom_types import Timestamp
@@ -22,7 +22,10 @@ class TestBaseOutSchema:
         time_delta = faker.time_delta(datetime.timedelta(seconds=faker.pyint()))
         fake_uuid = faker.uuid4(cast_to=None)
         schema = self.CheckSchema(
-            field_datetime=date_time, field_timestamp=date_time_2, field_timedelta=time_delta, field_uuid=fake_uuid
+            field_datetime=date_time,
+            field_timestamp=date_time_2,
+            field_timedelta=time_delta,
+            field_uuid=fake_uuid,
         )
         excepted_dict = {
             "field_datetime": date_time,
@@ -48,8 +51,7 @@ class TestBaseOutSchema:
             total_seconds % 60
 
             # iso_string = f"{sign}P{int(days)}DT{int(hours)}H{int(minutes)}M{int(seconds)}S"
-            iso_string = f"{sign}PT{int(total_seconds)}S"
-            return iso_string
+            return f"{sign}PT{int(total_seconds)}S"
 
         expected_converted_json_dict = {
             "field_datetime": date_time.isoformat(),

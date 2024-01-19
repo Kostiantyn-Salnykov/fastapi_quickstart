@@ -20,7 +20,7 @@ from apps.CORE.custom_types import StrOrUUID
 from apps.CORE.deps.query.pagination import NextTokenPagination
 from apps.CORE.exceptions import BackendError
 from apps.CORE.helpers import to_db_encoder
-from apps.CORE.models import Group, Permission, Role
+from apps.CORE.tables import Group, Permission, Role
 from loggers import get_logger
 
 logger = get_logger(name=__name__)
@@ -52,7 +52,7 @@ class GroupsHandler:
         session: AsyncSession,
         pagination: NextTokenPagination,
         sorting: list[UnaryExpression],
-        filters: list[BinaryExpression] | None = None
+        filters: list[BinaryExpression] | None = None,
     ) -> tuple[int, list[Group]]:
         return await groups_service.list(
             session=session,
@@ -63,7 +63,12 @@ class GroupsHandler:
         )
 
     async def update_group(
-        self, *, request: Request, session: AsyncSession, id: StrOrUUID, data: GroupUpdateRequest
+        self,
+        *,
+        request: Request,
+        session: AsyncSession,
+        id: StrOrUUID,
+        data: GroupUpdateRequest,
     ) -> GroupResponse:
         values: dict[str, typing.Any] = to_db_encoder(obj=data, exclude={"roles_ids"})
         if not values:
@@ -71,7 +76,9 @@ class GroupsHandler:
         group: Group = await groups_service.read_or_not_found(session=session, id=id, message="Group no found.")
         if data.roles_ids:
             roles = await roles_service.list_or_not_found(
-                session=session, ids=data.roles_ids, message="Role(s) not found."
+                session=session,
+                ids=data.roles_ids,
+                message="Role(s) not found.",
             )
             group.roles = roles
         else:
@@ -82,10 +89,9 @@ class GroupsHandler:
         return group
 
     async def delete_group(self, *, request: Request, session: AsyncSession, id: StrOrUUID, safe: bool = False) -> None:
-        result: CursorResult = await groups_service.delete(session=session, id=id)
+        result: CursorResult = await groups_service.delete_by_id(session=session, id=id)
         if not result.rowcount and not safe:
             raise BackendError(message="Group not found.", code=status.HTTP_404_NOT_FOUND)
-        return None
 
 
 class RolesHandler:
@@ -93,7 +99,9 @@ class RolesHandler:
         role_schema: RoleCreateToDBSchema = RoleCreateToDBSchema(id=uuid_extensions.uuid7str(), title=data.title)
         if data.permissions_ids:
             await permissions_service.list_or_not_found(
-                session=session, ids=data.permissions_ids, message="Permission(s) not found."
+                session=session,
+                ids=data.permissions_ids,
+                message="Permission(s) not found.",
             )
         async with session.begin_nested():
             role: Role = await roles_service.create(session=session, values=to_db_encoder(role_schema), unique=True)
@@ -121,7 +129,7 @@ class RolesHandler:
         session: AsyncSession,
         pagination: NextTokenPagination,
         sorting: list[UnaryExpression],
-        filters: list[BinaryExpression] | None = None
+        filters: list[BinaryExpression] | None = None,
     ) -> tuple[int, list[Role]]:
         return await roles_service.list(
             session=session,
@@ -133,10 +141,9 @@ class RolesHandler:
         )
 
     async def delete_role(self, *, request: Request, session: AsyncSession, id: StrOrUUID, safe: bool = False) -> None:
-        result: CursorResult = await roles_service.delete(session=session, id=id)
+        result: CursorResult = await roles_service.delete_by_id(session=session, id=id)
         if not result.rowcount and not safe:
             raise BackendError(message="Role not found.", code=status.HTTP_404_NOT_FOUND)
-        return None
 
 
 class PermissionsHandler:
@@ -153,11 +160,15 @@ class PermissionsHandler:
         session: AsyncSession,
         pagination: NextTokenPagination,
         sorting: list[UnaryExpression],
-        filters: list[BinaryExpression] | None = None
+        filters: list[BinaryExpression] | None = None,
     ) -> tuple[int, list[Permission]]:
         objects: list[Permission]
         total, objects = await permissions_service.list(
-            session=session, limit=pagination.limit, next_token=pagination.next_token, sorting=sorting, filters=filters
+            session=session,
+            limit=pagination.limit,
+            next_token=pagination.next_token,
+            sorting=sorting,
+            filters=filters,
         )
         return total, objects
 

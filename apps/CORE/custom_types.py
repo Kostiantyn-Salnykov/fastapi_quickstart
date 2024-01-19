@@ -14,11 +14,17 @@ StrOrUUID: typing.TypeAlias = str | uuid.UUID
 StrOrNone: typing.TypeAlias = str | None
 ListOfAny: typing.TypeAlias = list[typing.Any]
 DictStrOfAny: typing.TypeAlias = dict[str, typing.Any]
-ModelType = typing.TypeVar("ModelType", bound=Base)
-SchemaType = typing.TypeVar("SchemaType", bound=BaseModel)
-ModelColumnVar = typing.TypeVar("ModelColumnVar", bound=Column)
-ObjectsVar = typing.TypeVar("ObjectsVar", bound=dict[str, None | str | int | float | dict | list])
+DictIntOfAny: typing.TypeAlias = dict[int, typing.Any]
+ModelInstance = typing.TypeVar("ModelInstance", bound=Base)
+SchemaInstance = typing.TypeVar("SchemaInstance", bound=BaseModel)
+ModelType: typing.TypeAlias = type[ModelInstance]
+SchemaType: typing.TypeAlias = type[SchemaInstance]
+ModelOrNone: typing.TypeAlias = ModelInstance | None
+ModelListOrNone: typing.TypeAlias = list[ModelInstance] | None
+ModelColumnInstance = typing.TypeVar("ModelColumnInstance", bound=Column)
+ResultObject = typing.TypeVar("ResultObject", bound=dict[str, None | str | int | float | dict | list])
 DatetimeOrNone: typing.TypeAlias = datetime.datetime | None
+CountModelListResult: typing.TypeAlias = tuple[int, list[ModelInstance]]
 
 
 def validate_uuid(v: StrOrUUID) -> str:
@@ -29,7 +35,8 @@ def validate_uuid(v: StrOrUUID) -> str:
     try:
         result = uuid.UUID(v)
     except ValueError as error:
-        raise ValueError("Invalid UUID") from error
+        msg = "Invalid UUID"
+        raise ValueError(msg) from error
     else:
         return str(result)
 
@@ -37,7 +44,7 @@ def validate_uuid(v: StrOrUUID) -> str:
 StrUUID = typing.Annotated[
     uuid.UUID,
     PlainSerializer(func=validate_uuid, return_type=str),
-    AfterValidator(func=lambda val: str(val)),
+    AfterValidator(func=str),
     WithJsonSchema(
         json_schema={
             "type": "string",
@@ -78,18 +85,21 @@ Timestamp = typing.Annotated[
 def validate_phone(v: str) -> str:
     prefix = "+"
     if not re.match(r"^\d{8,15}$", v):
-        raise ValueError("Must be digits")
+        msg = "Must be digits"
+        raise ValueError(msg)
     try:
         v = "".join(digit for digit in v if digit.isdigit())  # format phone (allow only digits)
         v = prefix + v  # add prefix to valid parsing
         parsed_phone = phonenumbers.parse(number=v)
     except phonenumbers.phonenumberutil.NumberParseException as error:
-        raise ValueError("Invalid number") from error
+        msg = "Invalid number"
+        raise ValueError(msg) from error
     else:
         if phonenumbers.is_possible_number(parsed_phone):  # pragma: no cover
             return v.removeprefix(prefix)
 
-    raise ValueError("Impossible number")  # pragma: no cover
+    msg = "Impossible number"
+    raise ValueError(msg)  # pragma: no cover
 
 
 Phone = typing.Annotated[

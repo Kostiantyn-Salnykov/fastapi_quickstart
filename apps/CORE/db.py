@@ -55,6 +55,9 @@ class BaseTableModelMixin:
                 result[k] = [obj.to_dict() for obj in v]
         return result
 
+    def __str__(self) -> str:
+        return self.__repr__()
+
 
 @declarative_mixin
 class UUIDMixin:
@@ -72,7 +75,7 @@ class UUIDMixin:
 
 @declarative_mixin
 class CreatedAtMixin:
-    """Mixin for add created_at field."""
+    """Mixin for adding "created_at" field."""
 
     created_at: Mapped[datetime.datetime] = mapped_column(
         TIMESTAMP(timezone=True),
@@ -83,7 +86,7 @@ class CreatedAtMixin:
 
 @declarative_mixin
 class UpdatedAtMixin:
-    """Mixin for add updated_at field."""
+    """Mixin for adding "updated_at" field."""
 
     updated_at: Mapped[datetime.datetime] = mapped_column(
         TIMESTAMP(timezone=True),
@@ -96,9 +99,9 @@ class UpdatedAtMixin:
 
 @declarative_mixin
 class CreatedUpdatedMixin(CreatedAtMixin, UpdatedAtMixin):
-    """Mixin for add updated_at and created_at fields."""
+    """Mixin for adding "updated_at" and "created_at" fields."""
 
-    pass
+    ...
 
 
 NAMING_CONVENTION = {

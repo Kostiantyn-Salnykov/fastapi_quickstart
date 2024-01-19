@@ -1,4 +1,5 @@
 """Config file for tests."""
+
 import asyncio
 import random
 import typing
@@ -53,7 +54,7 @@ def _create_database(_mock_db_url: None) -> typing.Generator[None, None, None]:
     """Recreates `test` database for tests."""
     con = psycopg2.connect(
         f"postgresql://{Settings.POSTGRES_USER}:{Settings.POSTGRES_PASSWORD}@"
-        f"{Settings.POSTGRES_HOST}:{Settings.POSTGRES_PORT}"
+        f"{Settings.POSTGRES_HOST}:{Settings.POSTGRES_PORT}",
     )
 
     con.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
@@ -62,8 +63,8 @@ def _create_database(_mock_db_url: None) -> typing.Generator[None, None, None]:
     cursor.execute(f"""DROP DATABASE IF EXISTS {Settings.POSTGRES_DB};""")
     cursor.execute(f"""CREATE DATABASE {Settings.POSTGRES_DB};""")
     yield
-    cursor.execute(f"""DROP DATABASE IF EXISTS {Settings.POSTGRES_DB};""")
     close_all_sessions()
+    cursor.execute(f"""DROP DATABASE IF EXISTS {Settings.POSTGRES_DB};""")
 
 
 @pytest.fixture(scope="session")
@@ -88,13 +89,14 @@ def _no_http_requests(monkeypatch_session: MonkeyPatch) -> None:
         This isn't working with `httpx`, because it uses in tests to call Back-end API endpoints.
     """
 
-    def raise_mock(*args, **kwargs):  # type: ignore
+    def raise_mock(*args, **kwargs) -> None:  # type: ignore
         """Thrown and exception when tests try to use HTTP connection.
 
         Raises:
             RuntimeError: indicates that HTTPS request found.
         """
-        raise RuntimeError(f"Found request: {args}, {kwargs}")
+        msg = f"Found request: {args}, {kwargs}"
+        raise RuntimeError(msg)
 
     # Disable library `urllib3`
     monkeypatch_session.setattr(target="urllib3.connectionpool.HTTPConnectionPool.urlopen", name=raise_mock)
@@ -133,7 +135,10 @@ async def _mock_sessions_factories(async_db_engine: AsyncEngine, sync_db_engine:
 
 @pytest.fixture()
 async def app_fixture(
-    db_session: AsyncSession, sync_db_session: Session, event_loop: asyncio.AbstractEventLoop, monkeypatch
+    db_session: AsyncSession,
+    sync_db_session: Session,
+    event_loop: asyncio.AbstractEventLoop,
+    monkeypatch: MonkeyPatch,
 ) -> fastapi.FastAPI:
     """Overrides dependencies for FastAPI and returns FastAPI instance (app).
 
@@ -149,7 +154,7 @@ async def app_fixture(
         """Replace `get_session` dependency with Session from `sync_db_session` fixture."""
         return sync_db_session
 
-    from apps.main import app
+    from apps.__main__ import app
 
     app.dependency_overrides[get_async_session] = override_get_async_session
     app.dependency_overrides[get_session] = override_get_session
@@ -159,8 +164,12 @@ async def app_fixture(
 @pytest.fixture(scope="session", autouse=True)
 async def _mock_limiters(monkeypatch_session: MonkeyPatch) -> None:
     async def limiter_mock(
-        self, *, request: Request, response: Response, redis_client: aioredis.Redis = Depends(get_redis)
-    ):
+        self,
+        *,
+        request: Request,
+        response: Response,
+        redis_client: aioredis.Redis = Depends(get_redis),
+    ) -> bool:
         return True
 
     monkeypatch_session.setattr(target=SlidingWindowRateLimiter, name="__call__", value=limiter_mock, raising=False)
@@ -173,9 +182,7 @@ async def async_client(app_fixture: fastapi.FastAPI, event_loop: asyncio.Abstrac
     Yields:
         httpx_client (httpx.AsyncClient): Instance of AsyncClient to perform a requests to API.
     """
-    async with httpx.AsyncClient(
-        app=app_fixture, base_url=f"http://{Settings.HOST}:{Settings.PORT}"  # noqa
-    ) as httpx_client:
+    async with httpx.AsyncClient(app=app_fixture, base_url=f"http://{Settings.HOST}:{Settings.PORT}") as httpx_client:
         yield httpx_client
 
 
@@ -207,7 +214,9 @@ def alembic_runner(alembic_config: Config, alembic_engine: Engine) -> typing.Gen
 
 @pytest.fixture(scope="session", autouse=True)
 def _apply_migrations(
-    _create_database: None, alembic_runner: runner, alembic_engine: Engine
+    _create_database: None,
+    alembic_runner: runner,
+    alembic_engine: Engine,
 ) -> typing.Generator[None, None, None]:
     """Applies all migrations from base to head (via pytest_alembic)."""
     alembic_runner.migrate_up_to(revision="head")

@@ -33,10 +33,16 @@ class User(Base, UUIDMixin, CreatedUpdatedMixin, BaseUser):
     status: Mapped[str] = mapped_column(VARCHAR(length=64), default=UsersStatuses.UNCONFIRMED.value, nullable=False)
 
     groups: Mapped[list["Group"]] = relationship(
-        "Group", secondary="group_user", back_populates="users", order_by="Group.title"
+        "Group",
+        secondary="group_user",
+        back_populates="users",
+        order_by="Group.title",
     )
     roles: Mapped[list["Role"]] = relationship(
-        "Role", secondary="role_user", back_populates="users", order_by="Role.title"
+        "Role",
+        secondary="role_user",
+        back_populates="users",
+        order_by="Role.title",
     )
     permissions: Mapped[list["Permission"]] = relationship(
         "Permission",
@@ -77,7 +83,11 @@ class Group(Base, CreatedUpdatedMixin, UUIDMixin):
     title: Mapped[str] = mapped_column(VARCHAR(length=255), nullable=False, unique=True, index=True)
 
     roles: Mapped[list["Role"]] = relationship(
-        "Role", secondary="group_role", back_populates="groups", lazy="joined", order_by="Role.title"
+        "Role",
+        secondary="group_role",
+        back_populates="groups",
+        lazy="joined",
+        order_by="Role.title",
     )
     users: Mapped[list["User"]] = relationship("User", secondary="group_user", back_populates="groups")
 
@@ -89,7 +99,10 @@ class Role(Base, CreatedUpdatedMixin, UUIDMixin):
     title: Mapped[str] = mapped_column(VARCHAR(length=128), nullable=False, unique=True, index=True)
 
     groups: Mapped[list["Group"]] = relationship(
-        "Group", secondary="group_role", back_populates="roles", order_by="Group.title"
+        "Group",
+        secondary="group_role",
+        back_populates="roles",
+        order_by="Group.title",
     )
     permissions: Mapped[list["Permission"]] = relationship(
         "Permission",
@@ -99,7 +112,10 @@ class Role(Base, CreatedUpdatedMixin, UUIDMixin):
         order_by="Permission.object_name, Permission.action",
     )
     users: Mapped[list["User"]] = relationship(
-        "User", secondary="role_user", back_populates="roles", order_by="User.email"
+        "User",
+        secondary="role_user",
+        back_populates="roles",
+        order_by="User.email",
     )
 
     def __repr__(self) -> str:
@@ -113,10 +129,16 @@ class Permission(Base, CreatedUpdatedMixin, UUIDMixin):
     action: Mapped[str] = Column(VARCHAR(length=32), nullable=False)
 
     roles: Mapped[list["Role"]] = relationship(
-        "Role", secondary="role_permission", back_populates="permissions", order_by="Role.title"
+        "Role",
+        secondary="role_permission",
+        back_populates="permissions",
+        order_by="Role.title",
     )
     users: Mapped[list["User"]] = relationship(
-        "User", secondary="permission_user", back_populates="permissions", order_by="User.email"
+        "User",
+        secondary="permission_user",
+        back_populates="permissions",
+        order_by="User.email",
     )
 
     def __repr__(self) -> str:
@@ -128,10 +150,16 @@ class Permission(Base, CreatedUpdatedMixin, UUIDMixin):
 
 class GroupRole(Base, CreatedAtMixin):
     group_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), ForeignKey(column="group.id", **CASCADES), nullable=False, primary_key=True
+        UUID(as_uuid=True),
+        ForeignKey(column="group.id", **CASCADES),
+        nullable=False,
+        primary_key=True,
     )
     role_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), ForeignKey(column="role.id", **CASCADES), nullable=False, primary_key=True
+        UUID(as_uuid=True),
+        ForeignKey(column="role.id", **CASCADES),
+        nullable=False,
+        primary_key=True,
     )
 
     def __repr__(self) -> str:
@@ -140,10 +168,16 @@ class GroupRole(Base, CreatedAtMixin):
 
 class RolePermission(Base, CreatedAtMixin):
     role_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), ForeignKey(column="role.id", **CASCADES), nullable=False, primary_key=True
+        UUID(as_uuid=True),
+        ForeignKey(column="role.id", **CASCADES),
+        nullable=False,
+        primary_key=True,
     )
     permission_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), ForeignKey(column="permission.id", **CASCADES), nullable=False, primary_key=True
+        UUID(as_uuid=True),
+        ForeignKey(column="permission.id", **CASCADES),
+        nullable=False,
+        primary_key=True,
     )
 
     def __repr__(self) -> str:
@@ -152,10 +186,16 @@ class RolePermission(Base, CreatedAtMixin):
 
 class GroupUser(Base, CreatedAtMixin):
     group_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), ForeignKey(column="group.id", **CASCADES), nullable=False, primary_key=True
+        UUID(as_uuid=True),
+        ForeignKey(column="group.id", **CASCADES),
+        nullable=False,
+        primary_key=True,
     )
     user_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), ForeignKey(column="user.id", **CASCADES), nullable=False, primary_key=True
+        UUID(as_uuid=True),
+        ForeignKey(column="user.id", **CASCADES),
+        nullable=False,
+        primary_key=True,
     )
 
     def __repr__(self) -> str:
@@ -164,10 +204,16 @@ class GroupUser(Base, CreatedAtMixin):
 
 class RoleUser(Base, CreatedAtMixin):
     role_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), ForeignKey(column="role.id", **CASCADES), nullable=False, primary_key=True
+        UUID(as_uuid=True),
+        ForeignKey(column="role.id", **CASCADES),
+        nullable=False,
+        primary_key=True,
     )
     user_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), ForeignKey(column="user.id", **CASCADES), nullable=False, primary_key=True
+        UUID(as_uuid=True),
+        ForeignKey(column="user.id", **CASCADES),
+        nullable=False,
+        primary_key=True,
     )
 
     def __repr__(self) -> str:
@@ -176,10 +222,16 @@ class RoleUser(Base, CreatedAtMixin):
 
 class PermissionUser(Base, CreatedAtMixin):
     permission_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), ForeignKey(column="permission.id", **CASCADES), nullable=False, primary_key=True
+        UUID(as_uuid=True),
+        ForeignKey(column="permission.id", **CASCADES),
+        nullable=False,
+        primary_key=True,
     )
     user_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), ForeignKey(column="user.id", **CASCADES), nullable=False, primary_key=True
+        UUID(as_uuid=True),
+        ForeignKey(column="user.id", **CASCADES),
+        nullable=False,
+        primary_key=True,
     )
 
     def __repr__(self) -> str:

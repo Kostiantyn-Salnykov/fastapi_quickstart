@@ -7,12 +7,12 @@ from apps.CORE.schemas.requests import BaseRequestSchema
 
 
 class GroupCreateRequest(BaseRequestSchema):
-    title: str = Field(default=..., max_length=255, example="Group title")
+    title: str = Field(default=..., max_length=255)
     roles_ids: list[uuid.UUID] | None = Field(default_factory=list)
 
 
 class GroupUpdateRequest(GroupCreateRequest):
-    title: StrOrNone = Field(default=None, max_length=255, example="Group title")
+    title: StrOrNone = Field(default=None, max_length=255)
 
 
 class CreateGroupRoleRequest(BaseRequestSchema):
@@ -21,7 +21,7 @@ class CreateGroupRoleRequest(BaseRequestSchema):
 
 
 class RoleCreateRequest(BaseRequestSchema):
-    title: str = Field(default=..., max_length=128, example="Role title")
+    title: str = Field(default=..., max_length=128)
     permissions_ids: list[uuid.UUID] | None = Field(default_factory=list)
 
 

@@ -10,8 +10,12 @@ class BackendError(Exception):
     """Exception for Back-end with JSEND adaptation.
 
     Examples:
-        >>> raise BackendError(status=JSENDStatus.SUCCESS, data=["Something", "Interesting"],
-        ... message="Fascinating exception.", code=http_status.HTTP_200_OK)
+        >>> raise BackendError(
+        ...     status=JSENDStatus.SUCCESS,
+        ...     data=["Something", "Interesting"],
+        ...     message="Fascinating exception.",
+        ...     code=http_status.HTTP_200_OK,
+        ... )
     """
 
     def __init__(
@@ -21,7 +25,7 @@ class BackendError(Exception):
         data: None | int | str | ListOfAny | DictStrOfAny = None,
         message: str,
         code: int = http_status.HTTP_400_BAD_REQUEST,
-    ):
+    ) -> None:
         """Initializer for BackException.
 
         Keyword Args:
@@ -64,7 +68,7 @@ class RateLimitError(BackendError):
         data: None | int | str | ListOfAny | DictStrOfAny = None,
         message: str,
         code: int = http_status.HTTP_429_TOO_MANY_REQUESTS,
-        headers: dict[str, str] = None,
+        headers: dict[str, str] | None = None,
     ) -> None:
         super().__init__(status=status, data=data, message=message, code=code)
         self.headers = headers

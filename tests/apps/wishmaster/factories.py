@@ -1,7 +1,7 @@
 import factory
 
 from apps.wishmaster.enums import WishComplexities, WishPriorities, WishStatuses
-from apps.wishmaster.models import Category, Tag, Wish, WishList, WishTag
+from apps.wishmaster.tables import Category, Tag, Wish, WishList, WishTag
 from tests.bases import BaseModelFactory
 
 __all__ = ("CategoryFactory", "TagFactory", "WishTagFactory", "WishListFactory", "WishFactory")

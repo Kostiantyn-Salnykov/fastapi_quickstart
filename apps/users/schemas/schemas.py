@@ -8,9 +8,9 @@ from apps.users.enums import UsersStatuses
 
 class UserToDBBaseSchema(BaseRequestSchema):
     id: StrUUID | None = None
-    first_name: StrOrNone = Field(default=None, title="First name", max_length=128, alias="firstName", example="John")
-    last_name: StrOrNone = Field(default=None, title="Last name", max_length=128, alias="lastName", example="Doe")
-    email: Email | None = Field(default=None, title="Email", example="kostiantyn.salnykov@gmail.com")
+    first_name: StrOrNone = Field(default=None, title="First name", max_length=128, alias="firstName")
+    last_name: StrOrNone = Field(default=None, title="Last name", max_length=128, alias="lastName")
+    email: Email | None = Field(default=None, title="Email")
     status: UsersStatuses = Field(default=UsersStatuses.UNCONFIRMED, title="User status", alias="status")
     created_at: DatetimeOrNone = Field(default=None, title="Created at", alias="createdAt")
     updated_at: DatetimeOrNone = Field(default=None, title="Updated at", alias="updatedAt")

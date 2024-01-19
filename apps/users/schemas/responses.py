@@ -9,9 +9,9 @@ from apps.users.schemas.requests import TokenRefreshSchema
 
 class UserResponseSchema(BaseResponseSchema):
     id: StrUUID
-    first_name: str = Field(title="First name", max_length=128, alias="firstName", example="John")
-    last_name: str = Field(title="Last name", max_length=128, alias="lastName", example="Doe")
-    email: Email = Field(title="Email", example="kostiantyn.salnykov@gmail.com")
+    first_name: str = Field(title="First name", max_length=128, alias="firstName")
+    last_name: str = Field(title="Last name", max_length=128, alias="lastName")
+    email: Email = Field(title="Email")
     status: UsersStatuses = Field(default=UsersStatuses.UNCONFIRMED, title="User status", alias="status")
     created_at: AwareDatetime = Field(title="Created at", alias="createdAt")
     updated_at: AwareDatetime = Field(title="Updated at", alias="updatedAt")

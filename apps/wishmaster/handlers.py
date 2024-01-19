@@ -11,18 +11,18 @@ from apps.CORE.deps.body.searching import Searching
 from apps.CORE.deps.body.sorting import Sorting
 from apps.CORE.exceptions import BackendError
 from apps.CORE.helpers import to_db_encoder
-from apps.wishmaster.models import WishList
-from apps.wishmaster.schemas import (
-    WishListCreateSchema,
-    WishListResponseSchema,
-    WishListToDBCreateSchema,
-)
+from apps.wishmaster.schemas import WishListCreateSchema, WishListResponseSchema, WishListToDBCreateSchema
 from apps.wishmaster.services import wishlist_service
+from apps.wishmaster.tables import WishList
 
 
 class WishlistHandler:
     async def create(
-        self, *, session: AsyncSession, request: Request, data: WishListCreateSchema
+        self,
+        *,
+        session: AsyncSession,
+        request: Request,
+        data: WishListCreateSchema,
     ) -> WishListResponseSchema:
         data = WishListToDBCreateSchema(**data.model_dump(), owner_id=request.user.id)
         values: dict[str, typing.Any] = to_db_encoder(obj=data)
@@ -51,10 +51,10 @@ class WishlistHandler:
         )
 
     async def delete(self, *, session: AsyncSession, request: Request, id: StrOrUUID, safe: bool = False) -> None:
-        result = await wishlist_service.delete(session=session, id=id)
+        filtration = [WishList.id == id, WishList.owner_id == request.user.id]
+        result = await wishlist_service.delete(session=session, filtration=filtration)
         if not result.rowcount and not safe:
-            raise BackendError(message="WishList not found.", code=status.HTTP_404_NOT_FOUND)
-        return None
+            raise BackendError(message="Wishlist not found.", code=status.HTTP_404_NOT_FOUND)
 
 
 wishlist_handler = WishlistHandler()

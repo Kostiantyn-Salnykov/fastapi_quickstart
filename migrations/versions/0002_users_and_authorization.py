@@ -5,6 +5,7 @@ Revises: 0001
 Create Date: 2022-11-19 10:22:33.425529+00:00
 
 """
+
 import sqlalchemy as sa
 from alembic import op
 from sqlalchemy.dialects import postgresql
@@ -22,10 +23,16 @@ def upgrade():
         "group",
         sa.Column("id", postgresql.UUID(as_uuid=True), nullable=False),
         sa.Column(
-            "created_at", sa.TIMESTAMP(timezone=True), server_default=sa.text("CURRENT_TIMESTAMP"), nullable=False
+            "created_at",
+            sa.TIMESTAMP(timezone=True),
+            server_default=sa.text("CURRENT_TIMESTAMP"),
+            nullable=False,
         ),
         sa.Column(
-            "updated_at", sa.TIMESTAMP(timezone=True), server_default=sa.text("CURRENT_TIMESTAMP"), nullable=False
+            "updated_at",
+            sa.TIMESTAMP(timezone=True),
+            server_default=sa.text("CURRENT_TIMESTAMP"),
+            nullable=False,
         ),
         sa.Column("title", sa.VARCHAR(length=255), nullable=False),
         sa.PrimaryKeyConstraint("id", name=op.f("pk_group")),
@@ -35,10 +42,16 @@ def upgrade():
         "permission",
         sa.Column("id", postgresql.UUID(as_uuid=True), nullable=False),
         sa.Column(
-            "created_at", sa.TIMESTAMP(timezone=True), server_default=sa.text("CURRENT_TIMESTAMP"), nullable=False
+            "created_at",
+            sa.TIMESTAMP(timezone=True),
+            server_default=sa.text("CURRENT_TIMESTAMP"),
+            nullable=False,
         ),
         sa.Column(
-            "updated_at", sa.TIMESTAMP(timezone=True), server_default=sa.text("CURRENT_TIMESTAMP"), nullable=False
+            "updated_at",
+            sa.TIMESTAMP(timezone=True),
+            server_default=sa.text("CURRENT_TIMESTAMP"),
+            nullable=False,
         ),
         sa.Column("object_name", sa.VARCHAR(length=128), nullable=False),
         sa.Column("action", sa.VARCHAR(length=32), nullable=False),
@@ -49,10 +62,16 @@ def upgrade():
         "role",
         sa.Column("id", postgresql.UUID(as_uuid=True), nullable=False),
         sa.Column(
-            "created_at", sa.TIMESTAMP(timezone=True), server_default=sa.text("CURRENT_TIMESTAMP"), nullable=False
+            "created_at",
+            sa.TIMESTAMP(timezone=True),
+            server_default=sa.text("CURRENT_TIMESTAMP"),
+            nullable=False,
         ),
         sa.Column(
-            "updated_at", sa.TIMESTAMP(timezone=True), server_default=sa.text("CURRENT_TIMESTAMP"), nullable=False
+            "updated_at",
+            sa.TIMESTAMP(timezone=True),
+            server_default=sa.text("CURRENT_TIMESTAMP"),
+            nullable=False,
         ),
         sa.Column("title", sa.VARCHAR(length=128), nullable=False),
         sa.PrimaryKeyConstraint("id", name=op.f("pk_role")),
@@ -62,10 +81,16 @@ def upgrade():
         "user",
         sa.Column("id", postgresql.UUID(as_uuid=True), nullable=False),
         sa.Column(
-            "created_at", sa.TIMESTAMP(timezone=True), server_default=sa.text("CURRENT_TIMESTAMP"), nullable=False
+            "created_at",
+            sa.TIMESTAMP(timezone=True),
+            server_default=sa.text("CURRENT_TIMESTAMP"),
+            nullable=False,
         ),
         sa.Column(
-            "updated_at", sa.TIMESTAMP(timezone=True), server_default=sa.text("CURRENT_TIMESTAMP"), nullable=False
+            "updated_at",
+            sa.TIMESTAMP(timezone=True),
+            server_default=sa.text("CURRENT_TIMESTAMP"),
+            nullable=False,
         ),
         sa.Column("first_name", sa.VARCHAR(length=128), nullable=False),
         sa.Column("last_name", sa.VARCHAR(length=128), nullable=False),
@@ -78,7 +103,10 @@ def upgrade():
     op.create_table(
         "group_role",
         sa.Column(
-            "created_at", sa.TIMESTAMP(timezone=True), server_default=sa.text("CURRENT_TIMESTAMP"), nullable=False
+            "created_at",
+            sa.TIMESTAMP(timezone=True),
+            server_default=sa.text("CURRENT_TIMESTAMP"),
+            nullable=False,
         ),
         sa.Column("group_id", postgresql.UUID(as_uuid=True), nullable=False),
         sa.Column("role_id", postgresql.UUID(as_uuid=True), nullable=False),
@@ -90,14 +118,21 @@ def upgrade():
             ondelete="CASCADE",
         ),
         sa.ForeignKeyConstraint(
-            ["role_id"], ["role.id"], name=op.f("fk_group_role_role_id_role"), onupdate="CASCADE", ondelete="CASCADE"
+            ["role_id"],
+            ["role.id"],
+            name=op.f("fk_group_role_role_id_role"),
+            onupdate="CASCADE",
+            ondelete="CASCADE",
         ),
         sa.PrimaryKeyConstraint("group_id", "role_id", name=op.f("pk_group_role")),
     )
     op.create_table(
         "group_user",
         sa.Column(
-            "created_at", sa.TIMESTAMP(timezone=True), server_default=sa.text("CURRENT_TIMESTAMP"), nullable=False
+            "created_at",
+            sa.TIMESTAMP(timezone=True),
+            server_default=sa.text("CURRENT_TIMESTAMP"),
+            nullable=False,
         ),
         sa.Column("group_id", postgresql.UUID(as_uuid=True), nullable=False),
         sa.Column("user_id", postgresql.UUID(as_uuid=True), nullable=False),
@@ -109,14 +144,21 @@ def upgrade():
             ondelete="CASCADE",
         ),
         sa.ForeignKeyConstraint(
-            ["user_id"], ["user.id"], name=op.f("fk_group_user_user_id_user"), onupdate="CASCADE", ondelete="CASCADE"
+            ["user_id"],
+            ["user.id"],
+            name=op.f("fk_group_user_user_id_user"),
+            onupdate="CASCADE",
+            ondelete="CASCADE",
         ),
         sa.PrimaryKeyConstraint("group_id", "user_id", name=op.f("pk_group_user")),
     )
     op.create_table(
         "permission_user",
         sa.Column(
-            "created_at", sa.TIMESTAMP(timezone=True), server_default=sa.text("CURRENT_TIMESTAMP"), nullable=False
+            "created_at",
+            sa.TIMESTAMP(timezone=True),
+            server_default=sa.text("CURRENT_TIMESTAMP"),
+            nullable=False,
         ),
         sa.Column("permission_id", postgresql.UUID(as_uuid=True), nullable=False),
         sa.Column("user_id", postgresql.UUID(as_uuid=True), nullable=False),
@@ -139,7 +181,10 @@ def upgrade():
     op.create_table(
         "role_permission",
         sa.Column(
-            "created_at", sa.TIMESTAMP(timezone=True), server_default=sa.text("CURRENT_TIMESTAMP"), nullable=False
+            "created_at",
+            sa.TIMESTAMP(timezone=True),
+            server_default=sa.text("CURRENT_TIMESTAMP"),
+            nullable=False,
         ),
         sa.Column("role_id", postgresql.UUID(as_uuid=True), nullable=False),
         sa.Column("permission_id", postgresql.UUID(as_uuid=True), nullable=False),
@@ -162,15 +207,26 @@ def upgrade():
     op.create_table(
         "role_user",
         sa.Column(
-            "created_at", sa.TIMESTAMP(timezone=True), server_default=sa.text("CURRENT_TIMESTAMP"), nullable=False
+            "created_at",
+            sa.TIMESTAMP(timezone=True),
+            server_default=sa.text("CURRENT_TIMESTAMP"),
+            nullable=False,
         ),
         sa.Column("role_id", postgresql.UUID(as_uuid=True), nullable=False),
         sa.Column("user_id", postgresql.UUID(as_uuid=True), nullable=False),
         sa.ForeignKeyConstraint(
-            ["role_id"], ["role.id"], name=op.f("fk_role_user_role_id_role"), onupdate="CASCADE", ondelete="CASCADE"
+            ["role_id"],
+            ["role.id"],
+            name=op.f("fk_role_user_role_id_role"),
+            onupdate="CASCADE",
+            ondelete="CASCADE",
         ),
         sa.ForeignKeyConstraint(
-            ["user_id"], ["user.id"], name=op.f("fk_role_user_user_id_user"), onupdate="CASCADE", ondelete="CASCADE"
+            ["user_id"],
+            ["user.id"],
+            name=op.f("fk_role_user_user_id_user"),
+            onupdate="CASCADE",
+            ondelete="CASCADE",
         ),
         sa.PrimaryKeyConstraint("role_id", "user_id", name=op.f("pk_role_user")),
     )

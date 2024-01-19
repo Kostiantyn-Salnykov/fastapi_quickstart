@@ -5,6 +5,7 @@ Revises: 0002
 Create Date: 2023-01-06 21:37:27.033878+00:00
 
 """
+
 import sqlalchemy as sa
 from alembic import op
 from sqlalchemy.dialects import postgresql
@@ -22,7 +23,10 @@ def upgrade():
         "tag",
         sa.Column("id", postgresql.UUID(as_uuid=True), nullable=False),
         sa.Column(
-            "created_at", sa.TIMESTAMP(timezone=True), server_default=sa.text("CURRENT_TIMESTAMP"), nullable=False
+            "created_at",
+            sa.TIMESTAMP(timezone=True),
+            server_default=sa.text("CURRENT_TIMESTAMP"),
+            nullable=False,
         ),
         sa.Column("title", sa.VARCHAR(length=64), nullable=False),
         sa.PrimaryKeyConstraint("id", name=op.f("pk_tag")),
@@ -32,15 +36,25 @@ def upgrade():
         "category",
         sa.Column("id", postgresql.UUID(as_uuid=True), nullable=False),
         sa.Column(
-            "created_at", sa.TIMESTAMP(timezone=True), server_default=sa.text("CURRENT_TIMESTAMP"), nullable=False
+            "created_at",
+            sa.TIMESTAMP(timezone=True),
+            server_default=sa.text("CURRENT_TIMESTAMP"),
+            nullable=False,
         ),
         sa.Column(
-            "updated_at", sa.TIMESTAMP(timezone=True), server_default=sa.text("CURRENT_TIMESTAMP"), nullable=False
+            "updated_at",
+            sa.TIMESTAMP(timezone=True),
+            server_default=sa.text("CURRENT_TIMESTAMP"),
+            nullable=False,
         ),
         sa.Column("title", sa.VARCHAR(length=128), nullable=False),
         sa.Column("owner_id", postgresql.UUID(as_uuid=True), nullable=False),
         sa.ForeignKeyConstraint(
-            ["owner_id"], ["user.id"], name=op.f("fk_category_owner_id_user"), onupdate="CASCADE", ondelete="CASCADE"
+            ["owner_id"],
+            ["user.id"],
+            name=op.f("fk_category_owner_id_user"),
+            onupdate="CASCADE",
+            ondelete="CASCADE",
         ),
         sa.PrimaryKeyConstraint("id", name=op.f("pk_category")),
     )
@@ -49,15 +63,25 @@ def upgrade():
         "wish_list",
         sa.Column("id", postgresql.UUID(as_uuid=True), nullable=False),
         sa.Column(
-            "created_at", sa.TIMESTAMP(timezone=True), server_default=sa.text("CURRENT_TIMESTAMP"), nullable=False
+            "created_at",
+            sa.TIMESTAMP(timezone=True),
+            server_default=sa.text("CURRENT_TIMESTAMP"),
+            nullable=False,
         ),
         sa.Column(
-            "updated_at", sa.TIMESTAMP(timezone=True), server_default=sa.text("CURRENT_TIMESTAMP"), nullable=False
+            "updated_at",
+            sa.TIMESTAMP(timezone=True),
+            server_default=sa.text("CURRENT_TIMESTAMP"),
+            nullable=False,
         ),
         sa.Column("title", sa.VARCHAR(length=128), nullable=False),
         sa.Column("owner_id", postgresql.UUID(as_uuid=True), nullable=False),
         sa.ForeignKeyConstraint(
-            ["owner_id"], ["user.id"], name=op.f("fk_wish_list_owner_id_user"), onupdate="CASCADE", ondelete="CASCADE"
+            ["owner_id"],
+            ["user.id"],
+            name=op.f("fk_wish_list_owner_id_user"),
+            onupdate="CASCADE",
+            ondelete="CASCADE",
         ),
         sa.PrimaryKeyConstraint("id", name=op.f("pk_wish_list")),
     )
@@ -66,10 +90,16 @@ def upgrade():
         "wish",
         sa.Column("id", postgresql.UUID(as_uuid=True), nullable=False),
         sa.Column(
-            "created_at", sa.TIMESTAMP(timezone=True), server_default=sa.text("CURRENT_TIMESTAMP"), nullable=False
+            "created_at",
+            sa.TIMESTAMP(timezone=True),
+            server_default=sa.text("CURRENT_TIMESTAMP"),
+            nullable=False,
         ),
         sa.Column(
-            "updated_at", sa.TIMESTAMP(timezone=True), server_default=sa.text("CURRENT_TIMESTAMP"), nullable=False
+            "updated_at",
+            sa.TIMESTAMP(timezone=True),
+            server_default=sa.text("CURRENT_TIMESTAMP"),
+            nullable=False,
         ),
         sa.Column("wishlist_id", postgresql.UUID(as_uuid=True), nullable=False),
         sa.Column("category_id", postgresql.UUID(as_uuid=True), nullable=True),
@@ -98,15 +128,26 @@ def upgrade():
     op.create_table(
         "wish_tag",
         sa.Column(
-            "created_at", sa.TIMESTAMP(timezone=True), server_default=sa.text("CURRENT_TIMESTAMP"), nullable=False
+            "created_at",
+            sa.TIMESTAMP(timezone=True),
+            server_default=sa.text("CURRENT_TIMESTAMP"),
+            nullable=False,
         ),
         sa.Column("wish_id", postgresql.UUID(as_uuid=True), nullable=False),
         sa.Column("tag_id", postgresql.UUID(as_uuid=True), nullable=False),
         sa.ForeignKeyConstraint(
-            ["tag_id"], ["tag.id"], name=op.f("fk_wish_tag_tag_id_tag"), onupdate="CASCADE", ondelete="CASCADE"
+            ["tag_id"],
+            ["tag.id"],
+            name=op.f("fk_wish_tag_tag_id_tag"),
+            onupdate="CASCADE",
+            ondelete="CASCADE",
         ),
         sa.ForeignKeyConstraint(
-            ["wish_id"], ["wish.id"], name=op.f("fk_wish_tag_wish_id_wish"), onupdate="CASCADE", ondelete="CASCADE"
+            ["wish_id"],
+            ["wish.id"],
+            name=op.f("fk_wish_tag_wish_id_wish"),
+            onupdate="CASCADE",
+            ondelete="CASCADE",
         ),
         sa.PrimaryKeyConstraint("wish_id", "tag_id", name=op.f("pk_wish_tag")),
     )

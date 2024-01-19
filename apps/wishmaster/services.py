@@ -1,6 +1,5 @@
-
 from apps.CORE.repositories import BaseCoreRepository
-from apps.wishmaster.models import Category, Tag, WishList
+from apps.wishmaster.tables import Category, Tag, WishList
 
 
 class WishListCRUD(BaseCoreRepository):

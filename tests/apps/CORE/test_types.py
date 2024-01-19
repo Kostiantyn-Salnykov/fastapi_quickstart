@@ -17,5 +17,3 @@ class TestTimestamp:
         ta.dump_python(value1_dt, mode="json")
         ta.validate_python(value1_dt)
         ta.validate_json(str(value1))
-
-        print(True)

@@ -1,4 +1,5 @@
 """Utils with Enums."""
+
 import enum
 
 
@@ -46,6 +47,8 @@ class FOps(str, enum.Enum):
     GE = GREATER_OR_EQUAL
     L = LESS
     LE = LESS_OR_EQUAL
+    CONTAINS = LIKE
+    ICONTAINS = ILIKE
 
 
 class RatePeriod(str, enum.Enum):

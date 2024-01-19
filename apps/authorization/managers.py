@@ -9,7 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from apps.authorization.enums import PermissionActions
 from apps.CORE.db import Base
-from apps.CORE.models import Group, Permission, Role, User
+from apps.CORE.tables import Group, Permission, Role, User
 from loggers import get_logger
 
 logger = get_logger(name=__name__)
@@ -55,17 +55,17 @@ class AuthorizationManager:
         Keyword Args:
             session (AsyncSession): SQLAlchemy AsyncSession instance.
         """
-        logger.debug(msg="Creating permissions for all models...")
+        logger.debug("Creating permissions for all models...")
         upsert_statement = (
             insert(Permission)
             .values(
-                [{"object_name": table, "action": action} for table, action in self._generate_permissions_variants()]
+                [{"object_name": table, "action": action} for table, action in self._generate_permissions_variants()],
             )
             .on_conflict_do_nothing()
         )
         await session.execute(statement=upsert_statement)
         await session.commit()
-        logger.debug(msg="Permissions created successfully.")
+        logger.debug("Permissions created successfully.")
 
     async def create_superuser_permissions(self, *, session: AsyncSession) -> list[Permission]:
         """Creates 4 superuser permissions ("__all__", "create|read|update|delete").
@@ -76,7 +76,7 @@ class AuthorizationManager:
         Returns:
             result (list[Permission]): list of Permission instances.
         """
-        logger.debug(msg="Creating permissions for superusers...")
+        logger.debug("Creating permissions for superusers...")
         async with session.begin_nested():
             # Generate Permission instances with superuser object_name.
             permissions = (
@@ -106,35 +106,39 @@ class AuthorizationManager:
         Keyword Args:
             session (AsyncSession): SQLAlchemy AsyncSession instance.
         """
-        logger.debug(msg="Creating Permissions, Role, Group for superusers...")
+        logger.debug("Creating Permissions, Role, Group for superusers...")
         permissions = await self.create_superuser_permissions(session=session)
 
         role: Role = Role(id=uuid_extensions.uuid7str(), title=self._superuser_role_name, permissions=permissions)
         try:
-            logger.debug(msg=f"Creating {role}")
+            logger.debug(f"Creating {role}")
             async with session.begin_nested():
                 session.add(instance=role)
                 await session.commit()
-            logger.debug(msg=f"{role} created.")
+            logger.debug(f"{role} created.")
         except Exception:
-            logger.debug(msg=f"{role} already created.")
+            logger.debug(f"{role} already created.")
             query_result: ChunkedIteratorResult = await session.execute(
-                statement=select(Role).where(Role.title == self._superuser_role_name)
+                statement=select(Role).where(Role.title == self._superuser_role_name),
             )
             role = query_result.unique().scalar_one()
 
         group = Group(title=self._superuser_group_name, roles=[role])
         try:
-            logger.debug(msg=f"Creating {group}")
+            logger.debug(f"Creating {group}")
             async with session.begin_nested():
                 session.add(instance=group)
                 await session.commit()
-            logger.debug(msg=f"{group} created.")
+            logger.debug(f"{group} created.")
         except Exception:
-            logger.debug(msg=f"{group} already created.")
+            logger.debug(f"{group} already created.")
 
     def get_permissions_set(
-        self, *, groups: Iterable[Group], roles: Iterable[Role], permissions: Iterable[Permission]
+        self,
+        *,
+        groups: Iterable[Group],
+        roles: Iterable[Role],
+        permissions: Iterable[Permission],
     ) -> set[tuple[str, str]]:
         """Collect all permissions from groups, roles, and permissions to result set of permissions.
 

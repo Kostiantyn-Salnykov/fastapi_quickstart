@@ -1,4 +1,5 @@
 """Config file for gunicorn application."""
+
 import multiprocessing
 
 from loggers import LOGGING_CONFIG

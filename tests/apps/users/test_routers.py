@@ -69,7 +69,11 @@ class TestUsersRouter:
 
     @pytest.mark.parametrize(argnames="user_status", argvalues=(UsersStatuses.UNCONFIRMED, UsersStatuses.ARCHIVED))
     async def test_whoami_401_unauthorized_statuses(
-        self, async_client: AsyncClient, app_fixture: FastAPI, faker: Faker, user_status: UsersStatuses
+        self,
+        async_client: AsyncClient,
+        app_fixture: FastAPI,
+        faker: Faker,
+        user_status: UsersStatuses,
     ) -> None:
         users_helper = UsersHelper(user_kwargs={"status": user_status})
         response = await async_client.get(url=app_fixture.url_path_for("whoami"), headers=users_helper.get_headers())
@@ -147,7 +151,8 @@ class TestTokensRouter:
 
     async def test_login_400_no_user(self, async_client: AsyncClient, app_fixture: FastAPI, faker: Faker) -> None:
         response = await async_client.post(
-            url=app_fixture.url_path_for("login"), json={"email": faker.email(), "password": faker.password()}
+            url=app_fixture.url_path_for("login"),
+            json={"email": faker.email(), "password": faker.password()},
         )
 
         assert_jsend_response(
@@ -164,7 +169,8 @@ class TestTokensRouter:
         user = UserFactory(password=password, status=UsersStatuses.UNCONFIRMED)
 
         response = await async_client.post(
-            url=app_fixture.url_path_for("login"), json={"email": user.email, "password": password}
+            url=app_fixture.url_path_for("login"),
+            json={"email": user.email, "password": password},
         )
 
         assert_jsend_response(
@@ -177,7 +183,11 @@ class TestTokensRouter:
         )
 
     async def test_login_200(
-        self, async_client: AsyncClient, app_fixture: FastAPI, faker: Faker, mocker: MockerFixture
+        self,
+        async_client: AsyncClient,
+        app_fixture: FastAPI,
+        faker: Faker,
+        mocker: MockerFixture,
     ) -> None:
         access, refresh = faker.pystr(), faker.pystr()
         mocker.patch.object(target=TokensManager, attribute="create_code", side_effect=(access, refresh))
@@ -185,7 +195,8 @@ class TestTokensRouter:
         user = UserFactory(password=password, status=UsersStatuses.CONFIRMED)
 
         response = await async_client.post(
-            url=app_fixture.url_path_for("login"), json={"email": user.email, "password": password}
+            url=app_fixture.url_path_for("login"),
+            json={"email": user.email, "password": password},
         )
 
         assert_jsend_response(
@@ -210,7 +221,11 @@ class TestTokensRouter:
         )
 
     async def test_refresh_200(
-        self, async_client: AsyncClient, app_fixture: FastAPI, faker: Faker, mocker: MockerFixture
+        self,
+        async_client: AsyncClient,
+        app_fixture: FastAPI,
+        faker: Faker,
+        mocker: MockerFixture,
     ) -> None:
         user = UserFactory(status=UsersStatuses.CONFIRMED)
         refresh_token = app_fixture.state.tokens_manager.create_code(
@@ -232,10 +247,15 @@ class TestTokensRouter:
         )
 
     @pytest.mark.parametrize(
-        argnames=("user_status",), argvalues=([UsersStatuses.ARCHIVED], [UsersStatuses.UNCONFIRMED])
+        argnames=("user_status",),
+        argvalues=([UsersStatuses.ARCHIVED], [UsersStatuses.UNCONFIRMED]),
     )
     async def test_refresh_400_inactive(
-        self, user_status: UsersStatuses, async_client: AsyncClient, app_fixture: FastAPI, faker: Faker
+        self,
+        user_status: UsersStatuses,
+        async_client: AsyncClient,
+        app_fixture: FastAPI,
+        faker: Faker,
     ) -> None:
         user = UserFactory(status=user_status)
         refresh_token = app_fixture.state.tokens_manager.create_code(

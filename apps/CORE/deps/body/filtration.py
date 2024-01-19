@@ -1,4 +1,5 @@
 import typing
+from collections.abc import Iterator
 
 from fastapi import Body, Request
 from pydantic import BaseModel, ConfigDict, Field, TypeAdapter, ValidationError, model_validator
@@ -17,42 +18,30 @@ TypeValue = typing.TypeVar("TypeValue")
 
 
 def get_sqlalchemy_where_operations_mapper(operation_type: FOps) -> str:
-    match operation_type:
-        case operation_type.EQUAL:
-            return "__eq__"
-        case operation_type.NOT_EQUAL:
-            return "__ne__"
-        case operation_type.GREATER:
-            return "__gt__"
-        case operation_type.GREATER_OR_EQUAL:
-            return "__ge__"
-        case operation_type.LESS:
-            return "__lt__"
-        case operation_type.LESS_OR_EQUAL:
-            return "__le__"
-        case operation_type.IN:
-            return "in_"
-        case operation_type.NOT_IN:
-            return "not_in"
-        case operation_type.LIKE:
-            return "like"
-        case operation_type.ILIKE:
-            return "ilike"
-        case operation_type.STARTSWITH:
-            return "startswith"
-        case operation_type.ENDSWITH:
-            return "endswith"
-        case operation_type.ISNULL:
-            return "isnull"
-        case operation_type.NOT_NULL:
-            return "notnull"
-        case _:  # pragma: no cover
-            return "__eq__"  # default
+    operations_map = {
+        operation_type.EQUAL: "__eq__",
+        operation_type.NOT_EQUAL: "__ne__",
+        operation_type.GREATER: "__gt__",
+        operation_type.GREATER_OR_EQUAL: "__ge__",
+        operation_type.LESS: "__lt__",
+        operation_type.LESS_OR_EQUAL: "__le__",
+        operation_type.IN: "in_",
+        operation_type.NOT_IN: "not_in",
+        operation_type.LIKE: "contains",
+        operation_type.ILIKE: "icontains",
+        operation_type.STARTSWITH: "startswith",
+        operation_type.ENDSWITH: "endswith",
+        operation_type.ISNULL: "isnull",
+        operation_type.NOT_NULL: "notnull",
+    }
+
+    return operations_map.get(operation_type, "__eq__")
 
 
 class QueryFilter(BaseModel, typing.Generic[TypeA]):
     model_config = ConfigDict(
-        populate_by_name=True, json_schema_extra={"examples": [{"field": "title", "operation": "=", "value": "Test"}]}
+        populate_by_name=True,
+        json_schema_extra={"examples": [{"field": "title", "operation": "=", "value": "Test"}]},
     )
 
     field: str = Field(default=..., alias="f")
@@ -98,13 +87,13 @@ class F:
 
 
 class FiltrationRequest(BaseRequestSchema):
-    field: str = Field(default=..., title="Field", alias="f", description="Field name.", example="title")
-    operation: FOps = Field(default=FOps.EQ, title="Operation", alias="o", description="Operation type.", example="=")
-    value: FilterValue = Field(default=..., title="Value", alias="v", description="Value.", example="Test")
+    field: str = Field(default=..., title="Field", alias="f", description="Field name.")
+    operation: FOps = Field(default=FOps.EQ, title="Operation", alias="o", description="Operation type.")
+    value: FilterValue = Field(default=..., title="Value", alias="v", description="Value.")
 
 
 class Filtration:
-    def __init__(self, model: type[ModelType], schema: type[SchemaType], filters: list[F]) -> None:
+    def __init__(self, model: ModelType, schema: SchemaType, filters: list[F]) -> None:
         self.model = model
         self.schema = schema
         self.filters: list[F] = filters
@@ -112,21 +101,33 @@ class Filtration:
         self.aliases_mapping = self.schema.collect_aliases()
 
     @property
-    def query(self):
+    def query(self) -> list[BinaryExpression]:
         return self._filtration
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator[BinaryExpression]:
         yield from self.query
 
     async def __call__(
         self,
         request: Request,
         filtration: typing.Annotated[
-            list[FiltrationRequest],
+            list[FiltrationRequest] | None,
             Body(
                 alias="filtration",
                 title="Filtration",
                 description="You can filter by multiple fields (Actually this applied as `AND` logic in result query).",
+                examples=[
+                    None,
+                    [{"f": "title", "o": "ilike", "v": "Wishlist"}],
+                    [{"field": "title", "operation": "ilike", "value": "Wishlist"}],
+                ],
+                openapi_examples={
+                    "Title": {
+                        "summary": "Title contains `Wishlist`",
+                        "description": "",
+                        "value": [{"f": "title", "o": "ilike", "v": "Wishlist"}],
+                    },
+                },
             ),
         ] = None,
     ) -> typing.Self:
@@ -180,7 +181,8 @@ class Filtration:
         return query_filters_list
 
     def construct_sqlalchemy_operation(
-        self, query_filters: list[QueryFilter[list[str] | StrOrNone]]
+        self,
+        query_filters: list[QueryFilter[list[str] | StrOrNone]],
     ) -> typing.Generator[BinaryExpression, None, None]:
         for filter_schema in query_filters:
             column = getattr(self.model, self.aliases_mapping.get(filter_schema.field), None)

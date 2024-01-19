@@ -1,6 +1,6 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, Request, status
+from fastapi import APIRouter, Body, Depends, Request, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from apps.authorization.dependencies import IsAuthenticated, bearer_auth
@@ -39,7 +39,27 @@ tokens_router = APIRouter(tags=["tokens"])
 )
 async def create_user(
     request: Request,
-    data: UserCreateSchema,
+    data: Annotated[
+        UserCreateSchema,
+        Body(
+            openapi_examples={
+                "Kostiantyn Salnykov": {
+                    "value": {
+                        "firstName": "Kostiantyn",
+                        "lastName": "Salnykov",
+                        "email": "kostiantyn.salnykov@gmail.com",
+                        "password": "!QAZxsw2",
+                    },
+                },
+                "Invalid email": {
+                    "value": {"firstName": "John", "lastName": "Doe", "email": "fake@fake!", "password": "12345678"},
+                },
+                "Short password": {
+                    "value": {"firstName": "John", "lastName": "Doe", "email": "john.doe@gmail.com", "password": "123"},
+                },
+            },
+        ),
+    ],
     session: AsyncSession = Depends(get_async_session),
 ) -> JSENDResponse[UserResponseSchema]:
     """Creates new user."""
@@ -64,12 +84,27 @@ async def whoami(request: Request) -> JSENDResponse[UserResponseSchema]:
 
 
 @tokens_router.post(
-    path="/login/", name="login", response_model=JSENDResponse[LoginOutSchema], status_code=status.HTTP_200_OK
+    path="/login/",
+    name="login",
+    response_model=JSENDResponse[LoginOutSchema],
+    status_code=status.HTTP_200_OK,
 )
 async def login(
     request: Request,
-    data: LoginSchema,
-    _limiter: Annotated[None, (Depends(SlidingWindowRateLimiter(rate=Rate(number=10, period=RatePeriod.SECOND))))],
+    data: Annotated[
+        LoginSchema,
+        Body(
+            openapi_examples={
+                "Success": {
+                    "value": {"email": "kostiantyn.salnykov@gmail.com", "password": "!QAZxsw2"},
+                },
+                "Fail": {
+                    "value": {"email": "john.doe@gmail.com", "password": "123445678"},
+                },
+            },
+        ),
+    ],
+    _limiter: Annotated[None, (Depends(SlidingWindowRateLimiter(rate=Rate(number=3, period=RatePeriod.MINUTE))))],
     session: Annotated[AsyncSession, Depends(get_async_session)],
 ) -> JSENDResponse[LoginOutSchema]:
     return JSENDResponse[LoginOutSchema](
@@ -80,7 +115,9 @@ async def login(
 
 @tokens_router.put(path="/refresh/", name="refresh", response_model=JSENDResponse[LoginOutSchema])
 async def refresh(
-    request: Request, data: TokenRefreshSchema, session: AsyncSession = Depends(get_async_session)
+    request: Request,
+    data: TokenRefreshSchema,
+    session: AsyncSession = Depends(get_async_session),
 ) -> JSENDResponse[LoginOutSchema]:
     return JSENDResponse[LoginOutSchema](
         data=await users_handler.refresh(request=request, session=session, data=data),

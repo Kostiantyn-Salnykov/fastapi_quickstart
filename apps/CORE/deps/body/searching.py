@@ -5,7 +5,7 @@ from fastapi import Body, Request
 from pydantic import Field
 from sqlalchemy import TextClause, text
 
-from apps.CORE.custom_types import ModelColumnVar, ModelType, SchemaType
+from apps.CORE.custom_types import ModelColumnInstance, ModelType, SchemaType
 from apps.CORE.schemas.requests import BaseRequestSchema
 from loggers import get_logger
 
@@ -22,18 +22,21 @@ class SearchingRequest(BaseRequestSchema):
     text: str = Field(max_length=128, description="Text that will be used in search.")
     mode: SearchingMode = Field(default=SearchingMode.PLAIN, description="Mode for text search.")
     language: typing.Literal["simple", "english", "ukrainian"] = Field(
-        default="simple", description="Language that will be selected for `to_tsvector`."
+        default="simple",
+        description="Language that will be selected for `to_tsvector`.",
     )
     fields: list[str] = Field(
         default_factory=list,
         description="Fields for searching. If multiple provided, it used with `OR` logic.",
-        examples=[["title"], ["title", "description"]],
     )
 
 
 class Searching:
     def __init__(
-        self, model: type[ModelType], schema: type[SchemaType], available_columns: list[ModelColumnVar] | None = None
+        self,
+        model: ModelType,
+        schema: SchemaType,
+        available_columns: list[ModelColumnInstance] | None = None,
     ) -> None:
         self.model = model
         self.schema = schema
@@ -50,8 +53,22 @@ class Searching:
                 title="Searching",
                 description="You can search by one or many fields.",
                 examples=[
-                    {"text": "Wishlist", "mode": "PLAIN", "language": "english", "fields": ["title", "description"]}
+                    None,
+                    {"text": "Wishlist", "mode": "PLAIN", "language": "english", "fields": ["title", "description"]},
                 ],
+                openapi_examples={
+                    "Empty": {"summary": "No searching", "description": "", "value": None},
+                    "Search by one field": {
+                        "summary": "Multiple fields search",
+                        "description": "",
+                        "value": {
+                            "text": "Wishlist",
+                            "mode": "PLAIN",
+                            "language": "english",
+                            "fields": ["title"],
+                        },
+                    },
+                },
             ),
         ] = None,
     ) -> typing.Self:
@@ -64,7 +81,7 @@ class Searching:
 
         _logger.debug(
             msg=f'{self.__class__.__name__} | __call__ | text="{searching.text}", mode={searching.mode}, '
-            f'language="{searching.language}", fields={searching.fields}.'
+            f'language="{searching.language}", fields={searching.fields}.',
         )
         search_mode = self.get_postgresql_search_method(mode=searching.mode)
 

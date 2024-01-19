@@ -50,7 +50,7 @@ class TestIntegrityErrorHandler:
             integrity_error_handler(error=exception_mock)
 
         assert str(exception_context.value) == str(
-            BackendError(message="Conflict error.", status=status.HTTP_409_CONFLICT)
+            BackendError(message="Conflict error.", status=status.HTTP_409_CONFLICT),
         )
 
     def test_integrity_error_handler_duplicate_debug(self, faker: Faker, mocker: MockerFixture, monkeypatch) -> None:
@@ -64,7 +64,7 @@ class TestIntegrityErrorHandler:
             integrity_error_handler(error=exception_mock)
 
         assert str(exception_context.value) == str(
-            BackendError(message=expected_message, status=status.HTTP_409_CONFLICT)
+            BackendError(message=expected_message, status=status.HTTP_409_CONFLICT),
         )
 
     def test_integrity_error_handler_other(self, faker: Faker, mocker: MockerFixture, monkeypatch) -> None:
@@ -77,8 +77,10 @@ class TestIntegrityErrorHandler:
 
         assert str(exception_context.value) == str(
             BackendError(
-                status=JSENDStatus.ERROR, message="Internal server error.", code=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
+                status=JSENDStatus.ERROR,
+                message="Internal server error.",
+                code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            ),
         )
 
     def test_integrity_error_handler_other_debug(self, faker: Faker, mocker: MockerFixture, monkeypatch) -> None:
@@ -93,6 +95,8 @@ class TestIntegrityErrorHandler:
 
         assert str(exception_context.value) == str(
             BackendError(
-                status=JSENDStatus.ERROR, message=expected_response, code=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
+                status=JSENDStatus.ERROR,
+                message=expected_response,
+                code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            ),
         )

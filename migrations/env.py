@@ -7,7 +7,7 @@ from alembic import context
 from apps.CORE.db import Base, engine
 
 # You should import models explicitly to this file, to allow autogenerate migrations.
-from apps.CORE.models import (  # noqa
+from apps.CORE.tables import (  # noqa
     Group,
     GroupRole,
     GroupUser,
@@ -18,7 +18,7 @@ from apps.CORE.models import (  # noqa
     RoleUser,
     User,
 )
-from apps.wishmaster.models import Category, Tag, Wish, WishList, WishTag  # noqa
+from apps.wishmaster.tables import Category, Tag, Wish, WishList, WishTag  # noqa
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
