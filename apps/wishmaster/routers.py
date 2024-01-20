@@ -14,7 +14,7 @@ from apps.CORE.deps.body.searching import Searching
 from apps.CORE.deps.body.sorting import Sorting
 from apps.CORE.enums import FOps
 from apps.CORE.responses import Responses
-from apps.CORE.schemas.responses import JSENDResponse
+from apps.CORE.schemas.responses import JSENDResponseSchema
 from apps.wishmaster.handlers import wishlist_handler
 from apps.wishmaster.schemas import (
     WishListCreateSchema,
@@ -32,7 +32,7 @@ wishlist_router = APIRouter(
 )
 
 
-@wishlist_router.post(path="/", name="create_wishlist", response_model=JSENDResponse[WishListResponseSchema])
+@wishlist_router.post(path="/", name="create_wishlist", response_model=JSENDResponseSchema[WishListResponseSchema])
 async def create_wishlist(
     request: Request,
     data: typing.Annotated[
@@ -53,8 +53,8 @@ async def create_wishlist(
         ),
     ],
     session: AsyncSession = Depends(get_async_session),
-) -> JSENDResponse[WishListResponseSchema]:
-    return JSENDResponse[WishListResponseSchema](
+) -> JSENDResponseSchema[WishListResponseSchema]:
+    return JSENDResponseSchema[WishListResponseSchema](
         data=await wishlist_handler.create(session=session, request=request, data=data),
         message="Created WishList details.",
     )
@@ -123,11 +123,11 @@ async def list_wishlists(
     )
 
 
-@wishlist_router.delete(path="/{id}/", name="delete_wishlist", response_model=JSENDResponse)
+@wishlist_router.delete(path="/{id}/", name="delete_wishlist", response_model=JSENDResponseSchema)
 async def delete_wishlist(
     request: Request,
     id: uuid.UUID = Path(),
     session: AsyncSession = Depends(get_async_session),
-) -> JSENDResponse:
+) -> JSENDResponseSchema:
     await wishlist_handler.delete(session=session, request=request, id=id)
-    return JSENDResponse(data=None, message="Wishlist deleted successfully.")
+    return JSENDResponseSchema(data=None, message="Wishlist deleted successfully.")

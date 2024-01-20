@@ -14,7 +14,7 @@ from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 from pytest_alembic import Config, runner
 from sqlalchemy import create_engine
 from sqlalchemy.engine import URL, Engine
-from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, create_async_engine
+from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.orm import Session, close_all_sessions, scoped_session, sessionmaker
 
 import redis.asyncio as aioredis
@@ -133,7 +133,7 @@ async def _mock_sessions_factories(async_db_engine: AsyncEngine, sync_db_engine:
     SessionFactory.configure(bind=sync_db_engine)
 
 
-@pytest.fixture()
+@pytest.fixture(scope="function")
 async def app_fixture(
     db_session: AsyncSession,
     sync_db_session: Session,
@@ -175,7 +175,7 @@ async def _mock_limiters(monkeypatch_session: MonkeyPatch) -> None:
     monkeypatch_session.setattr(target=SlidingWindowRateLimiter, name="__call__", value=limiter_mock, raising=False)
 
 
-@pytest.fixture()
+@pytest.fixture(scope="function")
 async def async_client(app_fixture: fastapi.FastAPI, event_loop: asyncio.AbstractEventLoop) -> httpx.AsyncClient:
     """Prepare async HTTP client with FastAPI app context.
 
@@ -186,7 +186,7 @@ async def async_client(app_fixture: fastapi.FastAPI, event_loop: asyncio.Abstrac
         yield httpx_client
 
 
-@pytest.fixture(autouse=True)
+@pytest.fixture(scope="function", autouse=True)
 def faker_seed() -> None:
     """Generate random seed for Faker instance."""
     return random.seed(version=3)
@@ -235,8 +235,8 @@ def sync_db_engine() -> Engine:
     try:
         yield engine
     finally:
-        engine.dispose()
         close_all_sessions()
+        engine.dispose()
 
 
 @pytest.fixture(scope="session")
@@ -250,42 +250,44 @@ async def async_db_engine(event_loop: asyncio.AbstractEventLoop) -> AsyncEngine:
     try:
         yield async_engine
     finally:
-        await async_engine.dispose()
         close_all_sessions()
+        await async_engine.dispose()
 
 
-@pytest.fixture()
+@pytest.fixture(scope="function")
 def sync_session_factory(sync_db_engine: Engine) -> sessionmaker:
     """Create async session factory."""
     return sessionmaker(bind=sync_db_engine, expire_on_commit=False, class_=Session)
 
 
-@pytest.fixture()
+@pytest.fixture(scope="function")
 def sync_db_session(sync_session_factory: sessionmaker) -> typing.Generator[Session, None, None]:
-    """Create sync session for database and rollback it after test."""
+    """Create a sync session for the database and rollback it after test."""
     with sync_session_factory() as session:
         try:
             yield session
-        finally:
+        except Exception as error:
             session.rollback()
-            session.close()
+            raise error
+        session.rollback()
 
 
-@pytest.fixture()
-async def session_factory(async_db_engine: AsyncEngine) -> sessionmaker:
+@pytest.fixture(scope="function")
+async def session_factory(async_db_engine: AsyncEngine) -> async_sessionmaker:
     """Create async session factory."""
-    return sessionmaker(bind=async_db_engine, expire_on_commit=False, class_=AsyncSession)
+    return async_sessionmaker(bind=async_db_engine, expire_on_commit=False, class_=AsyncSession)
 
 
-@pytest.fixture()
-async def db_session(session_factory: sessionmaker) -> typing.AsyncGenerator[AsyncSession, None]:
+@pytest.fixture(scope="function")
+async def db_session(session_factory: async_sessionmaker) -> typing.AsyncGenerator[AsyncSession, None]:
     """Create async session for database and rollback it after test."""
     async with session_factory() as async_session:
         try:
             yield async_session
-        finally:
+        except Exception as error:
             await async_session.rollback()
-            await async_session.close()
+            raise error
+        await async_session.rollback()
 
 
 @pytest.fixture(scope="session")
@@ -294,9 +296,12 @@ def scoped_db_session() -> scoped_session:
     session = scoped_session(session_factory=SessionFactory)
     try:
         yield session
+    except Exception as error:
+        session.rollback()
+        raise error
     finally:
         session.rollback()
-        session.close()
+        session.remove()
 
 
 @pytest.fixture(autouse=True, scope="session")

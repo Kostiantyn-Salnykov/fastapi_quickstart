@@ -8,7 +8,7 @@ from apps.CORE.deps import get_async_session
 from apps.CORE.deps.limiters import Rate, SlidingWindowRateLimiter
 from apps.CORE.enums import RatePeriod
 from apps.CORE.responses import Responses
-from apps.CORE.schemas.responses import JSENDResponse
+from apps.CORE.schemas.responses import JSENDResponseSchema
 from apps.users.handlers import users_handler
 from apps.users.schemas.requests import LoginSchema, TokenRefreshSchema, UserCreateSchema
 from apps.users.schemas.responses import LoginOutSchema, UserResponseSchema
@@ -34,7 +34,7 @@ tokens_router = APIRouter(tags=["tokens"])
     name="create_user",
     summary="Registration",
     description="Create user and get details.",
-    response_model=JSENDResponse[UserResponseSchema],
+    response_model=JSENDResponseSchema[UserResponseSchema],
     status_code=status.HTTP_201_CREATED,
 )
 async def create_user(
@@ -61,9 +61,9 @@ async def create_user(
         ),
     ],
     session: AsyncSession = Depends(get_async_session),
-) -> JSENDResponse[UserResponseSchema]:
+) -> JSENDResponseSchema[UserResponseSchema]:
     """Creates new user."""
-    return JSENDResponse[UserResponseSchema](
+    return JSENDResponseSchema[UserResponseSchema](
         data=await users_handler.create_user(request=request, session=session, data=data),
         message="Created User's details.",
         code=status.HTTP_201_CREATED,
@@ -75,18 +75,18 @@ async def create_user(
     name="whoami",
     summary="Who am I?",
     description="Get user's data from authorization.",
-    response_model=JSENDResponse[UserResponseSchema],
+    response_model=JSENDResponseSchema[UserResponseSchema],
     status_code=status.HTTP_200_OK,
 )
-async def whoami(request: Request) -> JSENDResponse[UserResponseSchema]:
+async def whoami(request: Request) -> JSENDResponseSchema[UserResponseSchema]:
     """Gets information about user from authorization."""
-    return JSENDResponse[UserResponseSchema](data=request.user, message="User's data from authorization.")
+    return JSENDResponseSchema[UserResponseSchema](data=request.user, message="User's data from authorization.")
 
 
 @tokens_router.post(
     path="/login/",
     name="login",
-    response_model=JSENDResponse[LoginOutSchema],
+    response_model=JSENDResponseSchema[LoginOutSchema],
     status_code=status.HTTP_200_OK,
 )
 async def login(
@@ -106,20 +106,20 @@ async def login(
     ],
     _limiter: Annotated[None, (Depends(SlidingWindowRateLimiter(rate=Rate(number=3, period=RatePeriod.MINUTE))))],
     session: Annotated[AsyncSession, Depends(get_async_session)],
-) -> JSENDResponse[LoginOutSchema]:
-    return JSENDResponse[LoginOutSchema](
+) -> JSENDResponseSchema[LoginOutSchema]:
+    return JSENDResponseSchema[LoginOutSchema](
         data=await users_handler.login(request=request, session=session, data=data),
         message="Tokens to authenticate user for working with API.",
     )
 
 
-@tokens_router.put(path="/refresh/", name="refresh", response_model=JSENDResponse[LoginOutSchema])
+@tokens_router.put(path="/refresh/", name="refresh", response_model=JSENDResponseSchema[LoginOutSchema])
 async def refresh(
     request: Request,
     data: TokenRefreshSchema,
     session: AsyncSession = Depends(get_async_session),
-) -> JSENDResponse[LoginOutSchema]:
-    return JSENDResponse[LoginOutSchema](
+) -> JSENDResponseSchema[LoginOutSchema]:
+    return JSENDResponseSchema[LoginOutSchema](
         data=await users_handler.refresh(request=request, session=session, data=data),
         message="Tokens to authenticate user for working with API.",
     )

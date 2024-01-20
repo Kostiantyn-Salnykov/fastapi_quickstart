@@ -20,21 +20,6 @@ class TokenPayloadSchema(BaseResponseSchema):
 class TokenOptionsSchema(BaseResponseSchema):
     """Schema options for PyJWT parsing & validation.
 
-    Attributes:
-        verify_signature (bool): Toggle validation for PyJWT library. Defaults: `True`
-
-            `True` --> Enabled,
-
-            `False` --> Disabled.
-
-        require (list[str]): Force check these keys inside JWT's payload.
-
-            Defaults: `["aud", "exp", "iat", "iss", "nbf"]`
-        verify_aud (bool): Enable validation for `aud` field. Defaults: `True`
-        verify_exp (bool): Enable validation for `exp` field. Defaults: `True`
-        verify_iat (bool): Enable validation for `iat` field. Defaults: `True`
-        verify_iss (bool): Enable validation for `iss` field. Defaults: `True`
-        verify_nbf (bool): Enable validation for `nbf` field. Defaults: `True`
     Examples:
         Initialize schema (default attributes).
         >>> schema_1 = TokenOptionsSchema()
@@ -46,10 +31,14 @@ class TokenOptionsSchema(BaseResponseSchema):
         >>> schema_2 = TokenOptionsSchema(requre=["aud"], verify_exp=False)
     """
 
-    verify_signature: bool = Field(default=True)
-    requre: list[str] = Field(default=["aud", "exp", "iat", "iss", "nbf"])  # pyJWT default is: []
-    verify_aud: bool = Field(default=True)
-    verify_exp: bool = Field(default=True)
-    verify_iat: bool = Field(default=True)
-    verify_iss: bool = Field(default=True)
-    verify_nbf: bool = Field(default=True)
+    verify_signature: bool = Field(default=True, description="Toggle validation for PyJWT library.")
+    requre: list[str] = Field(
+        default=["aud", "exp", "iat", "iss", "nbf"], description="Force check these keys inside JWT's payload."
+    )  # pyJWT default is: []
+    verify_aud: bool = Field(default=True, description="Enable validation for `aud` field (Audience - `For What?`).")
+    verify_exp: bool = Field(default=True, description="Enable validation for `exp` field (Expiration by the time).")
+    verify_iat: bool = Field(default=True, description="Enable validation for `iat` field (Issue At).")
+    verify_iss: bool = Field(default=True, description="Enable validation for `iss` field (Issuer - `Who created`).")
+    verify_nbf: bool = Field(
+        default=True, description="Enable validation for `nbf` field (Not before - `Not Active yet`)."
+    )

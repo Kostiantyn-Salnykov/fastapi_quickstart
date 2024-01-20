@@ -27,7 +27,7 @@ class BaseResponseSchema(BaseRequestSchema):
         return model.model_validate(obj=obj, strict=False, from_attributes=True)
 
 
-class JSENDResponse(BaseModel, Generic[SchemaInstance]):
+class JSENDResponseSchema(BaseModel, Generic[SchemaInstance]):
     """JSEND schema with 'success' status."""
 
     status: JSENDStatus = Field(default=JSENDStatus.SUCCESS)
@@ -40,7 +40,7 @@ class JSENDResponse(BaseModel, Generic[SchemaInstance]):
     )
 
 
-class JSENDFailResponse(JSENDResponse[SchemaInstance]):
+class JSENDFailResponseSchema(JSENDResponseSchema[SchemaInstance]):
     """JSEND schema with 'fail' status (validation errors, client errors)."""
 
     status: JSENDStatus = Field(default=JSENDStatus.FAIL)
@@ -49,7 +49,7 @@ class JSENDFailResponse(JSENDResponse[SchemaInstance]):
     model_config = ConfigDict(json_schema_extra={"examples": [{"status": JSENDStatus.FAIL, "data": {}, "code": 422}]})
 
 
-class JSENDErrorResponse(JSENDResponse[SchemaInstance]):
+class JSENDErrorResponseSchema(JSENDResponseSchema[SchemaInstance]):
     """JSEND schema with 'error' status (server errors)."""
 
     status: JSENDStatus = Field(default=JSENDStatus.ERROR)
@@ -62,7 +62,7 @@ class JSENDErrorResponse(JSENDResponse[SchemaInstance]):
     )
 
 
-class UnprocessableEntityResponse(BaseResponseSchema):
+class UnprocessableEntityResponseSchema(BaseResponseSchema):
     """Schema that uses in pydantic validation errors."""
 
     location: list[str] = Field()
@@ -89,7 +89,7 @@ class UnprocessableEntityResponse(BaseResponseSchema):
     )
 
 
-class PaginationResponse(BaseModel, Generic[ResultObject]):
+class PaginationResponseSchema(BaseModel, Generic[ResultObject]):
     """Generic ResponseSchema that uses for pagination."""
 
     model_config = ConfigDict(populate_by_name=True, arbitrary_types_allowed=True)
@@ -116,7 +116,7 @@ class PaginationResponse(BaseModel, Generic[ResultObject]):
     )
 
 
-class JSENDPaginationResponse(JSENDResponse[SchemaInstance]):
+class JSENDPaginationResponseSchema(JSENDResponseSchema[SchemaInstance]):
     """Cover PaginationOutSchema with JSEND structure."""
 
-    data: PaginationResponse[SchemaInstance] = Field(default=...)
+    data: PaginationResponseSchema[SchemaInstance] = Field(default=...)

@@ -18,14 +18,14 @@ from apps.CORE.custom_types import (
 )
 from apps.CORE.helpers import ExtendedJSONDecoder, ExtendedJSONEncoder
 from apps.CORE.schemas.requests import BaseRequestSchema
-from apps.CORE.schemas.responses import PaginationResponse
+from apps.CORE.schemas.responses import PaginationResponseSchema
 from loggers import get_logger
 
 _logger = get_logger(name=__name__)
 
 
 class PaginationRequest(BaseRequestSchema):
-    next_token: StrOrNone = Field(default=None, description="nextToken from previous result.", alias="nextToken")
+    next_token: StrOrNone = Field(default=None, description="nextToken from a previous result.", alias="nextToken")
     limit: int = Field(default=100, ge=1, le=1000, description="Number of records to return per request.")
 
 
@@ -76,11 +76,11 @@ class Pagination:
         self,
         objects: list[ModelInstance],
         total: int,
-    ) -> PaginationResponse[SchemaInstance]:
+    ) -> PaginationResponseSchema[SchemaInstance]:
         _logger.debug(msg=f"Pagination | paginate | {objects=}, {total=}).")
         next_token = self.create_next_token(latest_object=objects[-1] if objects else None, objects_count=len(objects))
 
-        return PaginationResponse[self.schema](
+        return PaginationResponseSchema[self.schema](
             objects=(self.schema.from_model(obj=obj) for obj in objects),  # type: ignore
             limit=self.limit,
             total_count=total,

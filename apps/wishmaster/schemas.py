@@ -3,7 +3,7 @@ from pydantic import Field, field_validator
 from apps.CORE.custom_types import StrOrNone, StrUUID
 from apps.CORE.schemas.mixins import CreatedUpdatedResponseMixin
 from apps.CORE.schemas.requests import BaseRequestSchema
-from apps.CORE.schemas.responses import BaseResponseSchema, JSENDPaginationResponse, PaginationResponse
+from apps.CORE.schemas.responses import BaseResponseSchema, JSENDPaginationResponseSchema, PaginationResponseSchema
 from apps.wishmaster.enums import WishComplexities, WishPriorities, WishStatuses
 from apps.wishmaster.tables import Tag
 
@@ -62,8 +62,8 @@ class WishResponseSchema(BaseResponseSchema, CreatedUpdatedResponseMixin):
         return tags
 
 
-class WishesOutSchema(JSENDPaginationResponse):
-    data: PaginationResponse[WishResponseSchema]
+class WishesOutSchema(JSENDPaginationResponseSchema):
+    data: PaginationResponseSchema[WishResponseSchema]
 
 
 class WishListCreateSchema(BaseRequestSchema):
@@ -84,5 +84,5 @@ class WishListWithWishesOutSchema(WishListResponseSchema):
     wishes: list[WishResponseSchema] | None = Field(default_factory=list)
 
 
-class WishListsResponseSchema(BaseResponseSchema, JSENDPaginationResponse):
-    data: PaginationResponse[WishListWithWishesOutSchema]
+class WishListsResponseSchema(BaseResponseSchema, JSENDPaginationResponseSchema):
+    data: PaginationResponseSchema[WishListWithWishesOutSchema]

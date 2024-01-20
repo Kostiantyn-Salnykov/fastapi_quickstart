@@ -25,13 +25,13 @@ from apps.CORE.exceptions import BackendError, RateLimitError
 from apps.CORE.handlers import backend_exception_handler, rate_limit_exception_handler, validation_exception_handler
 from apps.CORE.managers import TokensManager
 from apps.CORE.responses import Responses
-from apps.CORE.schemas.responses import JSENDResponse
+from apps.CORE.schemas.responses import JSENDResponseSchema
 from apps.users.routers import register_router, tokens_router, users_router
 from apps.wishmaster.routers import wishlist_router
 from loggers import get_logger, setup_logging
 from settings import Settings
 
-logger = get_logger(name=__name__)
+logger = get_logger(name="debug")
 
 
 def enable_logging() -> None:
@@ -148,7 +148,7 @@ api_router = APIRouter()
 
 @api_router.get(
     path="/",
-    response_model=JSENDResponse,
+    response_model=JSENDResponseSchema,
     status_code=status.HTTP_200_OK,
     summary="Health check.",
     description="Health check endpoint.",

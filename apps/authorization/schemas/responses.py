@@ -3,7 +3,7 @@ import uuid
 from pydantic import Field
 
 from apps.authorization.enums import PermissionActions
-from apps.CORE.schemas.responses import BaseResponseSchema, JSENDPaginationResponse, PaginationResponse
+from apps.CORE.schemas.responses import BaseResponseSchema, JSENDPaginationResponseSchema, PaginationResponseSchema
 
 
 class PermissionResponse(BaseResponseSchema):
@@ -24,13 +24,13 @@ class GroupResponse(BaseResponseSchema):
     roles: list[RoleResponse] | None = Field(default_factory=list)
 
 
-class GroupListResponse(JSENDPaginationResponse):
-    data: PaginationResponse[GroupResponse]
+class GroupListResponse(JSENDPaginationResponseSchema):
+    data: PaginationResponseSchema[GroupResponse]
 
 
-class RoleListResponse(JSENDPaginationResponse):
-    data: PaginationResponse[RoleResponse]
+class RoleListResponse(JSENDPaginationResponseSchema):
+    data: PaginationResponseSchema[RoleResponse]
 
 
-class PermissionListResponse(JSENDPaginationResponse):
-    data: PaginationResponse[PermissionResponse]
+class PermissionListResponse(JSENDPaginationResponseSchema):
+    data: PaginationResponseSchema[PermissionResponse]

@@ -22,11 +22,11 @@ from apps.CORE.custom_types import StrOrNone
 from apps.CORE.helpers import get_utc_timezone
 from settings import Settings
 
-LOG_FORMAT = "{name} | {filename}:{lineno} | {funcName} | {levelname} | {message} | ({asctime}/{created})"
 LOG_FORMAT_AWS = (
     "%(name)s | %(filename)s:%(lineno)s | %(funcName)s | %(levelname)s | %(message)s | (%(asctime)s/" "%(created)s)"
 )
-LOG_FORMAT_RAW = "{levelname} | {name} | {filename}:{lineno} | {funcName} | {message} | ({asctime}/{created})"
+LOG_FORMAT_EXTENDED = "{levelname} | {name} | {filename}:{lineno} | {funcName} | {message} | ({asctime}/{created})"
+LOG_FORMAT = "{levelname} | {message} | ({asctime}/{created})"
 LOG_DATE_TIME_FORMAT_ISO_8601 = "%Y-%m-%dT%H:%M:%S.%fZ"  # ISO 8601
 LOG_DATE_TIME_FORMAT_WITHOUT_MICROSECONDS = "%Y-%m-%dT%H:%M:%SZ"  # ISO 8601 without microseconds
 LOG_FILE_FORMAT = click.style(text='╰───📑File "', fg="bright_white", bold=True)
@@ -62,9 +62,13 @@ def _get_main_handler() -> list[str]:
     return result
 
 
+def _get_default_log_format() -> str:
+    return LOG_FORMAT_EXTENDED if Settings.LOG_FORMAT_EXTENDED else LOG_FORMAT
+
+
 def _get_default_formatter() -> dict[str, typing.Any]:
     return {
-        "format": LOG_FORMAT_RAW,
+        "format": _get_default_log_format(),
         "style": "{",
         "datefmt": LOG_DATE_TIME_FORMAT_WITHOUT_MICROSECONDS,
         "validate": True,
@@ -87,7 +91,7 @@ LOGGING_CONFIG: dict[str, typing.Any] = {
         "access": _get_default_formatter(),
         "colorful_formatter": {
             "()": "loggers.ColorfulFormatter",
-            "fmt": LOG_FORMAT_RAW,
+            "fmt": _get_default_log_format(),
             "style": "{",
             "datefmt": LOG_DATE_TIME_FORMAT_ISO_8601,
             "link_format": False,
@@ -242,7 +246,7 @@ class ColorfulFormatter(logging.Formatter):
     def __init__(
         self,
         *,
-        fmt: str = LOG_FORMAT_RAW,
+        fmt: str = LOG_FORMAT,
         datefmt: str = LOG_DATE_TIME_FORMAT_ISO_8601,
         style: typing.Literal["%", "$", "{"] = "{",
         validate: bool = True,
