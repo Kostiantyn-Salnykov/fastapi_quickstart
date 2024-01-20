@@ -83,6 +83,7 @@ Timestamp = typing.Annotated[
 
 
 def validate_phone(v: str) -> str:
+    """Run validation on sting like it is a phone number."""
     prefix = "+"
     if not re.match(r"^\d{8,15}$", v):
         msg = "Must be digits"

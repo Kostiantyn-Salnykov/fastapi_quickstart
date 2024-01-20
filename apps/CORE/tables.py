@@ -80,6 +80,8 @@ class User(Base, UUIDMixin, CreatedUpdatedMixin, BaseUser):
 
 
 class Group(Base, CreatedUpdatedMixin, UUIDMixin):
+    """Group class and `group` table declaration."""
+
     title: Mapped[str] = mapped_column(VARCHAR(length=255), nullable=False, unique=True, index=True)
 
     roles: Mapped[list["Role"]] = relationship(
@@ -92,10 +94,13 @@ class Group(Base, CreatedUpdatedMixin, UUIDMixin):
     users: Mapped[list["User"]] = relationship("User", secondary="group_user", back_populates="groups")
 
     def __repr__(self) -> str:
+        """Representation of Group."""
         return f'{self.__class__.__name__}(name="{self.title}")'
 
 
 class Role(Base, CreatedUpdatedMixin, UUIDMixin):
+    """Role class and `role` table declaration."""
+
     title: Mapped[str] = mapped_column(VARCHAR(length=128), nullable=False, unique=True, index=True)
 
     groups: Mapped[list["Group"]] = relationship(
@@ -119,10 +124,13 @@ class Role(Base, CreatedUpdatedMixin, UUIDMixin):
     )
 
     def __repr__(self) -> str:
+        """Representation of Role."""
         return f'{self.__class__.__name__}(name="{self.title}")'
 
 
 class Permission(Base, CreatedUpdatedMixin, UUIDMixin):
+    """Permission class and `permission` table declaration."""
+
     __table_args__ = (UniqueConstraint("object_name", "action"),)
 
     object_name: Mapped[str] = mapped_column(VARCHAR(length=128), nullable=False)
@@ -142,13 +150,17 @@ class Permission(Base, CreatedUpdatedMixin, UUIDMixin):
     )
 
     def __repr__(self) -> str:
+        """Representation of Permission."""
         return f'{self.__class__.__name__}(object_name="{self.object_name}", action="{self.action}")'
 
     def to_tuple(self) -> tuple[str, str]:
+        """Represent Permission as a tuple: (object_name, action)."""
         return self.object_name, self.action
 
 
 class GroupRole(Base, CreatedAtMixin):
+    """GroupRole class and `group_role` association table declaration."""
+
     group_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
         ForeignKey(column="group.id", **CASCADES),
@@ -163,10 +175,13 @@ class GroupRole(Base, CreatedAtMixin):
     )
 
     def __repr__(self) -> str:
+        """Representation of GroupRole."""
         return f'{self.__class__.__name__}(group_id="{self.group_id}", role_id="{self.role_id}")'
 
 
 class RolePermission(Base, CreatedAtMixin):
+    """RolePermission class and `role_permission` association table declaration."""
+
     role_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
         ForeignKey(column="role.id", **CASCADES),
@@ -181,10 +196,13 @@ class RolePermission(Base, CreatedAtMixin):
     )
 
     def __repr__(self) -> str:
+        """Representation of RolePermission."""
         return f'{self.__class__.__name__}(role_id="{self.role_id}", permission_id="{self.permission_id}")'
 
 
 class GroupUser(Base, CreatedAtMixin):
+    """GroupUser class and `group_user` association table declaration."""
+
     group_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
         ForeignKey(column="group.id", **CASCADES),
@@ -199,10 +217,13 @@ class GroupUser(Base, CreatedAtMixin):
     )
 
     def __repr__(self) -> str:
+        """Representation of GroupUser."""
         return f'{self.__class__.__name__}(group_id="{self.group_id}", user_id="{self.user_id}")'
 
 
 class RoleUser(Base, CreatedAtMixin):
+    """RoleUser class and `role_user` association table declaration."""
+
     role_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
         ForeignKey(column="role.id", **CASCADES),
@@ -217,10 +238,13 @@ class RoleUser(Base, CreatedAtMixin):
     )
 
     def __repr__(self) -> str:
+        """Representation of RoleUser."""
         return f'{self.__class__.__name__}(role_id="{self.role_id}", user_id="{self.user_id}")'
 
 
 class PermissionUser(Base, CreatedAtMixin):
+    """PermissionUser class and `permission_user` association table declaration."""
+
     permission_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
         ForeignKey(column="permission.id", **CASCADES),
@@ -235,4 +259,5 @@ class PermissionUser(Base, CreatedAtMixin):
     )
 
     def __repr__(self) -> str:
+        """Representation of PermissionUser."""
         return f'{self.__class__.__name__}(permission_id="{self.permission_id}", user_id="{self.user_id}")'

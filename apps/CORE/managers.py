@@ -20,6 +20,8 @@ from settings import Settings
 
 
 class PasswordsManager:
+    """Manager that working with passwords."""
+
     @staticmethod
     def make_password(*, password: str) -> str:
         """Hashing string password value and returns password hash.
@@ -82,6 +84,8 @@ class PasswordsManager:
 
 
 class TokensManager:
+    """Manager that working with JWT tokens."""
+
     def __init__(
         self,
         *,

@@ -35,11 +35,13 @@ logger = get_logger(name="debug")
 
 
 def enable_logging() -> None:
+    """Initializing the logging."""
     setup_logging()
     logger.success(msg="Logging configuration completed.")
 
 
 async def _check_sync_engine() -> None:
+    """Checks that back-end can query the PostgreSQL from SQLAlchemy with sync session."""
     logger.debug("Checking connection with sync engine 'SQLAlchemy + psycopg2'...")
     with session_factory() as session:
         result = session.execute(statement=text("SELECT current_timestamp;")).scalar()
@@ -47,6 +49,7 @@ async def _check_sync_engine() -> None:
 
 
 async def _check_async_engine() -> None:
+    """Checks that back-end can query the PostgreSQL from SQLAlchemy with async session."""
     logger.debug("Checking connection with async engine 'SQLAlchemy + asyncpg'...")
     async with async_session_factory() as async_session:
         result = await async_session.execute(statement=text("SELECT current_timestamp;"))
@@ -55,6 +58,7 @@ async def _check_async_engine() -> None:
 
 
 async def _setup_redis(app: FastAPI) -> None:
+    """Initialize global connection to Redis."""
     logger.debug("Setting up global Redis `app.redis`...")
     # proxy Redis client to request.app.state.redis
     app.redis = redis_engine
@@ -72,6 +76,7 @@ async def _setup_redis(app: FastAPI) -> None:
 
 
 async def _dispose_all_connections() -> None:
+    """Closes connections to PostgreSQL."""
     logger.debug("Closing PostgreSQL connections...")
     await async_engine.dispose()  # Close sessions to async engine
     engine.dispose()  # Close sessions to sync engine
@@ -79,6 +84,7 @@ async def _dispose_all_connections() -> None:
 
 
 async def _close_redis(app: FastAPI) -> None:
+    """Closes connection to a Redis client."""
     logger.debug("Closing Redis connection...")
     await app.redis.close(close_connection_pool=True)
     logger.success("Redis connection closed.")
@@ -86,6 +92,7 @@ async def _close_redis(app: FastAPI) -> None:
 
 @contextlib.asynccontextmanager
 async def lifespan(app: FastAPI) -> typing.AsyncGenerator[None, None]:
+    """FastAPI global initializer/destructor."""
     enable_logging()
     logger.info("Lifespan started.")
     await _setup_redis(app=app)
@@ -159,7 +166,7 @@ async def healthcheck(
     async_session: sqlalchemy.ext.asyncio.AsyncSession = Depends(get_async_session),
     session: sqlalchemy.orm.Session = Depends(get_session),
 ) -> ORJSONResponse:
-    """Check that API endpoints works properly.
+    """Check that API endpoints work properly.
 
     Returns:
         ORJSONResponse: json object with JSENDResponseSchema body.

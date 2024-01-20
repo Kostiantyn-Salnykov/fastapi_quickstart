@@ -6,6 +6,7 @@ import typing
 from fastapi import Body, Request
 from pydantic import Field
 from sqlalchemy import and_, or_
+from sqlalchemy.sql.elements import ColumnElement
 
 from apps.CORE.custom_types import (
     DictStrOfAny,
@@ -24,12 +25,16 @@ from loggers import get_logger
 _logger = get_logger(name=__name__)
 
 
-class PaginationRequest(BaseRequestSchema):
+class PaginationRequestSchema(BaseRequestSchema):
+    """RequestSchema for pagination."""
+
     next_token: StrOrNone = Field(default=None, description="nextToken from a previous result.", alias="nextToken")
     limit: int = Field(default=100, ge=1, le=1000, description="Number of records to return per request.")
 
 
 class Pagination:
+    """Pagination dependency class definition."""
+
     def __init__(self, model: ModelType, schema: SchemaType) -> None:
         self.model = model
         self.schema = schema
@@ -38,7 +43,7 @@ class Pagination:
         self,
         request: Request,
         pagination: typing.Annotated[
-            PaginationRequest,
+            PaginationRequestSchema,
             Body(
                 alias="pagination",
                 title="Pagination",
@@ -60,8 +65,9 @@ class Pagination:
             ),
         ] = None,
     ) -> typing.Self:
+        """Dependency method."""
         if not pagination:
-            pagination = PaginationRequest()
+            pagination = PaginationRequestSchema()
         if not request.state.sorting:
             msg = "You can't use Pagination without `Sorting`."
             raise NotImplementedError(msg)
@@ -77,6 +83,7 @@ class Pagination:
         objects: list[ModelInstance],
         total: int,
     ) -> PaginationResponseSchema[SchemaInstance]:
+        """Returns paginated ResponseSchema from the list of objects."""
         _logger.debug(msg=f"Pagination | paginate | {objects=}, {total=}).")
         next_token = self.create_next_token(latest_object=objects[-1] if objects else None, objects_count=len(objects))
 
@@ -88,6 +95,7 @@ class Pagination:
         )
 
     def create_next_token(self, latest_object: ModelOrNone, objects_count: int) -> StrOrNone:
+        """Generate next_token for subsequent requests."""
         _logger.debug(msg=f"Pagination | create_next_token | {latest_object=}, {objects_count=}.")
         if objects_count < self.limit:
             next_token = None
@@ -108,6 +116,7 @@ class Pagination:
         return next_token
 
     def read_next_token(self, next_token: StrOrNone) -> list[DictStrOfAny] | None:
+        """Read & parse next_token from request."""
         _logger.debug(msg=f"Pagination | read_next_token | {next_token=}.")
         if not next_token:
             return None
@@ -123,7 +132,8 @@ class Pagination:
         _logger.debug(msg=f"Pagination | read_next_token | {next_token=}.")
         return next_token
 
-    def get_query(self, next_token: StrOrNone) -> StrOrNone:
+    def get_query(self, next_token: StrOrNone) -> ColumnElement[bool] | None:
+        """Returns SQLAlchemy ready query for pagination."""
         _logger.debug(msg=f"Pagination | get_next_query | {next_token=}.")
         next_token = self.read_next_token(next_token=next_token)
         if not next_token:

@@ -56,6 +56,7 @@ def _get_root_handler() -> list[str]:
 
 
 def _get_main_handler() -> list[str]:
+    """Returns handler name depends on Settings."""
     result = ["default_handler"]
     if Settings.DEBUG:
         result = ["debug_handler"]
@@ -63,10 +64,12 @@ def _get_main_handler() -> list[str]:
 
 
 def _get_default_log_format() -> str:
+    """Returns log format depends on Settings."""
     return LOG_FORMAT_EXTENDED if Settings.LOG_FORMAT_EXTENDED else LOG_FORMAT
 
 
 def _get_default_formatter() -> dict[str, typing.Any]:
+    """Constructs default formatter settings."""
     return {
         "format": _get_default_log_format(),
         "style": "{",
@@ -116,11 +119,15 @@ LOGGING_CONFIG: dict[str, typing.Any] = {
 
 
 class ExtendedLogger(logging.Logger):
+    """Custom logger class, with new log methods."""
+
     def trace(self, msg: str, *args, **kwargs) -> None:
+        """Add extra `trace` log method."""
         if self.isEnabledFor(TRACE):
             self._log(TRACE, msg, args, **kwargs, stacklevel=2)
 
     def success(self, msg: str, *args, **kwargs) -> None:
+        """Add extra `success` log method."""
         if self.isEnabledFor(SUCCESS):
             self._log(SUCCESS, msg, args, **kwargs, stacklevel=2)
 
@@ -169,6 +176,7 @@ class Styler:
     ]
 
     def __init__(self) -> None:
+        """Initialize the colors map with related log level."""
         self.colors_map: dict[int, functools.partial] = {}
 
         for kwargs in self.__class__._default_kwargs:

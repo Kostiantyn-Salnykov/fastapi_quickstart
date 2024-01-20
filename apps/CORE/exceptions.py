@@ -61,6 +61,8 @@ class BackendError(Exception):
 
 
 class RateLimitError(BackendError):
+    """Exception that should be raised from rate limiters."""
+
     def __init__(
         self,
         *,

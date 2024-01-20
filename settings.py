@@ -53,6 +53,8 @@ class Environment(enum.Enum):
 
 
 class MainSettings(BaseSettings):
+    """Main settings class definition."""
+
     model_config = SettingsConfigDict(
         extra="allow",
         env_file=".env",
@@ -151,6 +153,7 @@ class MainSettings(BaseSettings):
         dotenv_settings: PydanticBaseSettingsSource,
         file_secret_settings: PydanticBaseSettingsSource,
     ) -> tuple[PydanticBaseSettingsSource, ...]:
+        """Changed default behavior of settings sources."""
         return (
             SSMSettingsSource(settings_cls=settings_cls),
             env_settings,
@@ -161,7 +164,10 @@ class MainSettings(BaseSettings):
 
 
 class SSMSettingsSource(PydanticBaseSettingsSource):
+    """Class to grap settings from SSM (Systems Manager) from AWS."""
+
     def __call__(self) -> dict[str, str]:
+        """Grab settings from SSM by the env path."""
         env = os.environ.get("ENVIRONMENT", Environment.DEV.value)
         path = pathlib.Path(f"/{env}/")
         session = boto3.Session(
@@ -172,10 +178,12 @@ class SSMSettingsSource(PydanticBaseSettingsSource):
         return self.get_parameters_by_path(session=session, path=path)
 
     def get_field_value(self, field: FieldInfo, field_name: str) -> tuple[Any, str, bool]:
+        """IDK for what is it, but it required by pydantic_settings."""
         ...
 
     @staticmethod
     def get_parameters_by_path(session: boto3.Session, path: pathlib.Path | str) -> dict[str, str]:
+        """Collect and map SSM Parameters to dict with {Name(s): Value(s)}."""
         result = {}
         try:
             client = session.client(service_name="ssm")
@@ -194,6 +202,7 @@ class SSMSettingsSource(PydanticBaseSettingsSource):
 
 @functools.lru_cache
 def get_settings() -> MainSettings:
+    """Default getter with cache for MainSettings."""
     return MainSettings()
 
 

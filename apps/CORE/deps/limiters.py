@@ -25,22 +25,33 @@ logger = get_logger(name=__name__)
 
 
 class Rate:
+    """Value for RatePeriod.
+
+    Examples:
+        >>> str(Rate(number=10, period=RatePeriod.DAY))
+        '10 per day'
+    """
+
     def __init__(self, number: int, period: RatePeriod) -> None:
         self._number = number
         self._period = period
 
     def __repr__(self) -> str:
+        """Representation for Rate."""
         return f'{self.__class__.__name__}(number={self.number}, period="{self.period}")'
 
     def __str__(self) -> str:
+        """Human representation for Rate."""
         return f"{self.number} per {self.period.value.removesuffix('s')}"
 
     @property
     def number(self) -> int:
+        """Returns value for periods from Rate."""
         return self._number
 
     @property
     def period(self) -> RatePeriod:
+        """Returns period from Rate."""
         return self._period
 
     @functools.cached_property
@@ -84,6 +95,8 @@ class Rate:
 
 
 class BaseRedisRateLimiter(abc.ABC):
+    """Base realization for limiter, adapted to Redis."""
+
     def __init__(self, rate: Rate, key_prefix: str = "limiter") -> None:
         self._rate = rate
         self._key_prefix = key_prefix
@@ -100,16 +113,19 @@ class BaseRedisRateLimiter(abc.ABC):
 
     @property
     def rate(self) -> Rate:
+        """Return limiter's Rate."""
         return self._rate
 
     @property
     def key_prefix(self) -> str:
+        """Return limiter's key prefix."""
         return self._key_prefix
 
     def key(self, *, request: Request, now: pendulum.DateTime, previous: bool = False) -> str:
         """Construct key for Redis.
 
-        e.g. key="limiter:/api/v1/login/:127.0.0.1:2023-03-12T13:32:00+00:00:minute:5"
+        Examples:
+            key="limiter:/api/v1/login/:127.0.0.1:2023-03-12T13:32:00+00:00:minute:5"
 
         Keyword Args:
             request (Request): FastAPI Request instance.
@@ -131,6 +147,7 @@ class BaseRedisRateLimiter(abc.ABC):
 
     @staticmethod
     def get_user_id_or_ip(request: Request) -> str:
+        """Retrieve user ID or client IP (in case if requester not authenticated)."""
         try:
             user_id_or_ip = request.user.id
         except AttributeError:
@@ -138,19 +155,24 @@ class BaseRedisRateLimiter(abc.ABC):
         return user_id_or_ip
 
     def now(self) -> pendulum.DateTime:
+        """Returns current datetime with timezone, via pendulum library."""
         default_datetime_now = utc_now()
         return pendulum.from_timestamp(timestamp=default_datetime_now.timestamp(), tz=default_datetime_now.tzinfo)
 
     def previous_window_start(self, now: pendulum.DateTime) -> pendulum.DateTime:
+        """Calculates the previous window."""
         return self.current_window_start(now=now) - datetime.timedelta(seconds=self.rate.seconds)
 
     def current_window_start(self, now: pendulum.DateTime) -> pendulum.DateTime:
+        """Calculates the previous window."""
         return now.start_of(unit=self.rate.window_period)
 
     def next_window_start(self, now: pendulum.DateTime) -> pendulum.DateTime:
+        """Calculates the next window."""
         return self.current_window_start(now=now) + datetime.timedelta(seconds=self.rate.seconds)
 
     def expiration(self, now: pendulum.DateTime) -> pendulum.Duration:
+        """Calculate expiration for the key."""
         return self.next_window_start(now=now) - now
 
 

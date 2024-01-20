@@ -18,6 +18,7 @@ TypeValue = typing.TypeVar("TypeValue")
 
 
 def get_sqlalchemy_where_operations_mapper(operation_type: FOps) -> str:
+    """Mapper FOps (Filter Operations) to SQLAlchemy filter operation."""
     operations_map = {
         operation_type.EQUAL: "__eq__",
         operation_type.NOT_EQUAL: "__ne__",
@@ -39,6 +40,8 @@ def get_sqlalchemy_where_operations_mapper(operation_type: FOps) -> str:
 
 
 class QueryFilter(BaseModel, typing.Generic[TypeA]):
+    """Query parser for Filters."""
+
     model_config = ConfigDict(
         populate_by_name=True,
         json_schema_extra={"examples": [{"field": "title", "operation": "=", "value": "Test"}]},
@@ -50,6 +53,7 @@ class QueryFilter(BaseModel, typing.Generic[TypeA]):
 
     @model_validator(mode="after")
     def validate_obj(self) -> typing.Self:
+        """Additionally, validates a query object by special cases."""
         operation: FOps = self.operation
         match operation:
             case FOps.IN | FOps.NOT_IN:
@@ -87,12 +91,16 @@ class F:
 
 
 class FiltrationRequest(BaseRequestSchema):
+    """RequestSchema for filtration."""
+
     field: str = Field(default=..., title="Field", alias="f", description="Field name.")
     operation: FOps = Field(default=FOps.EQ, title="Operation", alias="o", description="Operation type.")
     value: FilterValue = Field(default=..., title="Value", alias="v", description="Value.")
 
 
 class Filtration:
+    """Filtration dependency class."""
+
     def __init__(self, model: ModelType, schema: SchemaType, filters: list[F]) -> None:
         self.model = model
         self.schema = schema
@@ -102,9 +110,11 @@ class Filtration:
 
     @property
     def query(self) -> list[BinaryExpression]:
+        """Returns SQLAlchemy ready query."""
         return self._filtration
 
     def __iter__(self) -> Iterator[BinaryExpression]:
+        """Returns iterable for SQLAlchemy query."""
         yield from self.query
 
     async def __call__(
@@ -131,6 +141,7 @@ class Filtration:
             ),
         ] = None,
     ) -> typing.Self:
+        """Dependency method."""
         result: list[BinaryExpression] = []
         if filtration:
             query_filters_list = self.parse_query_filters(filters_list=filtration)
@@ -141,6 +152,7 @@ class Filtration:
         return self
 
     def collect_filtering(self) -> dict[str, type[QueryFilter[TypeValue]] | None]:
+        """Method that collects filters dynamically."""
         fields: dict[str, type[QueryFilter[TypeValue]] | None] = {}
         # populate fields with aliases or names and empty None value
         for name, field in self.schema.model_fields.items():
@@ -157,6 +169,7 @@ class Filtration:
         return fields
 
     def parse_query_filters(self, filters_list: list[FiltrationRequest]) -> list[QueryFilter[list[str] | StrOrNone]]:
+        """Parse and dump query filters from request."""
         query_filters_list: list[QueryFilter[list[str] | StrOrNone]] = []
         try:
             for fltr in filters_list:
@@ -184,6 +197,7 @@ class Filtration:
         self,
         query_filters: list[QueryFilter[list[str] | StrOrNone]],
     ) -> typing.Generator[BinaryExpression, None, None]:
+        """Pydantic to SQLAlchemy filter mapping & query builder."""
         for filter_schema in query_filters:
             column = getattr(self.model, self.aliases_mapping.get(filter_schema.field), None)
             if isinstance(column, InstrumentedAttribute) and isinstance(column.property, ColumnProperty):

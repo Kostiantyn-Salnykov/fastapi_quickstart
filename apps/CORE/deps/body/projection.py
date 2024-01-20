@@ -44,7 +44,7 @@ class Projection:
     def query(self) -> Load | _AbstractLoad:
         return self._projection
 
-    async def __call__(  # noqa: PLR0912
+    async def __call__(
         self,
         request: Request,
         projection: typing.Annotated[
@@ -76,39 +76,13 @@ class Projection:
             _logger.debug(
                 msg=f"Projection | __call__ | Projection not provided, using `undefer({self._wildcard_symbol})`.",
             )
-            request.state.projection = undefer(self._wildcard_symbol)
             result = undefer(self._wildcard_symbol)
+            request.state.projection = result
             self._projection = result
             return self
 
         if projection.fields in (self._wildcard_symbol, [self._wildcard_symbol]):
-            _logger.debug(
-                msg=f"Projection | __call__ | {projection.fields=}, running wildcard ({self._wildcard_symbol}) "
-                f"flow.",
-            )
-            match projection.mode:
-                case ProjectionMode.INCLUDE:
-                    _logger.debug(
-                        msg=f"Projection | __call__ | {projection.mode=}, using `undefer({self._wildcard_symbol})`.",
-                    )
-                    result = undefer(self._wildcard_symbol)
-                case ProjectionMode.EXCLUDE:
-                    _logger.debug(
-                        msg=f"Projection | __call__ | {projection.mode=}, using `load_only` by fields from sorting.",
-                    )
-                    result = []
-                    # Fields, that used in sorting cannot be excluded from result.
-                    for field in request.state.sorting.raw_sorting:
-                        field_name = self.aliases_mapping.get(field, "...")
-                        if hasattr(self.model, field_name):
-                            result.append(getattr(self.model, field_name))
-                    result = Load(entity=self.model).load_only(*result)
-                case _:
-                    result = ...
-
-            self._projection = result
-            request.state.projection = self
-            return self
+            return self.handle_wildcard_projection(request=request, projection=projection)
 
         match projection.mode:
             case ProjectionMode.INCLUDE:
@@ -142,6 +116,34 @@ class Projection:
                             continue
                         _logger.debug(msg=f"Projection | __call__ | Excluding `{attr}` from response.")
                         result = result.defer(attr)
+            case _:
+                result = ...
+
+        self._projection = result
+        request.state.projection = self
+        return self
+
+    def handle_wildcard_projection(self, request: Request, projection: ProjectionRequest) -> typing.Self:
+        _logger.debug(
+            msg=f"Projection | __call__ | {projection.fields=}, running wildcard ({self._wildcard_symbol}) " f"flow.",
+        )
+        match projection.mode:
+            case ProjectionMode.INCLUDE:
+                _logger.debug(
+                    msg=f"Projection | __call__ | {projection.mode=}, using `undefer({self._wildcard_symbol})`.",
+                )
+                result = undefer(self._wildcard_symbol)
+            case ProjectionMode.EXCLUDE:
+                _logger.debug(
+                    msg=f"Projection | __call__ | {projection.mode=}, using `load_only` by fields from sorting.",
+                )
+                result = []
+                # Fields, that used in sorting cannot be excluded from result.
+                for field in request.state.sorting.raw_sorting:
+                    field_name = self.aliases_mapping.get(field, "...")
+                    if hasattr(self.model, field_name):
+                        result.append(getattr(self.model, field_name))
+                result = Load(entity=self.model).load_only(*result)
             case _:
                 result = ...
 

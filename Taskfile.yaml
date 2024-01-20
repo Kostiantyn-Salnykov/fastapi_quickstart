@@ -27,7 +27,13 @@ tasks:
 
   lint:docs:
     desc: "Run coverage for documentation."
-    cmd: "{{.RUNNER}} interrogate -v"
+    summary: "Default usage: `task lint:docs`.
+
+    Extended usage: `task lint:docs -- v` (Increasing verbosity level to `-vv`, `-v` by default).
+    "
+    cmd: "{{.RUNNER}} interrogate {{.VERBOSITY}}{{.CLI_ARGS}}"
+    vars:
+      VERBOSITY: "-v"
 
   lint:types:
     desc: "Run mypy (type annotations linter)."

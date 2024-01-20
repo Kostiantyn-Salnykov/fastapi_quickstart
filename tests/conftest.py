@@ -133,7 +133,7 @@ async def _mock_sessions_factories(async_db_engine: AsyncEngine, sync_db_engine:
     SessionFactory.configure(bind=sync_db_engine)
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture()
 async def app_fixture(
     db_session: AsyncSession,
     sync_db_session: Session,
@@ -175,7 +175,7 @@ async def _mock_limiters(monkeypatch_session: MonkeyPatch) -> None:
     monkeypatch_session.setattr(target=SlidingWindowRateLimiter, name="__call__", value=limiter_mock, raising=False)
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture()
 async def async_client(app_fixture: fastapi.FastAPI, event_loop: asyncio.AbstractEventLoop) -> httpx.AsyncClient:
     """Prepare async HTTP client with FastAPI app context.
 
@@ -186,7 +186,7 @@ async def async_client(app_fixture: fastapi.FastAPI, event_loop: asyncio.Abstrac
         yield httpx_client
 
 
-@pytest.fixture(scope="function", autouse=True)
+@pytest.fixture(autouse=True)
 def faker_seed() -> None:
     """Generate random seed for Faker instance."""
     return random.seed(version=3)
@@ -254,13 +254,13 @@ async def async_db_engine(event_loop: asyncio.AbstractEventLoop) -> AsyncEngine:
         await async_engine.dispose()
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture()
 def sync_session_factory(sync_db_engine: Engine) -> sessionmaker:
     """Create async session factory."""
     return sessionmaker(bind=sync_db_engine, expire_on_commit=False, class_=Session)
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture()
 def sync_db_session(sync_session_factory: sessionmaker) -> typing.Generator[Session, None, None]:
     """Create a sync session for the database and rollback it after test."""
     with sync_session_factory() as session:
@@ -272,13 +272,13 @@ def sync_db_session(sync_session_factory: sessionmaker) -> typing.Generator[Sess
         session.rollback()
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture()
 async def session_factory(async_db_engine: AsyncEngine) -> async_sessionmaker:
     """Create async session factory."""
     return async_sessionmaker(bind=async_db_engine, expire_on_commit=False, class_=AsyncSession)
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture()
 async def db_session(session_factory: async_sessionmaker) -> typing.AsyncGenerator[AsyncSession, None]:
     """Create async session for database and rollback it after test."""
     async with session_factory() as async_session:

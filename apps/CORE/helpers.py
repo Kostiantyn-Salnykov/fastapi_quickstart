@@ -78,7 +78,10 @@ to_db_encoder = functools.partial(
 
 
 class ExtendedJSONEncoder(json.JSONEncoder):
+    """Extends standard JSONEncoder."""
+
     def default(self, obj: typing.Any) -> str:
+        """Override of `default` method from JSONEncoder."""
         if isinstance(obj, uuid.UUID):
             # if the obj is uuid, we simply return the value of uuid
             return obj.hex
@@ -88,10 +91,13 @@ class ExtendedJSONEncoder(json.JSONEncoder):
 
 
 class ExtendedJSONDecoder(json.JSONDecoder):
+    """Extends standard JSONDecoder."""
+
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(object_hook=self._iso_datetime_decoder, *args, **kwargs)
 
     def _iso_datetime_decoder(self, dct: dict[str, str]) -> dict[str, str | datetime.datetime]:
+        """Checks dict for possible ISO datetime inside the values."""
         for key, value in dct.items():
             if isinstance(value, str):
                 try:

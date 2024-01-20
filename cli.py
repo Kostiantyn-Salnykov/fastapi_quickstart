@@ -52,6 +52,7 @@ authorization_commands.add_typer(typer_instance=superusers_commands)
 @permissions_commands.command(name="setup", help="Creates Permissions for all models.")
 @make_async
 async def setup_permissions() -> None:
+    """Scan all tables and creates Permissions for them (CRUD action for every table)."""
     async with async_session_factory() as session:
         await auth_manager.create_object_permissions(session=session)
 
@@ -62,13 +63,20 @@ async def setup_permissions() -> None:
 )
 @make_async
 async def setup_superusers() -> None:
+    """Creates standard Groups/Roles/Permissions.
+
+    Note:
+        Group: `Superusers`
+        Role: `Superuser`
+        Permission: object_name="__all__" with actions="create|read|update|delete"
+    """
     async with async_session_factory() as session:
         await auth_manager.setup_superusers(session=session)
 
 
 @superusers_commands.command(
     name="create",
-    help="Creates User and assign 'Superusers' Group, 'Superuser' Role and superusers Permissions.",
+    help="Create User and assign 'Superusers' Group, 'Superuser' Role and superusers Permissions.",
 )
 @make_async
 async def create_superuser(
@@ -106,6 +114,7 @@ async def create_superuser(
         help="Password for user.",
     ),
 ) -> None:
+    """Create superuser with provided inputs."""
     logger.debug(msg=f"Superuser created successfully ({first_name=}, {last_name=}, {email=}, {password=}).")
     ...  # TODO: Create User, add to `Superusers` Group, add `Superuser` Role, assign Permissions.
 
