@@ -2,7 +2,7 @@
 Initial FastAPI project with SQLAlchemy (asyncpg), Alembic, Pydantic v2, Pytest, Poetry, Gunicorn, Docker, docker-compose, ruff, black, isort, flake8, coverage, factory-boy, pytest-alembic, pydantic-factories. 
 
 ## Dependencies:
-- [Python 3.11](https://www.python.org/downloads/) (Main programming language for Back-end)
+- [Python 3.12](https://www.python.org/downloads/) (Main programming language for Back-end)
 - [Poetry](https://python-poetry.org/docs/#installation) (For package and dependencies management)
 - [Docker & docker-compose](https://www.docker.com/products/docker-desktop/) (For containerization of app)
 - [Taskfile](https://taskfile.dev/installation/) (Commands runner)
