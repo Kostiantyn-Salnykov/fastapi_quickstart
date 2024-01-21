@@ -5,7 +5,6 @@ ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 
 RUN apt-get update
-#RUN apt-get install make
 RUN sh -c "$(curl --location https://taskfile.dev/install.sh)" -- -d
 
 RUN pip install --upgrade pip
