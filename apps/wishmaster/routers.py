@@ -5,7 +5,7 @@ from fastapi import APIRouter, Body, Depends, Path, Request
 from pydantic import AwareDatetime
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from apps.authorization.dependencies import IsAuthenticated, IsAuthorized, bearer_auth
+from apps.authorization.dependencies import IsAuthenticated, bearer_auth
 from apps.CORE.deps import get_async_session
 from apps.CORE.deps.body.filtration import F, Filtration
 from apps.CORE.deps.body.pagination import Pagination
@@ -68,7 +68,7 @@ async def create_wishlist(
 )
 async def list_wishlists(
     request: Request,
-    authorization: typing.Annotated[None, Depends(IsAuthorized())],
+    # authorization: typing.Annotated[None, Depends(IsAuthorized())],
     sorting: typing.Annotated[
         Sorting,
         Depends(

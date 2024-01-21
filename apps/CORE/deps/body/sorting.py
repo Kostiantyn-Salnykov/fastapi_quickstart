@@ -10,6 +10,8 @@ _logger = get_logger(name=__name__)
 
 
 class Sorting:
+    """Sorting dependency class definition."""
+
     def __init__(
         self,
         model: ModelType,
@@ -25,10 +27,12 @@ class Sorting:
 
     @property
     def query(self) -> list[UnaryExpression]:
+        """Returns SQLAlchemy ready query for sorting."""
         return self._sorting
 
     @property
     def raw_sorting(self) -> list[str]:
+        """Returns sorting query for usage inside projection."""
         return self._raw_sorting
 
     async def __call__(
@@ -49,6 +53,7 @@ class Sorting:
             ),
         ] = None,
     ) -> typing.Self:
+        """Dependency method."""
         _logger.debug(msg=f"{self.__class__.__name__} | __call__ | {sorting=}.")
         if not sorting:
             _logger.debug(

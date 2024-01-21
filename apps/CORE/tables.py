@@ -6,7 +6,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from starlette.authentication import BaseUser
 
 from apps.CORE.db import Base, CreatedAtMixin, CreatedUpdatedMixin, UUIDMixin
-from apps.users.enums import UsersStatuses
+from apps.users.enums import UserStatuses
 
 CASCADES = {"ondelete": "CASCADE", "onupdate": "CASCADE"}
 
@@ -30,7 +30,7 @@ class User(Base, UUIDMixin, CreatedUpdatedMixin, BaseUser):
     last_name: Mapped[str] = mapped_column(VARCHAR(length=128), nullable=False)
     email: Mapped[str] = mapped_column(VARCHAR(length=255), nullable=False, index=True, unique=True)
     password_hash: Mapped[str] = mapped_column(VARCHAR(length=1024), nullable=False)
-    status: Mapped[str] = mapped_column(VARCHAR(length=64), default=UsersStatuses.UNCONFIRMED.value, nullable=False)
+    status: Mapped[str] = mapped_column(VARCHAR(length=64), default=UserStatuses.UNCONFIRMED.value, nullable=False)
 
     groups: Mapped[list["Group"]] = relationship(
         "Group",

@@ -11,7 +11,7 @@ from apps.CORE.exceptions import BackendError
 from apps.CORE.helpers import utc_now
 from apps.CORE.managers import PasswordsManager
 from apps.CORE.tables import User
-from apps.users.enums import UsersStatuses
+from apps.users.enums import UserStatuses
 from apps.users.schemas import UserCreateToDBSchema, UserToDBBaseSchema, UserTokenPayloadSchema
 from apps.users.schemas.requests import LoginSchema, UserCreateSchema, UserUpdateSchema
 from apps.users.schemas.responses import LoginOutSchema, TokenRefreshSchema, UserResponseSchema
@@ -58,7 +58,7 @@ class UsersHandler:
             values = data.model_dump(exclude_unset=True, exclude={"old_password", "new_password"})
             values |= {
                 "password_hash": self.passwords_manager.make_password(password=data.new_password),
-                "status": UsersStatuses.CONFIRMED.value,
+                "status": UserStatuses.CONFIRMED.value,
             }
         user = await users_service.update(session=session, id=request.user.id, obj=UserToDBBaseSchema(**values))
         return UserResponseSchema.from_model(obj=user)
@@ -103,20 +103,20 @@ class UsersHandler:
         if (
             user
             and users_handler.passwords_manager.check_password(password=data.password, password_hash=user.password_hash)
-            and user.status == UsersStatuses.CONFIRMED.value
+            and user.status == UserStatuses.CONFIRMED.value
         ):
             return users_handler.generate_tokens(request=request, id=user.id)
         raise BackendError(message="Invalid credentials.")
 
     async def refresh(self, *, request: Request, session: AsyncSession, data: TokenRefreshSchema) -> LoginOutSchema:
-        """Generate new tokens pair (access, refresh) from refresh token."""
+        """Generate the new tokens pair (access, refresh) from provided refresh token."""
         payload_schema: UserTokenPayloadSchema = request.app.state.tokens_manager.read_code(
             aud=TokenAudience.REFRESH,
             code=data.refresh_token,
             convert_to=UserTokenPayloadSchema,
         )
-        user: User | None = await users_service.read(session=session, id=payload_schema.id)
-        if user and user.status in (UsersStatuses.CONFIRMED.value, UsersStatuses.FORCE_CHANGE_PASSWORD.value):
+        user: User | None = await users_service.retrieve_by_id(session=session, id=payload_schema.id)
+        if user and user.status in (UserStatuses.CONFIRMED.value, UserStatuses.FORCE_CHANGE_PASSWORD.value):
             return self.generate_tokens(request=request, id=user.id)
         raise BackendError(message="Inactive user.")
 

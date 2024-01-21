@@ -4,7 +4,7 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from fastapi.security.utils import get_authorization_scheme_param
 
 from apps.authorization.enums import PermissionActions
-from apps.authorization.exceptions import PermissionError
+from apps.authorization.exceptions import BackendPermissionError
 from apps.CORE.custom_types import ModelInstance
 from apps.CORE.exceptions import BackendError
 from loggers import get_logger
@@ -92,7 +92,7 @@ class HasPermissions:
             )
             if not transformed_superuser_actions <= user_permissions_set:
                 # user has not such PermissionAction in his superuser permissions.
-                raise PermissionError()
+                raise BackendPermissionError()
 
         return request
 
@@ -125,7 +125,7 @@ class HasRole:
 
     async def __call__(self, request: Request = IsAuthenticated()) -> Request:
         if self._role not in (role.name.lower() for role in request.user.roles):
-            raise PermissionError()
+            raise BackendPermissionError()
         return request
 
 
@@ -136,7 +136,7 @@ class HasGroup:
 
     async def __call__(self, request: Request = Depends(IsAuthenticated())) -> Request:
         if self._group not in (group.name.lower() for group in request.user.groups):
-            raise PermissionError()
+            raise BackendPermissionError()
         return request
 
 

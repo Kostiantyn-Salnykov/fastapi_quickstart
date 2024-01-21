@@ -46,16 +46,26 @@ class BaseTableModelMixin:
 
     @declared_attr
     def __tablename__(cls) -> str:
+        """Dynamic attribute to create name for table in PostgreSQL.
+
+        Examples:
+            class Users -> "users";
+            class WishList -> "wish_list";
+            class WishTag -> "wish_tag";
+        """
         return cls.pattern.sub("_", cls.__name__).lower()
 
     def to_dict(self) -> dict[str, typing.Any]:
+        """Recursively converts DB object instance to python dictionary."""
         result = self.__dict__
         for k, v in result.items():
             if isinstance(v, InstrumentedList):
+                # Recursion on joined relationship fields.
                 result[k] = [obj.to_dict() for obj in v]
         return result
 
     def __str__(self) -> str:
+        """Default Human representation for Model."""
         return self.__repr__()
 
 

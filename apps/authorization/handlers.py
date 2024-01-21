@@ -42,7 +42,9 @@ class GroupsHandler:
         return GroupResponse.from_model(obj=group)
 
     async def read_group(self, *, request: Request, session: AsyncSession, id: StrOrUUID) -> GroupResponse:
-        group: Group = await groups_service.read_or_not_found(session=session, id=id, message="Group not found.")
+        group: Group = await groups_service.retrieve_by_id_or_not_found(
+            session=session, id=id, message="Group not found."
+        )
         return GroupResponse.from_model(obj=group)
 
     async def list_groups(
@@ -73,7 +75,9 @@ class GroupsHandler:
         values: dict[str, typing.Any] = to_db_encoder(obj=data, exclude={"roles_ids"})
         if not values:
             raise BackendError(message="Nothing to update.")
-        group: Group = await groups_service.read_or_not_found(session=session, id=id, message="Group no found.")
+        group: Group = await groups_service.retrieve_by_id_or_not_found(
+            session=session, id=id, message="Group no found."
+        )
         if data.roles_ids:
             roles = await roles_service.list_or_not_found(
                 session=session,
@@ -117,7 +121,7 @@ class RolesHandler:
         return role
 
     async def read_role(self, *, request: Request, session: AsyncSession, id: StrOrUUID) -> RoleResponse:
-        role: Role = await roles_service.read(session=session, id=id)
+        role: Role = await roles_service.retrieve(session=session, id=id)
         if not role:
             raise BackendError(message="Role not found.", code=status.HTTP_404_NOT_FOUND)
         return RoleResponse.from_orm(obj=role)
@@ -148,7 +152,7 @@ class RolesHandler:
 
 class PermissionsHandler:
     async def read_permission(self, *, request: Request, session: AsyncSession, id: StrOrUUID) -> PermissionResponse:
-        permission: Permission = await permissions_service.read(session=session, id=id)
+        permission: Permission = await permissions_service.retrieve(session=session, id=id)
         if not permission:
             raise BackendError(message="Permission not found.", code=status.HTTP_404_NOT_FOUND)
         return PermissionResponse.from_orm(obj=permission)

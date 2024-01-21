@@ -38,25 +38,26 @@ class _BaseCommonRepository:
     def model(self) -> ModelType:
         return self._model
 
-    async def read(
-        self, *, session: AsyncSession, id: StrOrUUID, unique: bool = True, safe: bool = True
+    async def retrieve(
+        self, *, session: AsyncSession, attr_name: str, attr_value: StrOrUUID, unique: bool = True, safe: bool = True
     ) -> ModelOrNone:
-        statement = select(self.model).where(self.model.id == id)
+        statement = select(self.model).where(getattr(self.model, attr_name) == attr_value)
         result: ChunkedIteratorResult = await session.execute(statement=statement)
         result.unique() if unique else ...
         data: ModelOrNone = result.scalar_one_or_none() if safe else result.scalar_one()
         return data
 
-    async def read_or_not_found(
+    async def retrieve_by_id(
+        self, *, session: AsyncSession, id: StrOrUUID, unique: bool = True, safe: bool = True
+    ) -> ModelOrNone:
+        return await self.retrieve(session=session, attr_name="id", attr_value=id, unique=unique, safe=safe)
+
+    async def retrieve_by_id_or_not_found(
         self, *, session: AsyncSession, id: StrOrUUID, unique: bool = True, message: str = "Not found."
     ) -> ModelInstance:
-        obj: ModelOrNone = await self.read(session=session, id=id, unique=unique, safe=True)
+        obj: ModelOrNone = await self.retrieve_by_id(session=session, id=id, unique=unique, safe=True)
         if not obj:
-            raise BackendError(
-                message=message,
-                code=status.HTTP_404_NOT_FOUND,
-                status=JSENDStatus.FAIL,
-            )
+            raise BackendError(message=message, code=status.HTTP_404_NOT_FOUND, status=JSENDStatus.FAIL)
         return obj
 
     async def list_or_not_found(

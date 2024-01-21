@@ -1,12 +1,12 @@
 from fastapi import status
 
-from apps.authorization.exceptions import PermissionError
+from apps.authorization.exceptions import BackendPermissionError
 from apps.CORE.enums import JSENDStatus
 
 
 class TestPermissionException:
     def test__init__(self) -> None:
-        exception = PermissionError()
+        exception = BackendPermissionError()
 
         assert exception.status == JSENDStatus.FAIL
         assert exception.data is None

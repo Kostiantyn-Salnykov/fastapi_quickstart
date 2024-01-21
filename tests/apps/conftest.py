@@ -7,7 +7,7 @@ from httpx import Response
 from apps.CORE.enums import JSENDStatus
 from apps.CORE.managers import TokensManager
 from apps.CORE.tables import User
-from apps.users.enums import UsersStatuses
+from apps.users.enums import UserStatuses
 from settings import Settings
 from tests.apps.CORE.factories import UserFactory
 
@@ -48,7 +48,7 @@ class UsersHelper:
     ) -> None:
         self._user = user
         self._token = token
-        self._user_kwargs = user_kwargs or {"status": UsersStatuses.CONFIRMED}
+        self._user_kwargs = user_kwargs or {"status": UserStatuses.CONFIRMED}
         self._token_kwargs = token_kwargs or {}
         self._tokens_manager = TokensManager(secret_key=Settings.TOKENS_SECRET_KEY)
 

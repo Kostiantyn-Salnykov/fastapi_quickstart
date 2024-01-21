@@ -5,7 +5,9 @@ from apps.CORE.enums import JSENDStatus
 from apps.CORE.exceptions import BackendError
 
 
-class PermissionError(BackendError):
+class BackendPermissionError(BackendError):
+    """Class to raise on permission error for API."""
+
     def __init__(
         self,
         *,

@@ -9,7 +9,7 @@ from sqlalchemy.orm import contains_eager
 from apps.CORE.helpers import to_db_encoder
 from apps.CORE.repositories import BaseCoreRepository
 from apps.CORE.tables import Group, Permission, Role, User
-from apps.users.enums import UsersStatuses
+from apps.users.enums import UserStatuses
 from apps.users.schemas.requests import UserCreateSchema
 
 __all__ = ("users_service",)
@@ -17,7 +17,7 @@ __all__ = ("users_service",)
 
 class UsersService(BaseCoreRepository):
     async def create(self, *, session: AsyncSession, obj: UserCreateSchema) -> User:
-        obj.status = UsersStatuses.CONFIRMED  # Automatically activates User!!!
+        obj.status = UserStatuses.CONFIRMED  # Automatically activates User!!!
         async with session.begin_nested():
             statement = insert(self.model).values(**to_db_encoder(obj=obj))
             result: CursorResult = await session.execute(statement=statement)
@@ -27,7 +27,7 @@ class UsersService(BaseCoreRepository):
         statement = (
             select(self.model)
             .where(self.model.id == id)
-            .where(self.model.status.in_((UsersStatuses.CONFIRMED, UsersStatuses.FORCE_CHANGE_PASSWORD)))
+            .where(self.model.status.in_((UserStatuses.CONFIRMED, UserStatuses.FORCE_CHANGE_PASSWORD)))
             .join(Group, User.groups, isouter=True)
             .join(Role, User.roles, isouter=True)
             .join(Permission, User.permissions, isouter=True)
