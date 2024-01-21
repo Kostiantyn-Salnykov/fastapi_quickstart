@@ -2,9 +2,10 @@
 Initial FastAPI project with SQLAlchemy (asyncpg), Alembic, Pydantic v2, Pytest, Poetry, Gunicorn, Docker, docker-compose, ruff, black, isort, flake8, coverage, factory-boy, pytest-alembic, pydantic-factories. 
 
 ## Dependencies:
-- Python 3.11
-- Poetry
-- Docker & docker-compose (for development)
+- [Python 3.11](https://www.python.org/downloads/) (Main programming language for Back-end)
+- [Poetry](https://python-poetry.org/docs/#installation) (For package and dependencies management)
+- [Docker & docker-compose](https://www.docker.com/products/docker-desktop/) (For containerization of app)
+- [Taskfile](https://taskfile.dev/installation/) (Commands runner)
 
 
 ## Setup
@@ -46,7 +47,7 @@ poetry run python -m apps
 
 #### With Gunicorn & UvicornWorker (like a prod)
 ```commandline
-make run
+task run
 ```
 
 ---
@@ -60,10 +61,10 @@ make run
 - Docker
 - docker-compose
   - db (PostgreSQL latest)
-  - pgadmin (PGAdmin - GUI for PostgreSQL simplifies query creation, profiling and management, debugging)
+  - pgadmin (PGAdmin — GUI for PostgreSQL simplifies query creation, profiling and management, debugging)
   - redis (Redis latest)
-  - redis_insights (Redis Insights - GUI for Redis)
-  - backend (Commented - possibility to run Back-end via docker-compose)
+  - redis_insights (Redis Insights — GUI for Redis)
+  - backend (Commented — possible to run Back-end via docker-compose)
 
 ### Tests
 - pytest (with pytest-asyncio)
@@ -73,17 +74,13 @@ make run
 - pytest-clarity (for better tests fails descriptions)
 - Faker (to generate random data)
 - pytest-alembic (to run tests on migrations)
-- pydantic-factories (to generate schema factories)
 - factory-boy (to generate model factories in db)
 
 ### Debugging
-- iPython (enhanced Python's console)
+- iPython (enhanced console for Python)
 
 ### Linters & Formatters
 - ruff (Rust based linter & formatter)
-- black (code formatter, PEP8)
-- isort (code formatter, sort imports)
-- flake8 (code linter)
 - xenon (code linter, complexity linter)
 - mypy (code linter, type annotations linter)
 
