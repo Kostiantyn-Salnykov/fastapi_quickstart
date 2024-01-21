@@ -138,7 +138,7 @@ logging.setLoggerClass(klass=ExtendedLogger)
 def setup_logging() -> None:
     """Setup logging from dict configuration object. Setup AWS boto3 logging."""
     logging.config.dictConfig(config=LOGGING_CONFIG)
-    boto3.set_stream_logger(level=Settings.AWS_LOG_LEVEL, format_string=LOG_FORMAT_AWS)
+    # boto3.set_stream_logger(level=Settings.AWS_LOG_LEVEL, format_string=LOG_FORMAT_AWS)
 
 
 def get_logger(name: str | None = "local") -> ExtendedLogger:

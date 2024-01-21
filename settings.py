@@ -106,18 +106,18 @@ class MainSettings(BaseSettings):
     REDIS_ENCODING: str = Field(default="utf-8")
     REDIS_POOL_MAX_CONNECTIONS: int = Field(default=100)
     # Google settings
-    GOOGLE_CLIENT_ID: str = Field()
-    GOOGLE_CLIENT_SECRET: str = Field()
+    # GOOGLE_CLIENT_ID: str = Field()
+    # GOOGLE_CLIENT_SECRET: str = Field()
     # AWS settings
-    AWS_LOG_LEVEL: int = Field(default=logging.WARNING)
-    AWS_REGION: str = Field(default="eu-central-1")
-    AWS_ACCESS_KEY: str = Field()
-    AWS_SECRET_ACCESS_KEY: str = Field()
+    # AWS_LOG_LEVEL: int = Field(default=logging.WARNING)
+    # AWS_REGION: str = Field(default="eu-central-1")
+    # AWS_ACCESS_KEY: str = Field()
+    # AWS_SECRET_ACCESS_KEY: str = Field()
     # Cognito
-    AWS_USER_POOL_ID: str = Field()
+    # AWS_USER_POOL_ID: str = Field()
     # SES
-    AWS_SMTP_SERVICE_USERNAME: str = Field()
-    AWS_SMTP_SERVICE_PASSWORD: str = Field()
+    # AWS_SMTP_SERVICE_USERNAME: str = Field()
+    # AWS_SMTP_SERVICE_PASSWORD: str = Field()
 
     @model_validator(mode="after")
     def validate_database_url(self) -> typing.Self:
@@ -144,23 +144,23 @@ class MainSettings(BaseSettings):
         )
         return self
 
-    @classmethod
-    def settings_customise_sources(
-        cls,
-        settings_cls: type[BaseSettings],
-        init_settings: PydanticBaseSettingsSource,
-        env_settings: PydanticBaseSettingsSource,
-        dotenv_settings: PydanticBaseSettingsSource,
-        file_secret_settings: PydanticBaseSettingsSource,
-    ) -> tuple[PydanticBaseSettingsSource, ...]:
-        """Changed default behavior of settings sources."""
-        return (
-            SSMSettingsSource(settings_cls=settings_cls),
-            env_settings,
-            init_settings,
-            dotenv_settings,
-            file_secret_settings,
-        )  # first - more priority.
+    # @classmethod
+    # def settings_customise_sources(
+    #     cls,
+    #     settings_cls: type[BaseSettings],
+    #     init_settings: PydanticBaseSettingsSource,
+    #     env_settings: PydanticBaseSettingsSource,
+    #     dotenv_settings: PydanticBaseSettingsSource,
+    #     file_secret_settings: PydanticBaseSettingsSource,
+    # ) -> tuple[PydanticBaseSettingsSource, ...]:
+    #     """Changed default behavior of settings sources."""
+    #     return (
+    #         SSMSettingsSource(settings_cls=settings_cls),
+    #         env_settings,
+    #         init_settings,
+    #         dotenv_settings,
+    #         file_secret_settings,
+    #     )  # first - more priority.
 
 
 class SSMSettingsSource(PydanticBaseSettingsSource):

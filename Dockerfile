@@ -1,4 +1,4 @@
-FROM python:3.11
+FROM python:3.12
 
 ENV PYTHONPATH=/backend
 ENV PYTHONDONTWRITEBYTECODE=1
@@ -13,7 +13,7 @@ RUN pip install poetry
 
 WORKDIR /backend
 
-COPY Taskfile.yaml Makefile pyproject.toml /backend/
+COPY Taskfile.yaml pyproject.toml /backend/
 
 RUN task req
 

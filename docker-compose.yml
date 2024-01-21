@@ -4,6 +4,7 @@ version: "3.8"
 volumes:
   db_data:
   pgadmin_data:
+  backend_data:
 
 
 services:
@@ -37,31 +38,24 @@ services:
       - db
 
   redis:
-    build:
-      context: redis
-      dockerfile: Dockerfile
+    image: redis/redis-stack
     restart: unless-stopped
     ports:
-      - "0.0.0.0:6379:6379"
+      - "0.0.0.0:6379:6379"  # Redis Server
+      - "0.0.0.0:8001:8001"  # RedisInsight
     volumes:
       - "./redis/data:/data"
-      - "./redis/redis.conf:/data/usr/local/etc/redis/redis.conf"
+      - "./redis/redis.conf:/redis-stack.conf"
 
-  redis_insights:
-    image: redislabs/redisinsight:latest
-    restart: unless-stopped
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - "backend_data:/backend"
     ports:
-      - "0.0.0.0:8001:8001"
+      - "0.0.0.0:8000:8000"
+    env_file:
+      - .env
     depends_on:
-      - redis
-
-#  backend:
-#    build:
-#      context: .
-#      dockerfile: Dockerfile
-#    ports:
-#      - "0.0.0.0:8000:8000"
-#    env_file:
-#      - .env
-#    depends_on:
-#      - db
+      - db
