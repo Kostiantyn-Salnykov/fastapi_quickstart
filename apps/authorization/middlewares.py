@@ -18,10 +18,10 @@ class JWTTokenBackend(AuthenticationBackend):
         """Parse token and check schema from `Authorization` header value.
 
         Keyword Args:
-            authorization(str): value of `Authorization` header.
+            authorization (str): value of `Authorization` header.
 
         Returns:
-            jwt_token(str): Parsed string value of JWT token.
+            jwt_token (str): Parsed string value of JWT token.
 
         Raises:
             BackendException: In case of header parse error.
@@ -47,7 +47,7 @@ class JWTTokenBackend(AuthenticationBackend):
     async def authenticate(self, conn: HTTPConnection) -> tuple[AuthCredentials | None, BaseUser | None] | None:
         """Method for JWT authentication.
 
-        1) Reads `Authorization` header.
+        1) Read `Authorization` header.
         2) Parse check schema and parse JWT code.
         3) Validate JWT code and retrieve user's `id` from it.
         4) Try to get user from DB (should be active).

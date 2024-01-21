@@ -31,7 +31,7 @@ class AuthorizationManager:
             engine (Engine): SQLAlchemy Engine instance.
 
         Yields:
-            table (str): Table name.
+            str: Table name.
         """
         inspector = inspect(subject=engine or self._engine)
         current_schema = str(Base.metadata.schema or "public")
@@ -45,7 +45,7 @@ class AuthorizationManager:
         """Iterates through all tables in "public" schema, iterate through PermissionActions.
 
         Yields:
-            table_name, action (tuple[str, PermissionActions]):
+            tuple[str, PermissionActions]: Tuple with variant where (table_name, action).
         """
         return itertools.product(self.get_db_table_names(), PermissionActions)
 
@@ -74,7 +74,7 @@ class AuthorizationManager:
             session (AsyncSession): SQLAlchemy AsyncSession instance.
 
         Returns:
-            result (list[Permission]): list of Permission instances.
+            list[Permission]: list of Permission instances.
         """
         logger.debug("Creating permissions for superusers...")
         async with session.begin_nested():
@@ -100,8 +100,8 @@ class AuthorizationManager:
         """Method to prepare Superuser Group (with Role and Permissions).
 
         1) Creates 4 superuser permissions ("__all__", "create|read|update|delete").
-        2) Creates "Superuser" Role with these permissions.
-        3) Creates "Superusers" Group and assign "Superuser" Role to it.
+        2) Create "Superuser" Role with these permissions.
+        3) Create "Superusers" Group and assign "Superuser" Role to it.
 
         Keyword Args:
             session (AsyncSession): SQLAlchemy AsyncSession instance.
@@ -148,7 +148,7 @@ class AuthorizationManager:
             permissions (Iterable[Permission]): collection of Role instances.
 
         Returns:
-            result_set (set[tuple[str, str]]): set of permissions (e.g. {("user", "read"), ("user", "update")}
+            set[tuple[str, str]]: set of permissions (e.g. {("user", "read"), ("user", "update")}
         """
         result_set: set[tuple[str, str]] = set()
         result_set.update(
@@ -165,43 +165,43 @@ class AuthorizationManager:
             user (User): User instance
 
         Returns:
-            - (set[tuple[str, str]]): set of permissions (e.g. {("user", "read"), ("user", "update")}
+            set[tuple[str, str]]: set of permissions (e.g. {("user", "read"), ("user", "update")}
         """
         return self.get_permissions_set(groups=user.groups, roles=user.roles, permissions=user.permissions)
 
     @staticmethod
     def yield_permissions(*, permissions: Iterable[Permission]) -> Generator[tuple[str, str], None, None]:
-        """Iterate through collection of permissions and convert them to tuple.
+        """Iterate through the collection of permissions and convert them to tuple.
 
         Keyword Args:
             permissions (Iterable[Permission]): collection of Permission instances.
 
         Yields:
-            - (tuple[str, str]): Permission.to_tuple(), where index 0 - object name & 1 - action.
+            tuple[str, str]: Permission.to_tuple(), where index 0 - object name & 1 - action.
         """
         for permission in permissions:
             yield permission.to_tuple()
 
     def yield_permissions_from_roles(self, *, roles: Iterable[Role]) -> Generator[tuple[str, str], None, None]:
-        """Iterate through collection of roles, get permissions from them and convert them to tuple.
+        """Iterate through the collection of roles, get permissions from them and convert them to tuple.
 
         Keyword Args:
             roles (Iterable[Role]): collection of Role instances.
 
         Yields:
-            - (tuple[str, str]): Permission.to_tuple(), where index 0 - object name & 1 - action.
+            tuple[str, str]: Permission.to_tuple(), where index 0 - object name & 1 - action.
         """
         for role in roles:
             yield from self.yield_permissions(permissions=role.permissions)
 
     def yield_permissions_from_groups(self, *, groups: Iterable[Group]) -> Generator[tuple[str, str], None, None]:
-        """Iterate through collection of roles, get permissions from them and convert them to tuple.
+        """Iterate through the collection of roles, get permissions from them and convert them to tuple.
 
         Keyword Args:
             groups (Iterable[Group]): collection of Group instances.
 
         Yields:
-            - (tuple[str, str]): Permission.to_tuple(), where index 0 - object name & 1 - action.
+            tuple[str, str]: Permission.to_tuple(), where index 0 - object name & 1 - action.
         """
         for group in groups:
             yield from self.yield_permissions_from_roles(roles=group.roles)
