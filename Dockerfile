@@ -13,11 +13,9 @@ RUN pip install poetry
 
 WORKDIR /backend
 
-COPY Taskfile.yaml pyproject.toml /backend/
+COPY Taskfile.yaml pyproject.toml poetry.lock /backend/
 
-RUN task req
-
-RUN pip install --no-cache-dir --upgrade -r /backend/requirements.txt
+RUN poetry config virtualenvs.create false && poetry install
 
 COPY . /backend
 

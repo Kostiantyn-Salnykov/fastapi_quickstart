@@ -2,8 +2,8 @@ import contextlib
 import datetime
 import typing
 
-import sqlalchemy.ext.asyncio
-import sqlalchemy.orm
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import Session
 from fastapi import APIRouter, Depends, FastAPI, Request, status
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
@@ -31,7 +31,7 @@ from apps.wishmaster.routers import wishlist_router
 from loggers import get_logger, setup_logging
 from settings import Settings
 
-logger = get_logger(name="debug")
+logger = get_logger(name=__name__)
 
 
 def enable_logging() -> None:
@@ -163,8 +163,8 @@ api_router = APIRouter()
 async def healthcheck(
     request: Request,
     redis: redis.Redis = Depends(get_redis),
-    async_session: sqlalchemy.ext.asyncio.AsyncSession = Depends(get_async_session),
-    session: sqlalchemy.orm.Session = Depends(get_session),
+    async_session: AsyncSession = Depends(get_async_session),
+    session: Session = Depends(get_session),
 ) -> ORJSONResponse:
     """Check that API endpoints work properly.
 
@@ -211,6 +211,7 @@ if __name__ == "__main__":  # pragma: no cover
         loop="uvloop",
         reload=True,
         reload_delay=5,
+        reload_includes=[".env", "*.py"],
         log_level=Settings.LOG_LEVEL,
         log_config=loggers.LOGGING_CONFIG,
         use_colors=Settings.LOG_USE_COLORS,
