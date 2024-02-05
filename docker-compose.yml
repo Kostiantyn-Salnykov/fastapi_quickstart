@@ -45,6 +45,8 @@ services:
   redis:
     image: redis/redis-stack
     restart: unless-stopped
+    env_file:
+      - .env
     ports:
       - "0.0.0.0:6379:6379"  # Redis Server
       - "0.0.0.0:8001:8001"  # RedisInsight
@@ -52,6 +54,12 @@ services:
       - "redis_data:/data"
       - "./redis/data:/data"
       - "./redis/redis.conf:/redis-stack.conf"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      start_period: 30s
+      interval: 10s
+      timeout: 2s
+      retries: 3
 
   backend:
     build:
