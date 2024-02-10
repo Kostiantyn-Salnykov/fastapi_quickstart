@@ -1,0 +1,15 @@
+version: 3
+
+tasks:
+  default:
+    aliases: ["test"]
+    desc: "Run tests."
+    cmd: "{{.RUNNER}} pytest --test-alembic --randomly-dont-reset-seed"
+
+  cov:
+    desc: "Run tests with the coverage report."
+    cmd: "{{.RUNNER}} pytest --test-alembic --randomly-dont-reset-seed --cov"
+
+  cov:html:
+    desc: "Run tests with the coverage report and write to HTML."
+    cmd: "{{.RUNNER}} pytest --test-alembic --randomly-dont-reset-seed --cov --cov-report=html"

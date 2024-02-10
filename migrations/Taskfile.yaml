@@ -1,0 +1,50 @@
+version: 3
+
+tasks:
+  default:
+    aliases: ["head"]
+    desc: "Run migrations to `head`."
+    cmd: "{{.RUNNER}} alembic upgrade head"
+
+  base:
+    desc: "Downgrade migration to `base`."
+    prompt: "Are you sure that you need to rollback all migrations? All existing data will be removed from DB!"
+    cmd: "{{.RUNNER}} alembic downgrade base"
+
+  current:
+    desc: "Returns information about `current` migration applied."
+    cmd: "{{.RUNNER}} alembic current"
+
+  up:
+    desc: "Upgrade `+1` migration from `current`."
+    cmd: "{{.RUNNER}} alembic upgrade +1"
+    ignore_error: true
+
+  down:
+    desc: "Downgrade `-1` migration from `current`."
+    cmd: "{{.RUNNER}} alembic downgrade -1"
+
+  check:
+    desc: "Check for new upgrade operations."
+    cmd: "{{.RUNNER}} alembic check"
+
+  show:
+    desc: "Get details about migration by revision ID."
+    cmd: "{{.RUNNER}} alembic show {{.ID}}"
+    requires:
+      vars:
+        - ID
+    ignore_error: true
+
+  move:
+    desc: "Get details about migration by revision ID."
+    cmd: "{{.RUNNER}} alembic stamp {{.ID}}"
+    requires:
+      vars:
+        - ID
+    ignore_error: true
+
+  history:
+    desc: "Draw all migrations history output."
+    summary: "Returns migrations history output, latest at the start and then older."
+    cmd: "{{.RUNNER}} alembic history"
