@@ -86,6 +86,7 @@ class MainSettings(BaseSettings):
     LOG_LEVEL: int = Field(default=logging.WARNING)
     LOG_USE_COLORS: bool = Field(default=False)
     LOG_FORMAT_EXTENDED: bool = Field(default=False)
+    LOG_USE_LINKS: bool = Field(default=False)
     # Database settings
     POSTGRES_ECHO: bool = Field(default=False)
     POSTGRES_DB: str = Field(default="postgres")

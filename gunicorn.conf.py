@@ -9,9 +9,10 @@ bind = f"{Settings.HOST}:{Settings.PORT}"
 workers = Settings.WORKERS_COUNT or multiprocessing.cpu_count() * 2 + 1
 worker_class = "uvicorn.workers.UvicornWorker"
 threads = 1  # default
-reload = True
-reload_engine = "auto"
-reload_extra_files = [".env", "settings.py"]
+if Settings.DEBUG:
+    reload = True
+    reload_engine = "auto"
+    reload_extra_files = [".env", "settings.py"]
 max_requests = 100  # default 0
 max_requests_jitter = 3  # default 0
 keepalive = 3  # default 2

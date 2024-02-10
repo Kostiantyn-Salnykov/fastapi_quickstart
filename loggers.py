@@ -15,18 +15,15 @@ import logging.config
 import logging.handlers
 import typing
 
-import boto3
 import click
 
 from apps.CORE.custom_types import StrOrNone
 from apps.CORE.helpers import get_utc_timezone
 from settings import Settings
 
-LOG_FORMAT_AWS = (
-    "%(name)s | %(filename)s:%(lineno)s | %(funcName)s | %(levelname)s | %(message)s | (%(asctime)s/" "%(created)s)"
-)
-LOG_FORMAT_EXTENDED = "{levelname} | {name} | {filename}:{lineno} | {funcName} | {message} | ({asctime}/{created})"
-LOG_FORMAT = "{levelname} | {message} | ({asctime}/{created})"
+LOG_FORMAT_AWS = "%(name)s | %(filename)s:%(lineno)s | %(funcName)s | %(levelname)s | %(message)s | (%(asctime)s)"
+LOG_FORMAT_EXTENDED = "{levelname} | {name} | {filename}:{lineno} | {funcName} | {message} | ({asctime})"
+LOG_FORMAT = "{levelname} | {message} | ({asctime})"
 LOG_DATE_TIME_FORMAT_ISO_8601 = "%Y-%m-%dT%H:%M:%S.%fZ"  # ISO 8601
 LOG_DATE_TIME_FORMAT_WITHOUT_MICROSECONDS = "%Y-%m-%dT%H:%M:%SZ"  # ISO 8601 without microseconds
 LOG_FILE_FORMAT = click.style(text='╰───📑File "', fg="bright_white", bold=True)
@@ -38,28 +35,13 @@ logging.addLevelName(SUCCESS, "SUCCESS")
 logging.addLevelName(TRACE, "TRACE")
 
 
-def _get_root_handler() -> list[str]:
-    """Make handlers for `root` logger by runtime.
-
-    Returns:
-        result (list[str]): List of strings (names of handlers).
-
-    Notes:
-        Adds `slack_handler` for any Environment except LOCAL.
-        Change to custom `colorful_handler` & `ColorfulFormatter` when LOG_USE_COLORS and DEBUG enabled.
-        In other cases return `default_handler`.
-    """
-    result = ["default_handler"]
-    if Settings.LOG_USE_COLORS and Settings.DEBUG:
-        return ["debug_handler"]
-    return result
-
-
-def _get_main_handler() -> list[str]:
+def _get_main_handler(*, is_third_party: bool = True) -> list[str]:
     """Returns handler name depends on Settings."""
     result = ["default_handler"]
-    if Settings.DEBUG:
-        result = ["debug_handler"]
+
+    if Settings.LOG_USE_COLORS:
+        result = ["colorful_link_handler"] if Settings.LOG_USE_LINKS and not is_third_party else ["colorful_handler"]
+
     return result
 
 
@@ -83,12 +65,13 @@ LOGGING_CONFIG: dict[str, typing.Any] = {
     "version": 1,
     "disable_existing_loggers": False,
     "formatters": {
-        "debug_link_formatter": {
+        "colorful_link_formatter": {
             "()": "loggers.ColorfulFormatter",
-            "fmt": "{levelname} {message} | {asctime}",
+            "fmt": _get_default_log_format(),
             "style": "{",
             "datefmt": LOG_DATE_TIME_FORMAT_ISO_8601,
             "validate": True,
+            "link_format": Settings.LOG_USE_LINKS,
         },
         "default": _get_default_formatter(),
         "access": _get_default_formatter(),
@@ -102,18 +85,25 @@ LOGGING_CONFIG: dict[str, typing.Any] = {
     },
     "handlers": {
         "default_handler": {"class": LOG_DEFAULT_HANDLER_CLASS, "level": TRACE, "formatter": "default"},
-        "debug_handler": {"class": LOG_DEFAULT_HANDLER_CLASS, "level": TRACE, "formatter": "colorful_formatter"},
-        "debug_link_handler": {"class": LOG_DEFAULT_HANDLER_CLASS, "level": TRACE, "formatter": "debug_link_formatter"},
+        "colorful_handler": {"class": LOG_DEFAULT_HANDLER_CLASS, "level": TRACE, "formatter": "colorful_formatter"},
+        "colorful_link_handler": {
+            "class": LOG_DEFAULT_HANDLER_CLASS,
+            "level": TRACE,
+            "formatter": "colorful_link_formatter",
+        },
     },
-    "root": {"level": Settings.LOG_LEVEL, "handlers": _get_root_handler()},
+    "root": {"level": Settings.LOG_LEVEL, "handlers": _get_main_handler(is_third_party=False)},
     "loggers": {
         "asyncio": {"level": "WARNING", "handlers": _get_main_handler(), "propagate": False},
+        "gunicorn": {"level": "INFO", "handlers": _get_main_handler(), "propagate": False},
         "gunicorn.error": {"level": "INFO", "handlers": _get_main_handler(), "propagate": False},
         "gunicorn.access": {"level": "INFO", "handlers": _get_main_handler(), "propagate": False},
-        "uvicorn.default": {"level": "INFO", "handlers": _get_main_handler(), "propagate": False},
+        "uvicorn": {"level": "INFO", "handlers": _get_main_handler(), "propagate": False},
+        "uvicorn.error": {"level": "INFO", "handlers": _get_main_handler(), "propagate": False},
         "uvicorn.access": {"level": "INFO", "handlers": _get_main_handler(), "propagate": False},
         "casbin": {"level": "WARNING", "handlers": _get_main_handler(), "propagate": False},
-        "debug": {"level": "DEBUG", "handlers": ["debug_link_handler"], "propagate": False},
+        "watchfiles": {"level": "WARNING", "handlers": _get_main_handler(), "propagate": False},
+        "app.debug": {"level": "DEBUG", "handlers": _get_main_handler(is_third_party=False), "propagate": False},
     },
 }
 
@@ -141,7 +131,7 @@ def setup_logging() -> None:
     # boto3.set_stream_logger(level=Settings.AWS_LOG_LEVEL, format_string=LOG_FORMAT_AWS)
 
 
-def get_logger(name: str | None = "local") -> ExtendedLogger:
+def get_logger(name: str | None = "app.") -> ExtendedLogger:
     """Get logger instance by name.
 
     Args:
@@ -156,7 +146,7 @@ def get_logger(name: str | None = "local") -> ExtendedLogger:
         >>>logger = get_logger(name=__name__)
         >>>logger.debug(msg="Debug message")
     """
-    return logging.getLogger(name=name)
+    return logging.getLogger(name=f"app.{name}")
 
 
 logger = get_logger(name="root")
@@ -209,7 +199,7 @@ class Styler:
         strikethrough: bool | None = None,
         reset: bool = True,
     ) -> None:
-        """Set style for Logs.
+        """This function sets style for Logs.
 
         Args:
             level (int): Log level.
@@ -223,7 +213,7 @@ class Styler:
             blink (): Enable/Disable blinking on the text.
             reverse (): Enable/Disable inverse rendering (foreground becomes background and the other way round).
             strikethrough (): Enable/Disable striking through text
-            reset (): by default, a reset-all code is added at the end of the string which means that styles do not
+            reset (): by default, a reset-all code is added at the end of the string, which means that styles do not
                 carry over.  This can be disabled to compose styles.
         """
         self.colors_map[level] = functools.partial(

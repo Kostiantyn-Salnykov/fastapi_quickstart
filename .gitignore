@@ -128,7 +128,9 @@ dmypy.json
 # Pyre type checker
 .pyre/
 .idea
+.vscode
 .pytest_cache
 
 # Redis
 /redis/data/
+/.volumes

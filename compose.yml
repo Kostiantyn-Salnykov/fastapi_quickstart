@@ -8,12 +8,11 @@ volumes:
     name: "fastapi_quickstart-PGAdmin-DATA"
   redis_data:
     name: "fastapi_quickstart-Redis-DATA"
-  backend_data:
-    name: "fastapi_quickstart-DATA"
 
 
 services:
-  db:
+  postgres:
+    container_name: "fastapi_quickstart-PostgreSQL"
     image: postgres:latest
     restart: unless-stopped
     volumes:
@@ -23,12 +22,13 @@ services:
     ports:
       - "0.0.0.0:5432:5432"
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -d postgres -U postgres -h db -p 5432"]
+      test: ["CMD-SHELL", "pg_isready -d postgres -U postgres -h 0.0.0.0 -p 5432"]
       interval: 10s
       timeout: 5s
       retries: 5
 
   pgadmin:
+    container_name: "fastapi_quickstart-PGAdmin"
     image: elestio/pgadmin
     restart: unless-stopped
     volumes:
@@ -40,9 +40,10 @@ services:
     ports:
       - "0.0.0.0:8080:8080"
     depends_on:
-      - db
+      - postgres
 
   redis:
+    container_name: "fastapi_quickstart-RedisStack"
     image: redis/redis-stack
     restart: unless-stopped
     env_file:
@@ -52,7 +53,6 @@ services:
       - "0.0.0.0:8001:8001"  # RedisInsight
     volumes:
       - "redis_data:/data"
-      - "./redis/data:/data"
       - "./redis/redis.conf:/redis-stack.conf"
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
@@ -62,21 +62,31 @@ services:
       retries: 3
 
   backend:
+    container_name: "fastapi_quickstart-FastAPI"
     build:
       context: .
       dockerfile: Dockerfile
-    volumes:
-      - "backend_data:/backend"
-      - "./:/backend"
     ports:
       - "0.0.0.0:8000:8000"
     env_file:
       - .env
     depends_on:
-      - db
+      - postgres
+      - redis
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://0.0.0.0:8000/api/v1/ || exit 1"]
       start_period: 10s
       interval: 30s
       timeout: 2s
       retries: 3
+    develop:
+      watch:
+        - action: "sync"
+          path: "./"
+          target: "/backend"
+        - action: "sync+restart"
+          path: "./.env"
+          target: "/backend/.env"
+        - action: "sync+restart"
+          path: "./settings.py"
+          target: "/backend/settings.py"

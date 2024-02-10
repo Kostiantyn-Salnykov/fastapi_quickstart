@@ -2,14 +2,14 @@ import contextlib
 import datetime
 import typing
 
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import Session
 from fastapi import APIRouter, Depends, FastAPI, Request, status
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import ORJSONResponse
 from sqlalchemy import text
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import Session
 from starlette.middleware.authentication import AuthenticationMiddleware
 from uvicorn.middleware.proxy_headers import ProxyHeadersMiddleware
 
@@ -110,6 +110,10 @@ app = FastAPI(
     description="",
     version="0.0.1",
     openapi_url="/openapi.json" if Settings.ENABLE_OPENAPI else None,
+    swagger_ui_parameters={
+        "syntaxHighlight.theme": "monokai",
+        "persistAuthorization": True,
+    },
     redoc_url=None,  # Redoc disabled
     docs_url="/docs/" if Settings.ENABLE_OPENAPI else None,
     default_response_class=ORJSONResponse,
@@ -210,9 +214,12 @@ if __name__ == "__main__":  # pragma: no cover
         port=Settings.PORT,
         loop="uvloop",
         reload=True,
-        reload_delay=5,
+        reload_delay=1,
+        reload_dirs=["apps", "tests", "integrations"],
         reload_includes=[".env", "*.py"],
         log_level=Settings.LOG_LEVEL,
         log_config=loggers.LOGGING_CONFIG,
         use_colors=Settings.LOG_USE_COLORS,
+        date_header=False,
+        server_header=False,
     )
