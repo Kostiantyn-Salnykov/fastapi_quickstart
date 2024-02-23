@@ -2,10 +2,10 @@
 
 __all__ = (
     "get_logger",
-    "setup_logging",
-    "TRACE",
-    "SUCCESS",
     "LOGGING_CONFIG",
+    "setup_logging",
+    "SUCCESS",
+    "TRACE",
 )
 import copy
 import datetime

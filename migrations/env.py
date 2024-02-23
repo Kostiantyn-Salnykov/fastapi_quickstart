@@ -1,4 +1,5 @@
 """Config file for alembic migrations."""
+
 import pathlib
 from logging.config import fileConfig
 

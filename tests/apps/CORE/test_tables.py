@@ -31,7 +31,7 @@ class TestPermission:
         obj: Permission = PermissionFactory()
         expected_result = f'{obj.__class__.__name__}(object_name="{obj.object_name}", action="{obj.action}")'
 
-        result = obj.__repr__()
+        result = repr(obj)
 
         assert expected_result == result
 
@@ -51,7 +51,7 @@ class TestRole:
         obj: Role = RoleFactory()
         expected_result = f'{obj.__class__.__name__}(name="{obj.title}")'
 
-        result = obj.__repr__()
+        result = repr(obj)
 
         assert expected_result == result
 
@@ -64,7 +64,7 @@ class TestGroup:
         obj: Group = GroupFactory()
         expected_result = f'{obj.__class__.__name__}(name="{obj.title}")'
 
-        result = obj.__repr__()
+        result = repr(obj)
 
         assert expected_result == result
 
@@ -77,7 +77,7 @@ class TestRolePermission:
         obj: RolePermission = RolePermissionFactory()
         expected_result = f'{obj.__class__.__name__}(role_id="{obj.role_id}", permission_id="{obj.permission_id}")'
 
-        result = obj.__repr__()
+        result = repr(obj)
 
         assert expected_result == result
 
@@ -90,7 +90,7 @@ class TestGroupRole:
         obj: GroupRole = GroupRoleFactory()
         expected_result = f'{obj.__class__.__name__}(group_id="{obj.group_id}", role_id="{obj.role_id}")'
 
-        result = obj.__repr__()
+        result = repr(obj)
 
         assert expected_result == result
 
@@ -103,7 +103,7 @@ class TestPermissionUser:
         obj: PermissionUser = PermissionUserFactory()
         expected_result = f'{obj.__class__.__name__}(permission_id="{obj.permission_id}", user_id="{obj.user_id}")'
 
-        result = obj.__repr__()
+        result = repr(obj)
 
         assert expected_result == result
 
@@ -116,7 +116,7 @@ class TestRoleUser:
         obj: RoleUser = RoleUserFactory()
         expected_result = f'{obj.__class__.__name__}(role_id="{obj.role_id}", user_id="{obj.user_id}")'
 
-        result = obj.__repr__()
+        result = repr(obj)
 
         assert expected_result == result
 
@@ -129,7 +129,7 @@ class TestGroupUser:
         obj: GroupUser = GroupUserFactory()
         expected_result = f'{obj.__class__.__name__}(group_id="{obj.group_id}", user_id="{obj.user_id}")'
 
-        result = obj.__repr__()
+        result = repr(obj)
 
         assert expected_result == result
 

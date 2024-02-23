@@ -1,6 +1,6 @@
 from enum import Enum
 
-__all__ = ("WishStatuses", "WishComplexities", "WishPriorities")
+__all__ = ("WishComplexities", "WishPriorities", "WishStatuses")
 
 
 class WishStatuses(str, Enum):

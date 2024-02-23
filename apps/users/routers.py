@@ -15,8 +15,8 @@ from apps.users.schemas.responses import LoginOutSchema, UserResponseSchema
 
 __all__ = (
     "register_router",
-    "users_router",
     "tokens_router",
+    "users_router",
 )
 
 register_router = APIRouter(prefix="/users", tags=["users"])
@@ -65,7 +65,7 @@ async def create_user(
     """Creates new user."""
     return JSENDResponseSchema[UserResponseSchema](
         data=await users_handler.create_user(request=request, session=session, data=data),
-        message="Created User's details.",
+        message="Created User details.",
         code=status.HTTP_201_CREATED,
     )
 

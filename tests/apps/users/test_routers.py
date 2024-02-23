@@ -39,7 +39,7 @@ class TestUsersRouter:
         assert response.status_code == status.HTTP_201_CREATED
         assert response_json["code"] == status.HTTP_201_CREATED
         assert response_json["status"] == JSENDStatus.SUCCESS
-        assert response_json["message"] == "Created User's details."
+        assert response_json["message"] == "Created User details."
         # check "data" object.
         response_data = response_json["data"]
         assert response_data["email"] == email
@@ -49,7 +49,7 @@ class TestUsersRouter:
         assert response_data["groups"] == []
         assert response_data["roles"] == []
         assert response_data["permissions"] == []
-        # check that these keys are exists.
+        # check that these keys exist.
         for k in ("id", "createdAt", "updatedAt"):
             assert k in response_data
 

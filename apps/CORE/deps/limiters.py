@@ -14,9 +14,9 @@ from apps.CORE.helpers import utc_now
 from loggers import get_logger
 
 __all__ = (
-    "Rate",
     "BaseRedisRateLimiter",
     "FixedWindowRateLimiter",
+    "Rate",
     "SlidingWindowRateLimiter",
     "TokenBucketRateLimiter",
 )

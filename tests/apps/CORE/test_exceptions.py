@@ -12,8 +12,7 @@ class TestBackendException:
         exception = BackendError(message=message)
 
         assert (
-            exception.__repr__()
-            == f'{BackendError.__name__}(status={exception.status}, data={exception.data}, message="'
+            repr(exception) == f'{BackendError.__name__}(status={exception.status}, data={exception.data}, message="'
             f'{exception.message}", code={exception.code})'
         )
 
@@ -39,8 +38,7 @@ class TestBackendException:
         assert exception.message == fake_message
         assert exception.code == code
         assert (
-            exception.__repr__()
-            == f'{BackendError.__name__}(status={exception.status}, data={exception.data}, message="'
+            repr(exception) == f'{BackendError.__name__}(status={exception.status}, data={exception.data}, message="'
             f'{exception.message}", code={exception.code})'
         )
 
@@ -49,8 +47,7 @@ class TestBackendException:
         exception = BackendError(message=message)
 
         assert (
-            exception.__str__()
-            == f'{BackendError.__name__}(status={exception.status}, data={exception.data}, message="'
+            str(exception) == f'{BackendError.__name__}(status={exception.status}, data={exception.data}, message="'
             f'{exception.message}", code={exception.code})'
         )
 

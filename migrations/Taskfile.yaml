@@ -9,6 +9,7 @@ tasks:
   base:
     desc: "Downgrade migration to `base`."
     prompt: "Are you sure that you need to rollback all migrations? All existing data will be removed from DB!"
+    aliases: ["zero"]
     cmd: "{{.RUNNER}} alembic downgrade base"
 
   current:
@@ -45,6 +46,6 @@ tasks:
     ignore_error: true
 
   history:
-    desc: "Draw all migrations history output."
-    summary: "Returns migrations history output, latest at the start and then older."
+    desc: "Draw all migration's history output."
+    summary: "Returns migration's history output, latest at the start and then older."
     cmd: "{{.RUNNER}} alembic history"

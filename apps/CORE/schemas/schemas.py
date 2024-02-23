@@ -1,6 +1,6 @@
 __all__ = (
-    "TokenPayloadSchema",
     "TokenOptionsSchema",
+    "TokenPayloadSchema",
 )
 from pydantic import AwareDatetime, Field
 

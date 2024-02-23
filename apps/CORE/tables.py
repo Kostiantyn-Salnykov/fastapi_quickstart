@@ -21,7 +21,7 @@ class User(Base, UUIDMixin, CreatedUpdatedMixin, BaseUser):
         password_hash (str): Hashed value of password.
         status (str): Current status of user.
 
-        groups (list[Group]): Groups that assigned to user.
+        groups (list[Group]): Groups that are assigned to user.
         roles (list[Role]): Roles that assigned to user.
         permissions (list[Role]): Permissions that assigned to user.
     """

@@ -269,7 +269,9 @@ def sync_db_session(sync_session_factory: sessionmaker) -> typing.Generator[Sess
         except Exception as error:
             session.rollback()
             raise error
-        session.rollback()
+        finally:
+            session.rollback()
+            session.close()
 
 
 @pytest.fixture()
@@ -287,7 +289,9 @@ async def db_session(session_factory: async_sessionmaker) -> typing.AsyncGenerat
         except Exception as error:
             await async_session.rollback()
             raise error
-        await async_session.rollback()
+        finally:
+            await async_session.rollback()
+            await async_session.close()
 
 
 @pytest.fixture(scope="session")
@@ -302,6 +306,7 @@ def scoped_db_session() -> scoped_session:
     finally:
         session.rollback()
         session.remove()
+        session.close()
 
 
 @pytest.fixture(autouse=True, scope="session")

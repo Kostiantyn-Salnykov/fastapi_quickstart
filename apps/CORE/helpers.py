@@ -22,7 +22,7 @@ def utc_now() -> datetime.datetime:
 
 
 def as_utc(date_time: datetime.datetime) -> datetime.datetime:
-    """Get datetime object and convert it to datetime with UTC zone info."""
+    """Get a datetime object and convert it to datetime with UTC zone info."""
     return date_time.astimezone(tz=get_utc_timezone())
 
 

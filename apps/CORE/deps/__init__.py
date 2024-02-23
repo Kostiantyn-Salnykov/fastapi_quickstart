@@ -1,7 +1,7 @@
 __all__ = (
     "get_async_session",
-    "get_session",
     "get_redis",
+    "get_session",
 )
 
 import typing
@@ -12,7 +12,7 @@ from sqlalchemy.orm import Session
 
 import redis.asyncio as aioredis
 from apps.CORE.db import async_session_factory, redis_engine, session_factory
-from apps.CORE.handlers import integrity_error_handler, no_result_found_error_handler
+from apps.CORE.exception_handlers import integrity_error_handler, no_result_found_error_handler
 from loggers import get_logger
 
 logger = get_logger(name=__name__)

@@ -21,8 +21,12 @@ from apps.authorization.middlewares import JWTTokenBackend
 from apps.CORE.db import async_engine, async_session_factory, engine, redis_engine, session_factory
 from apps.CORE.deps import get_async_session, get_redis, get_session
 from apps.CORE.enums import JSENDStatus
+from apps.CORE.exception_handlers import (
+    backend_exception_handler,
+    rate_limit_exception_handler,
+    validation_exception_handler,
+)
 from apps.CORE.exceptions import BackendError, RateLimitError
-from apps.CORE.handlers import backend_exception_handler, rate_limit_exception_handler, validation_exception_handler
 from apps.CORE.managers import TokensManager
 from apps.CORE.responses import Responses
 from apps.CORE.schemas.responses import JSENDResponseSchema

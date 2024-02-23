@@ -1,4 +1,5 @@
 import datetime
+import math
 import uuid
 
 import pytest
@@ -64,7 +65,7 @@ def test_id_v4(mocker: MockerFixture) -> None:
         ([0, 1], "[0,1]"),
         ({"1": 1, "2": 2}, '{"1":1,"2":2}'),
         (1, "1"),
-        (3.14, "3.14"),
+        (math.pi, "3.141592653589793"),
         (True, "true"),
         (False, "false"),
         (None, "null"),

@@ -25,8 +25,8 @@ from apps.CORE.enums import JSENDStatus
 from apps.CORE.exceptions import BackendError
 
 __all__ = (
-    "BaseORMRepository",
     "BaseCoreRepository",
+    "BaseORMRepository",
 )
 
 
