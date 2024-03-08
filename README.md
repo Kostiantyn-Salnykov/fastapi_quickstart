@@ -38,7 +38,7 @@ docker-compose up -d
 #### docker-compose (local container)
 It also possible to uncomment backend service inside docker-compose.yml and run 
 through the docker compose.
-> **_Note:_** Set `POSTGRES_HOST` to `db` (`POSTGRES_HOST=db`) inside .env file
+> **_Note:_** Set `POSTGRES_HOST` to `postgres` (`POSTGRES_HOST=postgres`) inside .env file
 
 #### Uvicorn (local)
 ```commandline

@@ -134,7 +134,7 @@ class MainSettings(BaseSettings):
 
     @model_validator(mode="after")
     def validate_database_url_async(self) -> typing.Self:
-        """Construct async (with asyncpg driver) PostgreSQL DSN."""
+        """Construct async (with the asyncpg driver) PostgreSQL DSN."""
         self.POSTGRES_URL_ASYNC = _build_db_dsn(
             username=self.POSTGRES_USER,
             password=self.POSTGRES_PASSWORD,

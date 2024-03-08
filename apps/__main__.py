@@ -218,7 +218,7 @@ if __name__ == "__main__":  # pragma: no cover
         port=Settings.PORT,
         loop="uvloop",
         reload=True,
-        reload_delay=1,
+        reload_delay=10,
         reload_dirs=["apps", "tests", "integrations"],
         reload_includes=[".env", "*.py"],
         log_level=Settings.LOG_LEVEL,
