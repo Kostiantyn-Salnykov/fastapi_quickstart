@@ -146,7 +146,9 @@ target-version = "py312"
 [tool.ruff.format]
 quote-style = "double"
 docstring-code-format = true
-docstring-code-line-length = 120
+docstring-code-line-length = 160
+indent-style = "space"
+
 
 [tool.ruff.lint.pydocstyle]
 convention = "google"
@@ -164,6 +166,7 @@ select = [
     "E",  # pycodestyle (error)
     "EM",  # flake8-errmsg
     "F",  # Pyflakes
+    "FAST",  # FastAPI
     "FBT",  # flake8-boolean-trap
     "FLY",  # flynt
     "FURB",  # refurb
@@ -182,6 +185,8 @@ select = [
     "S",  # flake8-bandit
     "SIM",  # flake8-simplify
     "T20",  # flake8-print
+    "TC",  # flake8-type-checking
+    "TID",  # flake8-tidy-imports
     "UP", # pyupgrade
     "W",  # pycodestyle (warning)
 ]

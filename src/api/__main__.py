@@ -1,4 +1,5 @@
 import datetime
+from typing import Annotated
 
 from core.custom_logging import LOGGING_CONFIG, get_logger
 from core.db.bases import async_engine
@@ -6,7 +7,6 @@ from core.deps import get_async_session, get_redis
 from core.enums import JSENDStatus
 from core.exceptions import BackendError, RateLimitError
 from core.managers.tokens import TokensManager
-from core.responses import Responses
 from core.schemas.responses import JSENDResponseSchema
 from fastapi import APIRouter, Depends, FastAPI, Request, status
 from fastapi.exceptions import RequestValidationError
@@ -27,6 +27,7 @@ from src.api.exception_handlers import (
     validation_exception_handler,
 )
 from src.api.lifespan import lifespan
+from src.api.responses import Responses
 from src.api.users.routers import register_router, tokens_router, users_router
 from src.api.wishmaster.routers import wishlist_router
 from src.settings import PROJECT_SRC_DIR, Settings
@@ -96,8 +97,8 @@ api_router = APIRouter()
 )
 async def healthcheck(
     request: Request,
-    redis: redis.Redis = Depends(get_redis),
-    async_session: AsyncSession = Depends(get_async_session),
+    redis: Annotated[redis.Redis, Depends(get_redis)],
+    async_session: Annotated[AsyncSession, Depends(get_async_session)],
 ) -> ORJSONResponse:
     """Check that API endpoints work properly.
 

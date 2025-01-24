@@ -3,12 +3,12 @@ from typing import Annotated
 from core.deps import get_async_session
 from core.deps.limiters import Rate, SlidingWindowRateLimiter
 from core.enums import RatePeriod
-from core.responses import Responses
 from core.schemas.responses import JSENDResponseSchema
 from fastapi import APIRouter, Body, Depends, Request, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.api.authorization.dependencies import IsAuthenticated, bearer_auth
+from src.api.responses import Responses
 from src.api.users.handlers import users_handler
 from src.api.users.schemas.requests import LoginSchema, TokenRefreshSchema, UserCreateSchema
 from src.api.users.schemas.responses import LoginOutSchema, UserResponseSchema
@@ -34,7 +34,6 @@ tokens_router = APIRouter(tags=["tokens"])
     name="create_user",
     summary="Registration",
     description="Create user and get details.",
-    response_model=JSENDResponseSchema[UserResponseSchema],
     status_code=status.HTTP_201_CREATED,
 )
 async def create_user(
@@ -60,7 +59,7 @@ async def create_user(
             },
         ),
     ],
-    session: AsyncSession = Depends(get_async_session),
+    session: Annotated[AsyncSession, Depends(get_async_session)],
 ) -> JSENDResponseSchema[UserResponseSchema]:
     """Creates new user."""
     return JSENDResponseSchema[UserResponseSchema](
@@ -75,7 +74,6 @@ async def create_user(
     name="whoami",
     summary="Who am I?",
     description="Get user's data from authorization.",
-    response_model=JSENDResponseSchema[UserResponseSchema],
     status_code=status.HTTP_200_OK,
 )
 async def whoami(request: Request) -> JSENDResponseSchema[UserResponseSchema]:
@@ -86,7 +84,6 @@ async def whoami(request: Request) -> JSENDResponseSchema[UserResponseSchema]:
 @tokens_router.post(
     path="/login/",
     name="login",
-    response_model=JSENDResponseSchema[LoginOutSchema],
     status_code=status.HTTP_200_OK,
 )
 async def login(
@@ -113,11 +110,11 @@ async def login(
     )
 
 
-@tokens_router.put(path="/refresh/", name="refresh", response_model=JSENDResponseSchema[LoginOutSchema])
+@tokens_router.put(path="/refresh/", name="refresh")
 async def refresh(
     request: Request,
     data: TokenRefreshSchema,
-    session: AsyncSession = Depends(get_async_session),
+    session: Annotated[AsyncSession, Depends(get_async_session)],
 ) -> JSENDResponseSchema[LoginOutSchema]:
     return JSENDResponseSchema[LoginOutSchema](
         data=await users_handler.refresh(request=request, session=session, data=data),

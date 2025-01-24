@@ -1,12 +1,15 @@
-import datetime
 import math
 import uuid
 import zoneinfo
+from typing import TYPE_CHECKING
 
 import pytest
 from core.helpers import as_utc, get_timestamp, get_utc_timezone, id_v1, id_v4, orjson_dumps, proxy_func, utc_now
 from faker import Faker
 from pytest_mock import MockerFixture
+
+if TYPE_CHECKING:
+    import datetime
 
 
 def test_get_utc_timezone() -> None:

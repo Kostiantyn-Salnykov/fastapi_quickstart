@@ -1,10 +1,11 @@
+__all__ = ("users_service",)
 import uuid
+from typing import TYPE_CHECKING
 
 from core.helpers import to_db_encoder
 from core.repositories import BaseCoreRepository
 from sqlalchemy import select
 from sqlalchemy.dialects.postgresql import insert
-from sqlalchemy.engine import ChunkedIteratorResult, CursorResult
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import contains_eager
 
@@ -12,7 +13,8 @@ from src.api.tables import Group, Permission, Role, User
 from src.api.users.enums import UserStatuses
 from src.api.users.schemas.requests import UserCreateSchema
 
-__all__ = ("users_service",)
+if TYPE_CHECKING:
+    from sqlalchemy.engine import ChunkedIteratorResult, CursorResult
 
 
 class UsersService(BaseCoreRepository):

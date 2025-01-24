@@ -1,5 +1,6 @@
 import typing
 import uuid
+from typing import Annotated
 
 from core.deps import get_async_session
 from core.deps.body.filtration import F, Filtration
@@ -8,13 +9,13 @@ from core.deps.body.projection import Projection
 from core.deps.body.searching import Searching
 from core.deps.body.sorting import Sorting
 from core.enums import FOps
-from core.responses import Responses
 from core.schemas.responses import JSENDResponseSchema
 from fastapi import APIRouter, Body, Depends, Path, Request
 from pydantic import AwareDatetime
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.api.authorization.dependencies import IsAuthenticated, bearer_auth
+from src.api.responses import Responses
 from src.api.wishmaster.handlers import wishlist_handler
 from src.api.wishmaster.schemas import (
     WishListCreateSchema,
@@ -32,7 +33,7 @@ wishlist_router = APIRouter(
 )
 
 
-@wishlist_router.post(path="/", name="create_wishlist", response_model=JSENDResponseSchema[WishListResponseSchema])
+@wishlist_router.post(path="/", name="create_wishlist")
 async def create_wishlist(
     request: Request,
     data: typing.Annotated[
@@ -52,7 +53,7 @@ async def create_wishlist(
             },
         ),
     ],
-    session: AsyncSession = Depends(get_async_session),
+    session: Annotated[AsyncSession, Depends(get_async_session)],
 ) -> JSENDResponseSchema[WishListResponseSchema]:
     return JSENDResponseSchema[WishListResponseSchema](
         data=await wishlist_handler.create(session=session, request=request, data=data),
@@ -63,7 +64,6 @@ async def create_wishlist(
 @wishlist_router.post(
     path="/list/",
     name="list_wishlists",
-    response_model=WishListsResponseSchema,
     response_model_exclude_unset=True,
 )
 async def list_wishlists(
@@ -106,7 +106,7 @@ async def list_wishlists(
         Searching,
         Depends(Searching(model=WishList, schema=WishListWithWishesOutSchema, available_columns=[WishList.title])),
     ],
-    session: AsyncSession = Depends(get_async_session),
+    session: Annotated[AsyncSession, Depends(get_async_session)],
 ) -> WishListsResponseSchema:
     total, wishlists = await wishlist_handler.list(
         session=session,
@@ -123,11 +123,11 @@ async def list_wishlists(
     )
 
 
-@wishlist_router.delete(path="/{id}/", name="delete_wishlist", response_model=JSENDResponseSchema)
+@wishlist_router.delete(path="/{id}/", name="delete_wishlist")
 async def delete_wishlist(
     request: Request,
-    id: uuid.UUID = Path(),
-    session: AsyncSession = Depends(get_async_session),
+    session: Annotated[AsyncSession, Depends(get_async_session)],
+    id: Annotated[uuid.UUID, Path()],
 ) -> JSENDResponseSchema:
     await wishlist_handler.delete(session=session, request=request, id=id)
     return JSENDResponseSchema(data=None, message="Wishlist deleted successfully.")

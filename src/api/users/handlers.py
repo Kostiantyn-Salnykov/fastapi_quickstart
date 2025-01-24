@@ -1,6 +1,8 @@
+__all__ = ("users_handler",)
 import datetime
 import hashlib
 import uuid
+from typing import TYPE_CHECKING
 
 from core.annotations import StrOrUUID
 from core.enums import TokenAudience
@@ -10,7 +12,6 @@ from core.managers.passwords import PasswordsManager
 from fastapi import Request
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.api.tables import User
 from src.api.users.enums import UserStatuses
 from src.api.users.schemas import UserCreateToDBSchema, UserToDBBaseSchema, UserTokenPayloadSchema
 from src.api.users.schemas.requests import LoginSchema, TokenRefreshSchema, UserCreateSchema, UserUpdateSchema
@@ -18,7 +19,8 @@ from src.api.users.schemas.responses import LoginOutSchema, UserResponseSchema
 from src.api.users.services import users_service
 from src.settings import Settings
 
-__all__ = ("users_handler",)
+if TYPE_CHECKING:
+    from src.api.tables import User
 
 
 class UsersHandler:

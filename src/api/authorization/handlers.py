@@ -1,13 +1,13 @@
 import typing
+from typing import TYPE_CHECKING
 
 import uuid_extensions
 from core.annotations import StrOrUUID
 from core.custom_logging import get_logger
-from core.deps.query.pagination import NextTokenPagination
+from core.deps.body.pagination import Pagination
 from core.exceptions import BackendError
 from core.helpers import to_db_encoder
 from fastapi import Request, status
-from sqlalchemy.engine import CursorResult
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.sql.elements import BinaryExpression, UnaryExpression
 
@@ -22,6 +22,9 @@ from src.api.authorization.services import (
     roles_service,
 )
 from src.api.tables import Group, Permission, Role
+
+if TYPE_CHECKING:
+    from sqlalchemy.engine import CursorResult
 
 logger = get_logger(name=__name__)
 
@@ -52,7 +55,7 @@ class GroupsHandler:
         *,
         request: Request,
         session: AsyncSession,
-        pagination: NextTokenPagination,
+        pagination: Pagination,
         sorting: list[UnaryExpression],
         filters: list[BinaryExpression] | None = None,
     ) -> tuple[int, list[Group]]:
@@ -131,7 +134,7 @@ class RolesHandler:
         *,
         request: Request,
         session: AsyncSession,
-        pagination: NextTokenPagination,
+        pagination: Pagination,
         sorting: list[UnaryExpression],
         filters: list[BinaryExpression] | None = None,
     ) -> tuple[int, list[Role]]:
@@ -162,7 +165,7 @@ class PermissionsHandler:
         *,
         request: Request,
         session: AsyncSession,
-        pagination: NextTokenPagination,
+        pagination: Pagination,
         sorting: list[UnaryExpression],
         filters: list[BinaryExpression] | None = None,
     ) -> tuple[int, list[Permission]]:
