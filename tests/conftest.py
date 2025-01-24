@@ -8,63 +8,46 @@ import fastapi
 import httpx
 import psycopg2
 import pytest
+import redis.asyncio as aioredis
 from _pytest.monkeypatch import MonkeyPatch
 from fastapi import Depends, Request, Response
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 from pytest_alembic import Config, runner
-from sqlalchemy import create_engine
 from sqlalchemy.engine import URL, Engine
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, async_sessionmaker, create_async_engine
-from sqlalchemy.orm import Session, close_all_sessions, scoped_session, sessionmaker
+from sqlalchemy.orm import close_all_sessions
 
-import redis.asyncio as aioredis
-from apps.CORE.db import async_session_factory as AsyncSessionFactory  # noqa
-from apps.CORE.db import session_factory as SessionFactory  # noqa
-from apps.CORE.deps import get_async_session, get_redis, get_session
-from apps.CORE.deps.limiters import SlidingWindowRateLimiter
-from settings import Settings
-from tests.apps.CORE.factories import (
-    GroupFactory,
-    GroupRoleFactory,
-    GroupUserFactory,
-    PermissionFactory,
-    PermissionUserFactory,
-    RoleFactory,
-    RolePermissionFactory,
-    RoleUserFactory,
-    UserFactory,
-)
-from tests.apps.wishmaster.factories import CategoryFactory, TagFactory, WishFactory, WishListFactory, WishTagFactory
-from tests.bases import BaseModelFactory
+from core.db.bases import async_session_factory as AsyncSessionFactory  # noqa
+from core.deps import get_async_session, get_redis
+from core.deps.limiters import SlidingWindowRateLimiter
+from src.settings import Settings
 
 
 @pytest.fixture(scope="session", autouse=True)
 def _mock_db_url(monkeypatch_session: MonkeyPatch) -> None:
     """Change all PostgreSQL URLs and environments to use `test` database."""
-    db_url: URL = Settings.POSTGRES_URL
-    async_db_url: URL = Settings.POSTGRES_URL_ASYNC
-    monkeypatch_session.setattr(target=Settings, name="POSTGRES_URL", value=db_url.set(database="test"))
-    monkeypatch_session.setattr(target=Settings, name="POSTGRES_URL_ASYNC", value=async_db_url.set(database="test"))
-    monkeypatch_session.setenv(name="POSTGRES_DB", value="test")
-    monkeypatch_session.setattr(target=Settings, name="POSTGRES_DB", value="test")
+    async_db_url: URL = Settings.APP_RDMS_URL
+    monkeypatch_session.setattr(target=Settings, name="APP_RDMS_URL", value=async_db_url.set(database="test"))
+    monkeypatch_session.setenv(name="APP_RDMS_DB", value="test")
+    monkeypatch_session.setattr(target=Settings, name="APP_RDMS_DB", value="test")
 
 
 @pytest.fixture(scope="session", autouse=True)
 def _create_database(_mock_db_url: None) -> typing.Generator[None, None, None]:
     """Recreates `test` database for tests."""
     con = psycopg2.connect(
-        f"postgresql://{Settings.POSTGRES_USER}:{Settings.POSTGRES_PASSWORD}@"
-        f"{Settings.POSTGRES_HOST}:{Settings.POSTGRES_PORT}",
+        f"postgresql://{Settings.APP_RDMS_USER}:{Settings.APP_RDMS_PASSWORD}@"
+        f"{Settings.APP_RDMS_HOST}:{Settings.APP_RDMS_PORT}",
     )
 
     con.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
 
     cursor = con.cursor()
-    cursor.execute(f"""DROP DATABASE IF EXISTS {Settings.POSTGRES_DB};""")
-    cursor.execute(f"""CREATE DATABASE {Settings.POSTGRES_DB};""")
+    cursor.execute(f"""DROP DATABASE IF EXISTS {Settings.APP_RDMS_DB};""")
+    cursor.execute(f"""CREATE DATABASE {Settings.APP_RDMS_DB};""")
     yield
     close_all_sessions()
-    cursor.execute(f"""DROP DATABASE IF EXISTS {Settings.POSTGRES_DB};""")
+    cursor.execute(f"""DROP DATABASE IF EXISTS {Settings.APP_RDMS_DB};""")
 
 
 @pytest.fixture(scope="session")
@@ -123,20 +106,18 @@ def event_loop() -> typing.Generator[asyncio.AbstractEventLoop, None, None]:
 
 
 @pytest.fixture(scope="session", autouse=True)
-async def _mock_sessions_factories(async_db_engine: AsyncEngine, sync_db_engine: Engine) -> None:
-    """Mocks session_factory and async_session_factory from `apps.CORE.sessions`.
+async def _mock_sessions_factories(async_db_engine: AsyncEngine) -> None:
+    """Mocks session_factory and async_session_factory from `core.sessions`.
 
     Notes:
         This should prevent errors with middlewares, that are using these methods.
     """
     AsyncSessionFactory.configure(bind=async_db_engine)
-    SessionFactory.configure(bind=sync_db_engine)
 
 
-@pytest.fixture()
+@pytest.fixture
 async def app_fixture(
     db_session: AsyncSession,
-    sync_db_session: Session,
     event_loop: asyncio.AbstractEventLoop,
     monkeypatch: MonkeyPatch,
 ) -> fastapi.FastAPI:
@@ -150,14 +131,9 @@ async def app_fixture(
         """Replace `get_async_session` dependency with AsyncSession from `db_session` fixture."""
         return db_session
 
-    def override_get_session() -> Session:
-        """Replace `get_session` dependency with Session from `sync_db_session` fixture."""
-        return sync_db_session
-
-    from apps.__main__ import app
+    from src.api.__main__ import app
 
     app.dependency_overrides[get_async_session] = override_get_async_session
-    app.dependency_overrides[get_session] = override_get_session
     return app
 
 
@@ -175,14 +151,14 @@ async def _mock_limiters(monkeypatch_session: MonkeyPatch) -> None:
     monkeypatch_session.setattr(target=SlidingWindowRateLimiter, name="__call__", value=limiter_mock, raising=False)
 
 
-@pytest.fixture()
+@pytest.fixture
 async def async_client(app_fixture: fastapi.FastAPI, event_loop: asyncio.AbstractEventLoop) -> httpx.AsyncClient:
     """Prepare async HTTP client with FastAPI app context.
 
     Yields:
         httpx_client (httpx.AsyncClient): Instance of AsyncClient to perform a requests to API.
     """
-    async with httpx.AsyncClient(app=app_fixture, base_url=f"http://{Settings.HOST}:{Settings.PORT}") as httpx_client:
+    async with httpx.AsyncClient(app=app_fixture, base_url=f"http://{Settings.SERVER_HOST}:{Settings.SERVER_PORT}") as httpx_client:
         yield httpx_client
 
 
@@ -199,9 +175,9 @@ def alembic_config() -> Config:
 
 
 @pytest.fixture(scope="session")
-def alembic_engine(sync_db_engine: Engine) -> Engine:
-    """Proxy sync_db_engine to pytest_alembic (make it as a default engine)."""
-    return sync_db_engine
+def alembic_engine(async_db_engine: AsyncEngine) -> AsyncEngine:
+    """Proxy async_db_engine to pytest_alembic (make it as a default engine)."""
+    return async_db_engine
 
 
 @pytest.fixture(scope="session")
@@ -225,28 +201,13 @@ def _apply_migrations(
 
 
 @pytest.fixture(scope="session")
-def sync_db_engine() -> Engine:
-    """Create sync database engine and dispose it after all tests.
-
-    Yields:
-        engine (Engine): SQLAlchemy Engine instance.
-    """
-    engine = create_engine(url=Settings.POSTGRES_URL, echo=Settings.POSTGRES_ECHO)
-    try:
-        yield engine
-    finally:
-        close_all_sessions()
-        engine.dispose()
-
-
-@pytest.fixture(scope="session")
 async def async_db_engine(event_loop: asyncio.AbstractEventLoop) -> AsyncEngine:
     """Create async database engine and dispose it after all tests.
 
     Yields:
         async_engine (AsyncEngine): SQLAlchemy AsyncEngine instance.
     """
-    async_engine = create_async_engine(url=Settings.POSTGRES_URL_ASYNC, echo=Settings.POSTGRES_ECHO)
+    async_engine = create_async_engine(url=Settings.APP_RDMS_URL, echo=Settings.APP_RDMS_ECHO)
     try:
         yield async_engine
     finally:
@@ -254,33 +215,13 @@ async def async_db_engine(event_loop: asyncio.AbstractEventLoop) -> AsyncEngine:
         await async_engine.dispose()
 
 
-@pytest.fixture()
-def sync_session_factory(sync_db_engine: Engine) -> sessionmaker:
-    """Create async session factory."""
-    return sessionmaker(bind=sync_db_engine, expire_on_commit=False, class_=Session)
-
-
-@pytest.fixture()
-def sync_db_session(sync_session_factory: sessionmaker) -> typing.Generator[Session, None, None]:
-    """Create a sync session for the database and rollback it after test."""
-    with sync_session_factory() as session:
-        try:
-            yield session
-        except Exception as error:
-            session.rollback()
-            raise error
-        finally:
-            session.rollback()
-            session.close()
-
-
-@pytest.fixture()
+@pytest.fixture
 async def session_factory(async_db_engine: AsyncEngine) -> async_sessionmaker:
     """Create async session factory."""
     return async_sessionmaker(bind=async_db_engine, expire_on_commit=False, class_=AsyncSession)
 
 
-@pytest.fixture()
+@pytest.fixture
 async def db_session(session_factory: async_sessionmaker) -> typing.AsyncGenerator[AsyncSession, None]:
     """Create async session for database and rollback it after test."""
     async with session_factory() as async_session:
@@ -292,44 +233,3 @@ async def db_session(session_factory: async_sessionmaker) -> typing.AsyncGenerat
         finally:
             await async_session.rollback()
             await async_session.close()
-
-
-@pytest.fixture(scope="session")
-def scoped_db_session() -> scoped_session:
-    """Create scoped session for tests runner and model factories."""
-    session = scoped_session(session_factory=SessionFactory)
-    try:
-        yield session
-    except Exception as error:
-        session.rollback()
-        raise error
-    finally:
-        session.rollback()
-        session.remove()
-        session.close()
-
-
-@pytest.fixture(autouse=True, scope="session")
-def _set_session_for_factories(scoped_db_session: scoped_session) -> None:
-    """Registration of model factories to set up a scoped session during the test run."""
-    known_factories: list[type[BaseModelFactory]] = [
-        UserFactory,
-        WishListFactory,
-        WishFactory,
-        CategoryFactory,
-        TagFactory,
-        WishTagFactory,
-        PermissionFactory,
-        RolePermissionFactory,
-        RoleFactory,
-        GroupRoleFactory,
-        GroupFactory,
-        PermissionUserFactory,
-        RoleUserFactory,
-        GroupUserFactory,
-        # === Add new factory classes here!!! ===
-    ]
-
-    for factory_class in known_factories:
-        # Set up session to factory
-        factory_class._meta.sqlalchemy_session = scoped_db_session

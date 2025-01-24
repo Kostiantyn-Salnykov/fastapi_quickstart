@@ -1,13 +1,13 @@
 import datetime
 
 import pytest
+from core.enums import TokenAudience
+from core.exceptions import BackendError
+from core.helpers import utc_now
+from core.managers.tokens import TokensManager
+from core.managers.passwords import PasswordsManager
+from core.schemas import TokenOptionsSchema, TokenPayloadSchema
 from faker import Faker
-
-from apps.CORE.enums import TokenAudience
-from apps.CORE.exceptions import BackendError
-from apps.CORE.helpers import utc_now
-from apps.CORE.managers import PasswordsManager, TokensManager
-from apps.CORE.schemas import TokenOptionsSchema, TokenPayloadSchema
 
 
 class TestPasswordsManager:

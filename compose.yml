@@ -1,6 +1,3 @@
-version: "3.8"
-
-
 volumes:
   db_data:
     name: "fastapi_quickstart-PostgreSQL-DATA"
@@ -11,7 +8,7 @@ volumes:
 
 
 services:
-  postgres:
+  postgresql:
     container_name: "fastapi_quickstart-PostgreSQL"
     image: postgres:latest
     restart: unless-stopped
@@ -20,9 +17,10 @@ services:
     env_file:
       - .env
     ports:
-      - "0.0.0.0:5432:5432"
+      - "0.0.0.0:${POSTGRES_PORT}:${POSTGRES_PORT}"
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -d postgres -U postgres -h 0.0.0.0 -p 5432"]
+      test: ["CMD-SHELL", "pg_isready -d ${POSTGRES_DB} -U ${POSTGRES_USER} -h ${POSTGRES_HOST} -p ${POSTGRES_PORT}"]
+      start_period: 30s
       interval: 10s
       timeout: 5s
       retries: 5
@@ -35,12 +33,10 @@ services:
       - "pgadmin_data:/var/lib/pgadmin"
     env_file:
       - .env
-    environment:
-      - PGADMIN_LISTEN_PORT=8080
     ports:
-      - "0.0.0.0:8080:8080"
+      - "0.0.0.0:${PGADMIN_LISTEN_PORT}:${PGADMIN_LISTEN_PORT}"
     depends_on:
-      - postgres
+      - postgresql
 
   redis:
     container_name: "fastapi_quickstart-RedisStack"
@@ -49,8 +45,8 @@ services:
     env_file:
       - .env
     ports:
-      - "0.0.0.0:6379:6379"  # Redis Server
-      - "0.0.0.0:8001:8001"  # RedisInsight
+      - "0.0.0.0:${REDIS_PORT}:${REDIS_PORT}"  # Redis Server
+      - "0.0.0.0:${REDIS_INSIGHT_PORT}:${REDIS_INSIGHT_PORT}"  # RedisInsight
     volumes:
       - "redis_data:/data"
       - "./redis/redis.conf:/redis-stack.conf"
@@ -66,27 +62,29 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+      args:
+        SERVER_PORT: ${SERVER_PORT}
     ports:
-      - "0.0.0.0:8000:8000"
+      - "0.0.0.0:${SERVER_PORT}:${SERVER_PORT}"
     env_file:
       - .env
     depends_on:
-      - postgres
+      - postgresql
       - redis
     healthcheck:
-      test: ["CMD-SHELL", "curl -f http://0.0.0.0:8000/api/v1/ || exit 1"]
+      test: ["CMD-SHELL", "curl -f http://0.0.0.0:${SERVER_PORT}/api/v1/ || exit 1"]
       start_period: 10s
       interval: 30s
       timeout: 2s
       retries: 3
-#    develop:
-#      watch:
-#        - action: "sync"
-#          path: "./"
-#          target: "/backend"
-#        - action: "sync+restart"
-#          path: "./.env"
-#          target: "/backend/.env"
-#        - action: "sync+restart"
-#          path: "./settings.py"
-#          target: "/backend/settings.py"
+    develop:
+      watch:
+        - action: "sync"
+          path: "./"
+          target: "/backend"
+        - action: "sync+restart"
+          path: "./.env"
+          target: "/backend/.env"
+        - action: "sync+restart"
+          path: "./settings.py"
+          target: "/backend/settings.py"

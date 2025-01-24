@@ -1,14 +1,15 @@
 """Config file for alembic migrations."""
 
+import asyncio
 import pathlib
 from logging.config import fileConfig
 
 from alembic import context
-
-from apps.CORE.db import Base, engine
+from core.db.bases import Base, async_engine
+from sqlalchemy.engine import Connection
 
 # You should import models explicitly to this file, to allow autogenerate migrations.
-from apps.CORE.tables import (  # noqa
+from src.api.tables import (  # noqa
     Group,
     GroupRole,
     GroupUser,
@@ -19,7 +20,7 @@ from apps.CORE.tables import (  # noqa
     RoleUser,
     User,
 )
-from apps.wishmaster.tables import Category, Tag, Wish, WishList, WishTag  # noqa
+from src.api.wishmaster.tables import Category, Tag, Wish, WishList, WishTag  # noqa
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -55,7 +56,7 @@ def run_migrations_offline() -> None:
         sql_versions_dir.mkdir()
 
     context.configure(
-        url=engine.url,
+        url=async_engine.url,
         target_metadata=target_metadata,
         literal_binds=True,
         compare_type=True,
@@ -69,30 +70,36 @@ def run_migrations_offline() -> None:
         context.run_migrations()
 
 
-def run_migrations_online() -> None:
-    """Run migrations in 'online' mode.
+def do_run_migrations(connection: Connection) -> None:
+    context.configure(
+        connection=connection,
+        target_metadata=target_metadata,
+        compare_type=True,
+        compare_server_default=True,
+        include_schemas=True,
+        dialect_name="postgresql",
+    )
 
-    In this scenario we need to create an Engine
-    and associate a connection with the context.
+    with context.begin_transaction():
+        context.run_migrations()
 
-    """
+
+async def run_async_migrations() -> None:
+    """In this scenario we need to create an Engine and associate a connection with the context."""
     connectable = context.config.attributes.get("connection", None)  # for pytest-alembic
 
     if connectable is None:  # without pytest-alembic (local / production)
-        connectable = engine
+        connectable = async_engine
 
-    with connectable.connect() as connection:
-        context.configure(
-            connection=connection,
-            target_metadata=target_metadata,
-            compare_type=True,
-            compare_server_default=True,
-            include_schemas=True,
-            dialect_name="postgresql",
-        )
+    async with connectable.connect() as connection:
+        await connection.run_sync(do_run_migrations)
 
-        with context.begin_transaction():
-            context.run_migrations()
+    await connectable.dispose()
+
+
+def run_migrations_online() -> None:
+    """Run migrations in 'online' mode."""
+    asyncio.run(run_async_migrations())
 
 
 if context.is_offline_mode():

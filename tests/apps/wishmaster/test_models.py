@@ -1,6 +1,6 @@
-from apps.wishmaster.tables import Category, Tag, Wish, WishList, WishTag
-from tests.apps.wishmaster.factories import CategoryFactory, TagFactory, WishFactory, WishListFactory, WishTagFactory
+from src.api.wishmaster.tables import Category, Tag, Wish, WishList, WishTag
 from tests.bases import BaseModelFactory
+from tests.apps.wishmaster.factories import CategoryFactory, TagFactory, WishFactory, WishListFactory, WishTagFactory
 
 
 class TestWish:

@@ -1,9 +1,8 @@
 import datetime
 
+from core.custom_types import Timestamp
+from core.helpers import get_utc_timezone
 from pydantic import TypeAdapter
-
-from apps.CORE.custom_types import Timestamp
-from apps.CORE.helpers import get_utc_timezone
 
 
 class TestTimestamp:

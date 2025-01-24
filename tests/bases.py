@@ -1,9 +1,8 @@
 import random
 
 import factory
-
-from apps.CORE.custom_types import ModelType
-from apps.CORE.db import Base
+from core.annotations import ModelType
+from core.db.bases import Base
 
 
 class BaseModelFactory(factory.alchemy.SQLAlchemyModelFactory):
@@ -16,8 +15,7 @@ class BaseModelFactory(factory.alchemy.SQLAlchemyModelFactory):
         """Change RuntimeError to help with factory set up."""
         if cls._meta.sqlalchemy_session is None:
             msg = (
-                f"Register {cls.__name__} factory inside conftest.py in set_session_for_factories fixture "
-                f"declaration."
+                f"Register {cls.__name__} factory inside conftest.py in set_session_for_factories fixture declaration."
             )
             raise RuntimeError(msg)
         return super()._create(model_class=model_class, *args, **kwargs)

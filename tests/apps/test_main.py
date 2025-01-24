@@ -1,7 +1,6 @@
+from core.enums import JSENDStatus
 from fastapi import FastAPI, status
 from httpx import AsyncClient
-
-from apps.CORE.enums import JSENDStatus
 
 
 async def test_healthcheck(async_client: AsyncClient, app_fixture: FastAPI) -> None:

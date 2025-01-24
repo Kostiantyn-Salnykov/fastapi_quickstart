@@ -4,14 +4,14 @@ from collections.abc import Callable
 from functools import wraps
 
 import typer
+from core.custom_logging import get_logger, setup_logging
+from core.db.bases import async_engine, async_session_factory
 
-from apps.authorization.managers import AuthorizationManager
-from apps.CORE.db import async_session_factory, engine
-from loggers import get_logger, setup_logging
+from src.api.authorization.managers import AuthorizationManager
 
 setup_logging()  # enable logging inside CLI
 logger = get_logger(name=__name__)
-auth_manager = AuthorizationManager(engine=engine)
+auth_manager = AuthorizationManager(engine=async_engine)
 
 
 Function = typing.TypeVar("Function", bound=Callable[..., typing.Any])

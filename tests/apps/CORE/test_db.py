@@ -1,6 +1,5 @@
+from core.db.bases import BaseTableModelMixin
 from faker import Faker
-
-from apps.CORE.db import BaseTableModelMixin
 
 
 class TestTableNameMixin:

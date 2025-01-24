@@ -1,13 +1,12 @@
 import datetime
 import uuid
+import zoneinfo
 
 import orjson
-import zoneinfo
+from core.custom_types import Timestamp
+from core.helpers import get_timestamp
+from core.schemas.responses import BaseResponseSchema
 from faker import Faker
-
-from apps.CORE.custom_types import Timestamp
-from apps.CORE.helpers import get_timestamp
-from apps.CORE.schemas.responses import BaseResponseSchema
 
 
 class TestBaseOutSchema:

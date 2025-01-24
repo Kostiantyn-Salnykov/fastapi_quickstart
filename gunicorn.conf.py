@@ -2,14 +2,15 @@
 
 import multiprocessing
 
-from loggers import LOGGING_CONFIG
-from settings import Settings
+from core.custom_logging import LOGGING_CONFIG
 
-bind = f"{Settings.HOST}:{Settings.PORT}"
-workers = Settings.WORKERS_COUNT or multiprocessing.cpu_count() * 2 + 1
+from src.settings import Settings
+
+bind = f"{Settings.SERVER_HOST}:{Settings.SERVER_PORT}"
+workers = Settings.SERVER_WORKERS_COUNT or multiprocessing.cpu_count() * 2 + 1
 worker_class = "uvicorn.workers.UvicornWorker"
 threads = 1  # default
-if Settings.DEBUG:
+if Settings.APP_DEBUG:
     reload = True
     reload_engine = "auto"
     reload_extra_files = [".env", "settings.py"]

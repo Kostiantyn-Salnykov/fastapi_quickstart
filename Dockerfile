@@ -6,30 +6,24 @@ ENV PYTHONPATH=/backend \
     PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     PIP_NO_CACHE_DIR=off \
-    PIP_DISABLE_PIP_VERSION_CHECK=on \
-    POETRY_HOME="/opt/poetry" \
-    POETRY_VIRTUALENVS_CREATE=false \
-    POETRY_VIRTUALENVS_IN_PROJECT=false \
-    POETRY_NO_INTERACTION=1 \
-    POETRY_VERSION=1.8.0
+    PIP_DISABLE_PIP_VERSION_CHECK=on
 
-ENV PATH="$PATH:$POETRY_HOME/bin"
+RUN apt-get update && apt-get install -y curl build-essential
 
-RUN apt-get update && apt-get install -y --no-install-recommends curl
+RUN pip install --upgrade pip setuptools wheel
 
 RUN sh -c "$(curl --location https://taskfile.dev/install.sh)" -- -d
-RUN curl -sSL https://install.python-poetry.org | python3 -
+
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 
 WORKDIR /backend
 
-COPY Taskfile.yaml pyproject.toml poetry.lock /backend/
+COPY Taskfile.yaml pyproject.toml uv.lock /backend/
 
-RUN poetry config virtualenvs.create false && poetry install
+RUN uv sync --frozen
 
 USER user
 
 COPY --chown=user:user . /backend
-
-EXPOSE 8000
 
 CMD ["task", "run"]

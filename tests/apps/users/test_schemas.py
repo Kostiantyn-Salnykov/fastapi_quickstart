@@ -1,6 +1,6 @@
 import pytest
 
-from apps.users.schemas.requests import UserUpdateSchema
+from src.api.users.schemas.requests import UserUpdateSchema
 
 
 class TestUserUpdateSchema:

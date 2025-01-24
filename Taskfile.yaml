@@ -7,12 +7,37 @@ includes:
     taskfile: ./migrations/Taskfile.yaml
 
 vars:
-  RUNNER: "poetry run"
+  RUNNER: "uv run"
 
 dotenv:
   - ".env"
 
 tasks:
+  install:local:
+    desc: "Install all dependencies (for local development)."
+    cmds:
+      - 'uv sync --group local --frozen {{.CLI_ARGS}}'
+
+  install:local_fresh:
+    desc: "Install all dependencies (for local development)."
+    cmds:
+      - 'uv sync --group local --reinstall --frozen {{.CLI_ARGS}}'
+
+  install:dev:
+    desc: "Install all dependencies (for development)."
+    cmds:
+      - 'uv sync --no-group local --group test --group linters --frozen {{.CLI_ARGS}}'
+
+  install:
+    desc: "Install all dependencies (for production)."
+    cmds:
+      - 'uv sync {{.CLI_ARGS}}'
+
+  tree:
+    desc: "Show the tree of installed dependencies."
+    cmds:
+      - 'uv tree --depth 2 --color always {{.CLI_ARGS}}'
+
   lint:
     desc: "Run linters, not change code."
     vars:
@@ -28,10 +53,7 @@ tasks:
 
   lint:docs:
     desc: "Run coverage for documentation."
-    summary: "Default usage: `task lint:docs`.
-
-    Extended usage: `task lint:docs -- v` (Increasing verbosity level to `-vv`, `-v` by default).
-    "
+    summary: "Default usage: `task lint:docs`. Extended usage: `task lint:docs -- v` (Increasing verbosity level to `-vv`, `-v` by default)."
     cmd: "{{.RUNNER}} interrogate {{.VERBOSITY}}{{.CLI_ARGS}}"
     vars:
       VERBOSITY: "-v"
@@ -61,13 +83,21 @@ tasks:
       - task: lint
       - task: test:cov
 
-  run:gu:
+  run:gunicorn:
     desc: "Start web server via `Gunicorn` (production mode)."
-    cmd: "{{.RUNNER}} gunicorn apps.__main__:app -c gunicorn.conf.py"
+    cmd: "{{.RUNNER}} gunicorn {{.APP_MODULE_PATH}} -c gunicorn.conf.py"
 
-  run:py:
+  run:granian:
+    desc: "Start web server via `Granian` (development mode)."
+    cmd: '{{.RUNNER}} granian --interface asgi {{.APP_MODULE_PATH}} --host {{.SERVER_HOST}} --port {{.SERVER_PORT}} --log --access-log --reload --reload-paths apps/ --reload-paths .env {{.CLI_ARGS}}'
+
+  run:uvicorn:
     desc: "Start web server via `Uvicorn` (development mode)."
-    cmd: "{{.RUNNER}} python -m apps"
+    cmd: '{{.RUNNER}} uvicorn {{.APP_MODULE_PATH}} --host {{.SERVER_HOST}} --port {{.SERVER_PORT}} --reload --reload-dir "src" --reload-include ".env" {{.CLI_ARGS}}'
+
+  run:fastapi:
+    desc: "Start web server via 'FastAPI' CLI (development mode)"
+    cmd: "{{.RUNNER}} fastapi dev apps/__main__.py --app app --host {{.SERVER_HOST}} --port {{.SERVER_PORT}} --reload --root-path ./"
 
   run:
     desc: "Run migrations and then start web."

@@ -1,14 +1,14 @@
 import datetime
 
 import pytest
+from core.enums import JSENDStatus, TokenAudience
+from core.managers.tokens import TokensManager
 from faker import Faker
 from fastapi import FastAPI, status
 from httpx import AsyncClient
 from pytest_mock import MockerFixture
 
-from apps.CORE.enums import JSENDStatus, TokenAudience
-from apps.CORE.managers import TokensManager
-from apps.users.enums import UserStatuses
+from src.api.users.enums import UserStatuses
 from tests.apps.conftest import UsersHelper, assert_jsend_response
 from tests.apps.CORE.factories import UserFactory
 
@@ -247,8 +247,8 @@ class TestTokensRouter:
         )
 
     @pytest.mark.parametrize(
-        argnames=("user_status",),
-        argvalues=([UserStatuses.ARCHIVED], [UserStatuses.UNCONFIRMED]),
+        argnames="user_status",
+        argvalues=(UserStatuses.ARCHIVED, UserStatuses.UNCONFIRMED),
     )
     async def test_refresh_400_inactive(
         self,

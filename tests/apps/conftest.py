@@ -1,14 +1,14 @@
 import typing
 import uuid
 
+from core.enums import JSENDStatus
+from core.managers.tokens import TokensManager
+from src.api.tables import User
 from fastapi import status
 from httpx import Response
 
-from apps.CORE.enums import JSENDStatus
-from apps.CORE.managers import TokensManager
-from apps.CORE.tables import User
-from apps.users.enums import UserStatuses
-from settings import Settings
+from src.settings import Settings
+from src.api.users.enums import UserStatuses
 from tests.apps.CORE.factories import UserFactory
 
 

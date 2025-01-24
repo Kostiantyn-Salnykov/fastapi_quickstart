@@ -1,24 +1,22 @@
 import pytest
-from faker import Faker
-from fastapi import status
-from pytest_mock import MockerFixture
-
-from apps.CORE.enums import JSENDStatus
-from apps.CORE.exception_handlers import (
+from core.enums import JSENDStatus
+from src.api.exception_handlers import (
     backend_exception_handler,
     integrity_error_handler,
     validation_exception_handler,
 )
-from apps.CORE.exceptions import BackendError
-from settings import Settings
+from core.exceptions import BackendError
+from faker import Faker
+from fastapi import status
+from pytest_mock import MockerFixture
+
+from src.settings import Settings
 
 
 def test_backend_exception_handler(faker: Faker, mocker: MockerFixture) -> None:
     exception = BackendError(message=faker.pystr())
     expected_result = faker.pystr()
-    orjson_response_mock = mocker.patch(
-        target="apps.CORE.exception_handlers.ORJSONResponse", return_value=expected_result
-    )
+    orjson_response_mock = mocker.patch(target="core.exception_handlers.ORJSONResponse", return_value=expected_result)
 
     result = backend_exception_handler(request=mocker.MagicMock(), exc=exception)
 
@@ -30,9 +28,7 @@ def test_validation_exception_handler(faker: Faker, mocker: MockerFixture) -> No
     exception_mock = mocker.MagicMock()
     exception_mock.errors.return_value = [{"loc": "Something", "msg": "test", "type": "TYPE", "ctx": "CONTEXT"}]
     expected_result = faker.pystr()
-    orjson_response_mock = mocker.patch(
-        target="apps.CORE.exception_handlers.ORJSONResponse", return_value=expected_result
-    )
+    orjson_response_mock = mocker.patch(target="core.exception_handlers.ORJSONResponse", return_value=expected_result)
 
     result = validation_exception_handler(request=mocker.MagicMock(), exc=exception_mock)
 

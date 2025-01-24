@@ -1,5 +1,5 @@
-from apps.wishmaster.schemas import WishResponseSchema
-from apps.wishmaster.tables import Tag
+from src.api.wishmaster.schemas import WishResponseSchema
+from src.api.wishmaster.tables import Tag
 
 
 class TestWishOutSchema:

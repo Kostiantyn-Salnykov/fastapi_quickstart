@@ -1,7 +1,7 @@
+from core.enums import JSENDStatus
 from fastapi import status
 
-from apps.authorization.exceptions import BackendPermissionError
-from apps.CORE.enums import JSENDStatus
+from src.api.authorization.exceptions import BackendPermissionError
 
 
 class TestPermissionException:

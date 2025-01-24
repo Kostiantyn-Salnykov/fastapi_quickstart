@@ -1,0 +1,18 @@
+[project]
+name = "core"
+authors = [
+    {name = "Kostiantyn Salnykov", email = "kostiantyn.salnykov@gmail.com"},
+]
+version = "0.0.1"
+description = "Core library with shared functionality"
+requires-python = ">=3.12"
+dependencies = [
+    "pydantic-settings>=2.7.1",
+    "advanced-alchemy>=0.27.1",
+]
+
+[tool.hatch.build.targets.sdist]
+only-include = ["src/core"]
+
+[tool.hatch.build.targets.wheel]
+only-include = ["src/core"]

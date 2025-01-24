@@ -1,9 +1,8 @@
 import pytest
+from core.enums import JSENDStatus
+from core.exceptions import BackendError
 from faker import Faker
 from fastapi import status
-
-from apps.CORE.enums import JSENDStatus
-from apps.CORE.exceptions import BackendError
 
 
 class TestBackendException:

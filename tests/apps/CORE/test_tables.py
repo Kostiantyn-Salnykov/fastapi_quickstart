@@ -1,4 +1,4 @@
-from apps.CORE.tables import (
+from src.api.tables import (
     Group,
     GroupRole,
     GroupUser,
@@ -9,6 +9,8 @@ from apps.CORE.tables import (
     RoleUser,
     User,
 )
+
+from tests.bases import BaseModelFactory
 from tests.apps.CORE.factories import (
     GroupFactory,
     GroupRoleFactory,
@@ -20,7 +22,6 @@ from tests.apps.CORE.factories import (
     RoleUserFactory,
     UserFactory,
 )
-from tests.bases import BaseModelFactory
 
 
 class TestPermission:
