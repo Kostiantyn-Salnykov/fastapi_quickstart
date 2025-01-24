@@ -7,6 +7,7 @@ from logging.config import fileConfig
 from alembic import context
 from core.db.bases import Base, async_engine
 from sqlalchemy.engine import Connection
+from sqlalchemy.ext.asyncio import AsyncEngine
 
 # You should import models explicitly to this file, to allow autogenerate migrations.
 from src.api.tables import (  # noqa
@@ -84,13 +85,7 @@ def do_run_migrations(connection: Connection) -> None:
         context.run_migrations()
 
 
-async def run_async_migrations() -> None:
-    """In this scenario we need to create an Engine and associate a connection with the context."""
-    connectable = context.config.attributes.get("connection", None)  # for pytest-alembic
-
-    if connectable is None:  # without pytest-alembic (local / production)
-        connectable = async_engine
-
+async def run_async_migrations(connectable) -> None:
     async with connectable.connect() as connection:
         await connection.run_sync(do_run_migrations)
 
@@ -98,8 +93,16 @@ async def run_async_migrations() -> None:
 
 
 def run_migrations_online() -> None:
-    """Run migrations in 'online' mode."""
-    asyncio.run(run_async_migrations())
+    connectable = context.config.attributes.get("connection", None)  # for pytest-alembic
+
+    if connectable is None:  # without pytest-alembic (local / production)
+        connectable = async_engine
+
+    if isinstance(connectable, AsyncEngine):
+        asyncio.run(run_async_migrations(connectable=connectable))
+    else:
+        with connectable.connect() as connection:
+            do_run_migrations(connection=connection)
 
 
 if context.is_offline_mode():

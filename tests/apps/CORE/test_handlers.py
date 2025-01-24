@@ -1,22 +1,24 @@
 import pytest
 from core.enums import JSENDStatus
-from src.api.exception_handlers import (
-    backend_exception_handler,
-    integrity_error_handler,
-    validation_exception_handler,
-)
 from core.exceptions import BackendError
 from faker import Faker
 from fastapi import status
 from pytest_mock import MockerFixture
 
+from src.api.exception_handlers import (
+    backend_exception_handler,
+    integrity_error_handler,
+    validation_exception_handler,
+)
 from src.settings import Settings
 
 
 def test_backend_exception_handler(faker: Faker, mocker: MockerFixture) -> None:
     exception = BackendError(message=faker.pystr())
     expected_result = faker.pystr()
-    orjson_response_mock = mocker.patch(target="core.exception_handlers.ORJSONResponse", return_value=expected_result)
+    orjson_response_mock = mocker.patch(
+        target="src.api.exception_handlers.ORJSONResponse", return_value=expected_result
+    )
 
     result = backend_exception_handler(request=mocker.MagicMock(), exc=exception)
 
@@ -28,7 +30,9 @@ def test_validation_exception_handler(faker: Faker, mocker: MockerFixture) -> No
     exception_mock = mocker.MagicMock()
     exception_mock.errors.return_value = [{"loc": "Something", "msg": "test", "type": "TYPE", "ctx": "CONTEXT"}]
     expected_result = faker.pystr()
-    orjson_response_mock = mocker.patch(target="core.exception_handlers.ORJSONResponse", return_value=expected_result)
+    orjson_response_mock = mocker.patch(
+        target="src.api.exception_handlers.ORJSONResponse", return_value=expected_result
+    )
 
     result = validation_exception_handler(request=mocker.MagicMock(), exc=exception_mock)
 
@@ -46,7 +50,7 @@ def test_validation_exception_handler(faker: Faker, mocker: MockerFixture) -> No
 
 class TestIntegrityErrorHandler:
     def test_integrity_error_handler_duplicate(self, faker: Faker, mocker: MockerFixture, monkeypatch) -> None:
-        monkeypatch.setattr(target=Settings, name="DEBUG", value=False)
+        monkeypatch.setattr(target=Settings, name="APP_DEBUG", value=False)
         exception_mock = mocker.MagicMock()
         exception_mock.args = ["duplicate"]
 
@@ -58,7 +62,7 @@ class TestIntegrityErrorHandler:
         )
 
     def test_integrity_error_handler_duplicate_debug(self, faker: Faker, mocker: MockerFixture, monkeypatch) -> None:
-        monkeypatch.setattr(target=Settings, name="DEBUG", value=True)
+        monkeypatch.setattr(target=Settings, name="APP_DEBUG", value=True)
         exception_mock = mocker.MagicMock()
         exception_mock.args = ["duplicate"]
         expected_message = faker.pystr()
@@ -72,7 +76,7 @@ class TestIntegrityErrorHandler:
         )
 
     def test_integrity_error_handler_other(self, faker: Faker, mocker: MockerFixture, monkeypatch) -> None:
-        monkeypatch.setattr(target=Settings, name="DEBUG", value=False)
+        monkeypatch.setattr(target=Settings, name="APP_DEBUG", value=False)
         exception_mock = mocker.MagicMock()
         exception_mock.args = ["something"]
 
@@ -88,7 +92,7 @@ class TestIntegrityErrorHandler:
         )
 
     def test_integrity_error_handler_other_debug(self, faker: Faker, mocker: MockerFixture, monkeypatch) -> None:
-        monkeypatch.setattr(target=Settings, name="DEBUG", value=True)
+        monkeypatch.setattr(target=Settings, name="APP_DEBUG", value=True)
         exception_mock = mocker.MagicMock()
         expected_response = faker.pystr()
         exception_mock.__str__.return_value = expected_response

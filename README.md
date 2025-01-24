@@ -1,5 +1,5 @@
 # fastapi_quickstart (In development, WIP)!!!
-Initial FastAPI project with SQLAlchemy (asyncpg), Alembic, Pydantic v2, Pytest, Poetry, Gunicorn, Docker, docker-compose, ruff, black, isort, flake8, coverage, factory-boy, pytest-alembic, pydantic-factories. 
+Initial FastAPI project with SQLAlchemy (asyncpg), Alembic, Pydantic v2, Pytest, Poetry, Gunicorn, Docker, docker-compose, ruff, black, isort, flake8, coverage, factory-boy, pytest-alembic, pydantic-factories.
 
 ## Dependencies:
 - [Python 3.12](https://www.python.org/downloads/) (Main programming language for Back-end)
@@ -36,7 +36,7 @@ docker-compose up -d
 
 ### Run Back-end
 #### docker-compose (local container)
-It also possible to uncomment backend service inside docker-compose.yml and run 
+It also possible to uncomment backend service inside docker-compose.yml and run
 through the docker compose.
 > **_Note:_** Set `POSTGRES_HOST` to `postgres` (`POSTGRES_HOST=postgres`) inside .env file
 

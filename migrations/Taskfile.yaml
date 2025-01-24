@@ -8,7 +8,7 @@ tasks:
 
   base:
     desc: "Downgrade migration to `base`."
-    prompt: "Are you sure that you need to rollback all migrations? All existing data will be removed from DB!"
+    prompt: "Are you sure that you need to roll back all migrations? All existing data will be removed from DB!"
     aliases: ["zero"]
     cmd: "{{.RUNNER}} alembic downgrade base"
 

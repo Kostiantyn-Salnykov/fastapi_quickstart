@@ -8,18 +8,19 @@ import fastapi
 import httpx
 import psycopg2
 import pytest
-import redis.asyncio as aioredis
 from _pytest.monkeypatch import MonkeyPatch
+from core.db.bases import async_session_factory as AsyncSessionFactory  # noqa
+from core.deps import get_async_session, get_redis
+from core.deps.limiters import SlidingWindowRateLimiter
 from fastapi import Depends, Request, Response
+from httpx import ASGITransport
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 from pytest_alembic import Config, runner
 from sqlalchemy.engine import URL, Engine
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.orm import close_all_sessions
 
-from core.db.bases import async_session_factory as AsyncSessionFactory  # noqa
-from core.deps import get_async_session, get_redis
-from core.deps.limiters import SlidingWindowRateLimiter
+import redis.asyncio as aioredis
 from src.settings import Settings
 
 
@@ -158,7 +159,9 @@ async def async_client(app_fixture: fastapi.FastAPI, event_loop: asyncio.Abstrac
     Yields:
         httpx_client (httpx.AsyncClient): Instance of AsyncClient to perform a requests to API.
     """
-    async with httpx.AsyncClient(app=app_fixture, base_url=f"http://{Settings.SERVER_HOST}:{Settings.SERVER_PORT}") as httpx_client:
+    async with httpx.AsyncClient(
+        base_url=f"http://{Settings.SERVER_HOST}:{Settings.SERVER_PORT}", transport=ASGITransport(app=app_fixture)
+    ) as httpx_client:
         yield httpx_client
 
 

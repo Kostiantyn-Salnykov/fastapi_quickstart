@@ -4,8 +4,8 @@ import pytest
 from core.enums import TokenAudience
 from core.exceptions import BackendError
 from core.helpers import utc_now
-from core.managers.tokens import TokensManager
 from core.managers.passwords import PasswordsManager
+from core.managers.tokens import TokensManager
 from core.schemas import TokenOptionsSchema, TokenPayloadSchema
 from faker import Faker
 

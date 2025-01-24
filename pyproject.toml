@@ -71,6 +71,7 @@ local = [
     {include-group = "test"},
     "bump-pydantic>=0.8.0",
     "ipython>=8.31.0",
+    "pre-commit>=4.1.0"
 ]
 
 [tool.pytest.ini_options]
@@ -90,7 +91,6 @@ python_functions = ["*_test", "test_*"]
 console_output_style = "progress"
 asyncio_mode = "auto"
 log_cli = true
-pytest_alembic_tests_folder = "tests/migrations"
 
 [tool.coverage.run]
 parallel = true

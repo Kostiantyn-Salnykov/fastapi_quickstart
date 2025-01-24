@@ -1,0 +1,43 @@
+repos:
+- repo: local
+  hooks:
+    - id: task_pre
+      name: "Running `task pre` command"
+      description: "Running command `task pre` from Taskfile.yaml"
+      entry: task pre
+      language: system
+      types: []
+      files: ""
+      pass_filenames: false
+      stages: [manual]  # comment in case to include for main `pre-commit run`
+
+- repo: https://github.com/pre-commit/pre-commit-hooks
+  rev: v5.0.0
+  hooks:
+    - id: trailing-whitespace
+      name: "Fixing trailing whitespaces"
+    - id: end-of-file-fixer
+      name: "Fixing end of files"
+    - id: mixed-line-ending
+      name: "Fixing mixed line ending"
+    - id: pretty-format-json
+      name: "Formatting .json files"
+    - id: check-json
+      name: "Checking .json files"
+    - id: check-toml
+      name: "Checking .toml files"
+    - id: check-yaml
+      name: "Checking .yaml|.yml files"
+    - id: check-added-large-files
+      name: "Checking for large files in repo"
+
+- repo: https://github.com/astral-sh/ruff-pre-commit
+  rev: v0.9.3
+  hooks:
+    - id: ruff-format
+      name: "Ruff format"
+      types_or: [python, pyi]
+    - id: ruff
+      name: "Ruff check"
+      args: [ --fix ]
+      types_or: [ python, pyi ]

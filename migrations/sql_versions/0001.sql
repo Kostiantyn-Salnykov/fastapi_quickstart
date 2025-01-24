@@ -1,5 +1,5 @@
 CREATE TABLE alembic_version (
-    version_num VARCHAR(32) NOT NULL, 
+    version_num VARCHAR(32) NOT NULL,
     CONSTRAINT alembic_version_pkc PRIMARY KEY (version_num)
 );
 
@@ -8,4 +8,3 @@ CREATE TABLE alembic_version (
 CREATE EXTENSION IF NOT EXISTS pgcrypto;
 
 INSERT INTO alembic_version (version_num) VALUES ('0001') RETURNING alembic_version.version_num;
-
