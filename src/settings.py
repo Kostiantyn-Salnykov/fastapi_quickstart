@@ -1,10 +1,9 @@
 import functools
-import logging
 import pathlib
 
 from core.custom_logging.settings import LogSettings
 from core.db.settings import DBSettings
-from core.deps.settings import DependenciesSettings
+from core.dependencies.settings import DependenciesSettings
 from core.managers.settings import ManagersSettings
 from dotenv import load_dotenv
 from pydantic import Field
@@ -39,12 +38,6 @@ class MainSettings(LogSettings, DBSettings, ManagersSettings, DependenciesSettin
     CORS_ALLOW_HEADERS: list[str] = Field(default=["*"])
     CORS_ALLOW_METHODS: list[str] = Field(default=["*"])
     CORS_ALLOW_ORIGINS: list[str] = Field(default=["*"])
-
-    LOG_LEVEL: int = Field(default=logging.WARNING)
-    LOG_USE_COLORS: bool = Field(default=False)
-    LOG_USE_LINKS: bool = Field(default=False)
-    LOG_FORMAT_EXTENDED: bool = Field(default=False)
-    LOG_DATETIME_FORMAT: str = Field(default="%Y-%m-%d %H:%M:%S")
 
 
 @functools.lru_cache

@@ -3,7 +3,7 @@ import uuid
 from core.schemas.responses import BaseResponseSchema, JSENDPaginationResponseSchema, PaginationResponseSchema
 from pydantic import Field
 
-from src.api.authorization.enums import PermissionActions
+from domain.authorization.enums import PermissionActions
 
 
 class PermissionResponse(BaseResponseSchema):

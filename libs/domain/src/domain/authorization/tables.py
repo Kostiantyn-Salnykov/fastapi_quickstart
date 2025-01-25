@@ -1,82 +1,36 @@
 import uuid
+from typing import TYPE_CHECKING
 
-from core.db.bases import Base, CreatedAtMixin, CreatedUpdatedMixin, UUIDMixin
-from sqlalchemy import VARCHAR, Column, ForeignKey, UniqueConstraint
+from core.db.bases import CASCADES, Base
+from core.db.mixins import CreatedAtMixin, CreatedUpdatedMixin, UUIDMixin
+from sqlalchemy import BIGINT, VARCHAR, Column, ForeignKey, UniqueConstraint
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from starlette.authentication import BaseUser
 
-from src.api.users.enums import UserStatuses
-
-CASCADES = {"ondelete": "CASCADE", "onupdate": "CASCADE"}
+if TYPE_CHECKING:
+    from core.db.tables import User
 
 
-class User(Base, UUIDMixin, CreatedUpdatedMixin, BaseUser):
-    """User class and `user` table declaration.
+class CasbinRule(Base):
+    id: Mapped[int] = mapped_column(BIGINT, primary_key=True)
+    ptype: Mapped[str] = mapped_column(VARCHAR(255))
+    v0: Mapped[str | None] = mapped_column(VARCHAR(255), nullable=True)
+    v1: Mapped[str | None] = mapped_column(VARCHAR(255), nullable=True)
+    v2: Mapped[str | None] = mapped_column(VARCHAR(255), nullable=True)
+    v3: Mapped[str | None] = mapped_column(VARCHAR(255), nullable=True)
+    v4: Mapped[str | None] = mapped_column(VARCHAR(255), nullable=True)
+    v5: Mapped[str | None] = mapped_column(VARCHAR(255), nullable=True)
 
-    Keyword Args:
-        first_name (str): First name of user.
-        last_name (str): Last name of user.
-        email (str): User's email.
-        password_hash (str): Hashed value of password.
-        status (str): Current status of user.
-
-        groups (list[Group]): Groups that are assigned to user.
-        roles (list[Role]): Roles that assigned to user.
-        permissions (list[Role]): Permissions that assigned to user.
-    """
-
-    first_name: Mapped[str] = mapped_column(VARCHAR(length=128), nullable=False)
-    last_name: Mapped[str] = mapped_column(VARCHAR(length=128), nullable=False)
-    email: Mapped[str] = mapped_column(VARCHAR(length=255), nullable=False, index=True, unique=True)
-    password_hash: Mapped[str] = mapped_column(VARCHAR(length=1024), nullable=False)
-    status: Mapped[str] = mapped_column(VARCHAR(length=64), default=UserStatuses.UNCONFIRMED.value, nullable=False)
-
-    groups: Mapped[list["Group"]] = relationship(
-        "Group",
-        secondary="group_user",
-        back_populates="users",
-        order_by="Group.title",
-    )
-    roles: Mapped[list["Role"]] = relationship(
-        "Role",
-        secondary="role_user",
-        back_populates="users",
-        order_by="Role.title",
-    )
-    permissions: Mapped[list["Permission"]] = relationship(
-        "Permission",
-        secondary="permission_user",
-        back_populates="users",
-        order_by="Permission.object_name, Permission.action",
-    )
+    def __str__(self) -> str:
+        arr = [self.ptype]
+        for v in (self.v0, self.v1, self.v2, self.v3, self.v4, self.v5):
+            if v is None:
+                break
+            arr.append(v)
+        return ", ".join(arr)
 
     def __repr__(self) -> str:
-        """Representation of User."""
-        return f'{self.__class__.__name__}(email="{self.email}", password_hash="...", status="{self.status}")'
-
-    @property
-    def is_authenticated(self) -> bool:
-        """User is authenticated automatically."""
-        return True
-
-    @property
-    def display_name(self) -> str:
-        """Concatenate full name of user.
-
-        Returns:
-            - (str): Full name of user.
-        """
-        return f"{self.first_name} {self.last_name}"
-
-    @property
-    def identity(self) -> str:
-        """Get user UUID and convert it to string.
-
-        Returns:
-            - (str): User's id converted to string.
-        """
-        return str(self.id)
+        return f"{self.__class__.__name__}({self.__str__()})"
 
 
 class Group(Base, CreatedUpdatedMixin, UUIDMixin):
@@ -91,7 +45,7 @@ class Group(Base, CreatedUpdatedMixin, UUIDMixin):
         lazy="joined",
         order_by="Role.title",
     )
-    users: Mapped[list["User"]] = relationship("User", secondary="group_user", back_populates="groups")
+    users: Mapped[list["User"]] = relationship("User", secondary="group_user", backref="groups")
 
     def __repr__(self) -> str:
         """Representation of Group."""
@@ -119,7 +73,7 @@ class Role(Base, CreatedUpdatedMixin, UUIDMixin):
     users: Mapped[list["User"]] = relationship(
         "User",
         secondary="role_user",
-        back_populates="roles",
+        backref="roles",
         order_by="User.email",
     )
 
@@ -145,7 +99,7 @@ class Permission(Base, CreatedUpdatedMixin, UUIDMixin):
     users: Mapped[list["User"]] = relationship(
         "User",
         secondary="permission_user",
-        back_populates="permissions",
+        backref="permissions",
         order_by="User.email",
     )
 

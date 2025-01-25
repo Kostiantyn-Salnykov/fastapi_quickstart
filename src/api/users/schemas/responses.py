@@ -1,8 +1,8 @@
 from core.custom_types import Email, StrUUID
 from core.schemas.responses import BaseResponseSchema
+from domain.authorization.schemas.responses import GroupResponse, PermissionResponse, RoleResponse
 from pydantic import AwareDatetime, Field
 
-from src.api.authorization.schemas.responses import GroupResponse, PermissionResponse, RoleResponse
 from src.api.users.enums import UserStatuses
 from src.api.users.schemas.requests import TokenRefreshSchema
 

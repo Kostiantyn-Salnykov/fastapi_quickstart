@@ -6,8 +6,8 @@ from fastapi import Depends, Request, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from fastapi.security.utils import get_authorization_scheme_param
 
-from src.api.authorization.enums import PermissionActions
-from src.api.authorization.exceptions import BackendPermissionError
+from domain.authorization.enums import PermissionActions
+from domain.authorization.exceptions import BackendPermissionError
 
 logger = get_logger(name=__name__)
 

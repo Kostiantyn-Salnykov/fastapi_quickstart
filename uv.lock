@@ -245,12 +245,14 @@ version = "0.0.1"
 source = { editable = "libs/core" }
 dependencies = [
     { name = "advanced-alchemy" },
+    { name = "click" },
     { name = "pydantic-settings" },
 ]
 
 [package.metadata]
 requires-dist = [
     { name = "advanced-alchemy", specifier = ">=0.27.1" },
+    { name = "click", specifier = ">=8.1.8" },
     { name = "pydantic-settings", specifier = ">=2.7.1" },
 ]
 
@@ -317,6 +319,21 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/b5/4a/263763cb2ba3816dd94b08ad3a33d5fdae34ecb856678773cc40a3605829/dnspython-2.7.0.tar.gz", hash = "sha256:ce9c432eda0dc91cf618a5cedf1a4e142651196bbcd2c80e89ed5a907e5cfaf1", size = 345197 }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/68/1b/e0a87d256e40e8c888847551b20a017a6b98139178505dc7ffb96f04e954/dnspython-2.7.0-py3-none-any.whl", hash = "sha256:b4c34b7d10b51bcc3a5071e7b8dee77939f1e878477eeecc965e9835f63c6c86", size = 313632 },
+]
+
+[[package]]
+name = "domain"
+version = "0.0.1"
+source = { editable = "libs/domain" }
+dependencies = [
+    { name = "advanced-alchemy" },
+    { name = "pydantic-settings" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "advanced-alchemy", specifier = ">=0.27.1" },
+    { name = "pydantic-settings", specifier = ">=2.7.1" },
 ]
 
 [[package]]
@@ -420,6 +437,7 @@ dependencies = [
     { name = "casbin" },
     { name = "casbin-async-sqlalchemy-adapter" },
     { name = "core" },
+    { name = "domain" },
     { name = "fastapi", extra = ["standard"] },
     { name = "httpx" },
     { name = "orjson" },
@@ -487,6 +505,7 @@ requires-dist = [
     { name = "casbin", specifier = ">=1.38.0" },
     { name = "casbin-async-sqlalchemy-adapter", specifier = ">=1.7.0" },
     { name = "core", editable = "libs/core" },
+    { name = "domain", editable = "libs/domain" },
     { name = "fastapi", extras = ["standard"], specifier = ">=0.115.6" },
     { name = "httpx", specifier = ">=0.28.1" },
     { name = "orjson", specifier = ">=3.10.15" },

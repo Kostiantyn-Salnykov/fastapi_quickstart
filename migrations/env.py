@@ -2,41 +2,33 @@
 
 import asyncio
 import pathlib
-from logging.config import fileConfig
 
 from alembic import context
+from core.custom_logging import get_logger
 from core.db.bases import Base, async_engine
 from sqlalchemy.engine import Connection
 from sqlalchemy.ext.asyncio import AsyncEngine
 
-# You should import models explicitly to this file, to allow autogenerate migrations.
-from src.api.tables import (  # noqa
-    Group,
-    GroupRole,
-    GroupUser,
-    Permission,
-    PermissionUser,
-    Role,
-    RolePermission,
-    RoleUser,
-    User,
-)
-from src.api.wishmaster.tables import Category, Tag, Wish, WishList, WishTag  # noqa
+logger = get_logger(name=__name__)
+logger.info("You should import models explicitly to the `env.py` file to allow autogenerate migrations.")
 
-# this is the Alembic Config object, which provides
-# access to the values within the .ini file in use.
-config = context.config
+from core.db.tables import User  # noqa
+# from core.domain.authorization.tables import (
+#     Group,
+#     GroupRole,
+#     GroupUser,
+#     Permission,
+#     PermissionUser,
+#     Role,
+#     RolePermission,
+#     RoleUser,
+# )
 
-# Interpret the config file for Python logging.
-# This line sets up loggers basically.
-fileConfig(config.config_file_name)
+tables = ", ".join(list(Base.metadata.tables.keys()))
+logger.trace(f"Found these tables in `Base.metadata`: {tables}.")
 
-target_metadata = Base.metadata
-
-# other values from the config, defined by the needs of env.py,
-# can be acquired:
-# my_important_option = config.get_main_option("my_important_option")
-# ... etc.
+config = context.config  # settings from alembic.ini file.
+target_metadata = Base.metadata  # metadata for models.
 
 
 def run_migrations_offline() -> None:
@@ -52,7 +44,7 @@ def run_migrations_offline() -> None:
 
     """
     migrations_dir = pathlib.Path(__file__).parent.resolve()
-    sql_versions_dir = migrations_dir / "sql_versions"
+    sql_versions_dir = migrations_dir / "versions_sql"
     if not sql_versions_dir.exists():
         sql_versions_dir.mkdir()
 
@@ -64,7 +56,8 @@ def run_migrations_offline() -> None:
         transactional_ddl=False,
         output_buffer=pathlib.Path.open(sql_versions_dir / f"{context.get_head_revision()}.sql", "w"),
         dialect_name="postgresql",
-        dialect_opts={"paramstyle": "named"},
+        version_table="migrations",
+        transaction_per_migration=True,
     )
 
     with context.begin_transaction():
@@ -79,6 +72,9 @@ def do_run_migrations(connection: Connection) -> None:
         compare_server_default=True,
         include_schemas=True,
         dialect_name="postgresql",
+        dialect_opts={"paramstyle": "named"},
+        version_table="migrations",
+        transaction_per_migration=True,
     )
 
     with context.begin_transaction():

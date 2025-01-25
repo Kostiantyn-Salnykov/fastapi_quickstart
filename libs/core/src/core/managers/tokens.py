@@ -30,7 +30,7 @@ class TokensManager:
 
         Examples:
             Manual usage:
-            >>> from core.managers import TokensManager
+            >>> from core.managers.tokens import TokensManager
             >>> tm = TokensManager()  # construct & initialize with default parameters
             >>> code = tm.create_code(data={"key": "value", "key2": True, "key3": 123})
             >>> tm.read_code(code=code)
@@ -38,7 +38,7 @@ class TokensManager:
             "nbf": 1660655886, "iss": ""}
 
             Or it posible to use inside FastAPI instance:
-            >>> from core.managers import TokensManager
+            >>> from core.managers.tokens import TokensManager
             >>> from fastapi import FastAPI
             >>> app = FastAPI()
             # construct & initialize with default parameters for FastAPI instance `state`

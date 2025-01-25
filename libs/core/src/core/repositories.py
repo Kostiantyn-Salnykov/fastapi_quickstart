@@ -10,11 +10,11 @@ from core.annotations import (
     ModelType,
     StrOrUUID,
 )
-from core.deps.body.filtration import Filtration
-from core.deps.body.pagination import Pagination
-from core.deps.body.projection import Projection
-from core.deps.body.searching import Searching
-from core.deps.body.sorting import Sorting
+from core.dependencies.body.filtration import Filtration
+from core.dependencies.body.pagination import Pagination
+from core.dependencies.body.projection import Projection
+from core.dependencies.body.searching import Searching
+from core.dependencies.body.sorting import Sorting
 from core.enums import JSENDStatus
 from core.exceptions import BackendError
 from fastapi import status

@@ -17,13 +17,10 @@ class BaseResponseSchema(BaseRequestSchema):
         defer_build=True,
     )
 
+    # TODO: Move to BaseService class.
     @classmethod
     def from_model(cls, obj: SchemaInstance) -> ModelInstance:
-        # TableNameMixin.to_dict() logic.
-        obj = obj.to_dict()
-        # Pydantic from_orm logic.
-        model = cls.__new__(cls)
-        return model.model_validate(obj=obj, strict=False, from_attributes=True)
+        return cls.model_validate(obj=obj, strict=False, from_attributes=True)
 
 
 class JSENDResponseSchema(BaseModel, Generic[SchemaInstance]):

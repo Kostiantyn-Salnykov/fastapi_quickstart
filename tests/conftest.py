@@ -10,8 +10,8 @@ import psycopg2
 import pytest
 from _pytest.monkeypatch import MonkeyPatch
 from core.db.bases import async_session_factory as AsyncSessionFactory  # noqa
-from core.deps import get_async_session, get_redis
-from core.deps.limiters import SlidingWindowRateLimiter
+from core.dependencies import get_async_session, get_redis
+from core.dependencies.limiters import SlidingWindowRateLimiter
 from fastapi import Depends, Request, Response
 from httpx import ASGITransport
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT

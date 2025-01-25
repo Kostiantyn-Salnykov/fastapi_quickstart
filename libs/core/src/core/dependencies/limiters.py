@@ -5,7 +5,7 @@ import typing
 
 import pendulum
 from core.custom_logging import get_logger
-from core.deps import get_redis
+from core.dependencies import get_redis
 from core.enums import RatePeriod
 from core.exceptions import RateLimitError
 from core.helpers import utc_now

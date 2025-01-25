@@ -1,13 +1,13 @@
 from typing import Annotated
 
-from core.deps import get_async_session
-from core.deps.limiters import Rate, SlidingWindowRateLimiter
+from core.dependencies import get_async_session
+from core.dependencies.limiters import Rate, SlidingWindowRateLimiter
 from core.enums import RatePeriod
 from core.schemas.responses import JSENDResponseSchema
+from domain.authorization.dependencies import IsAuthenticated, bearer_auth
 from fastapi import APIRouter, Body, Depends, Request, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.api.authorization.dependencies import IsAuthenticated, bearer_auth
 from src.api.responses import Responses
 from src.api.users.handlers import users_handler
 from src.api.users.schemas.requests import LoginSchema, TokenRefreshSchema, UserCreateSchema

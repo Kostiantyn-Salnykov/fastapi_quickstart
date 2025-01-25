@@ -13,8 +13,8 @@ class ManagersSettings(BaseSettings):
     )
 
     TOKENS_ACCESS_LIFETIME_SECONDS: int = Field(default=3600 * 10)  # 1 HOUR
-    TOKENS_ISSUER: str = Field(default="FastAPI Quickstart")
     TOKENS_REFRESH_LIFETIME_SECONDS: int = Field(default=86400)  # 1 DAY
+    TOKENS_ISSUER: str = Field(default="FastAPI Quickstart")
     TOKENS_SECRET_KEY: str = Field(default="TEST")
 
 

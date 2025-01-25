@@ -20,7 +20,7 @@ from src.api.users.services import users_service
 from src.settings import Settings
 
 if TYPE_CHECKING:
-    from src.api.tables import User
+    from core.db.tables import User
 
 
 class UsersHandler:

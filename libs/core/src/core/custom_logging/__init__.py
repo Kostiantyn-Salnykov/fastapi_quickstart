@@ -88,6 +88,8 @@ LOGGING_CONFIG: dict[str, typing.Any] = {
     },
     "root": {"level": log_settings.LOG_LEVEL, "handlers": _get_main_handler(is_third_party=False)},
     "loggers": {
+        "alembic": {"level": "INFO", "handlers": _get_main_handler(), "propagate": False},
+        "sqlalchemy": {"level": "WARNING", "handlers": _get_main_handler(), "propagate": False},
         "asyncio": {"level": "WARNING", "handlers": _get_main_handler(), "propagate": False},
         "gunicorn": {"level": "INFO", "handlers": _get_main_handler(), "propagate": False},
         "gunicorn.error": {"level": "INFO", "handlers": _get_main_handler(), "propagate": False},

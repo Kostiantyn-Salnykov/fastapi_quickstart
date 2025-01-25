@@ -3,11 +3,13 @@ from typing import Annotated
 
 from core.custom_logging import LOGGING_CONFIG, get_logger
 from core.db.bases import async_engine
-from core.deps import get_async_session, get_redis
+from core.dependencies import get_async_session, get_redis
 from core.enums import JSENDStatus
 from core.exceptions import BackendError, RateLimitError
 from core.managers.tokens import TokensManager
 from core.schemas.responses import JSENDResponseSchema
+from domain.authorization.managers import AuthorizationManager
+from domain.authorization.middlewares import JWTTokenBackend
 from fastapi import APIRouter, Depends, FastAPI, Request, status
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
@@ -19,8 +21,6 @@ from starlette.middleware.authentication import AuthenticationMiddleware
 from uvicorn.middleware.proxy_headers import ProxyHeadersMiddleware
 
 import redis.exceptions
-from src.api.authorization.managers import AuthorizationManager
-from src.api.authorization.middlewares import JWTTokenBackend
 from src.api.exception_handlers import (
     backend_exception_handler,
     rate_limit_exception_handler,
@@ -29,7 +29,6 @@ from src.api.exception_handlers import (
 from src.api.lifespan import lifespan
 from src.api.responses import Responses
 from src.api.users.routers import register_router, tokens_router, users_router
-from src.api.wishmaster.routers import wishlist_router
 from src.settings import PROJECT_SRC_DIR, Settings
 
 logger = get_logger(name=__name__)
@@ -127,7 +126,6 @@ async def healthcheck(
 API_PREFIX = "/api/v1"
 # Include routers:
 app.include_router(router=api_router, prefix=API_PREFIX)
-app.include_router(router=wishlist_router, prefix=API_PREFIX)
 app.include_router(router=register_router, prefix=API_PREFIX)
 app.include_router(router=users_router, prefix=API_PREFIX)
 app.include_router(router=tokens_router, prefix=API_PREFIX)
@@ -141,6 +139,7 @@ if __name__ == "__main__":  # pragma: no cover
         app="src.api.__main__:app",
         host=Settings.SERVER_HOST,
         port=Settings.SERVER_PORT,
+        workers=Settings.SERVER_WORKERS_COUNT,
         # loop="uvloop",
         reload=True,
         reload_delay=3,

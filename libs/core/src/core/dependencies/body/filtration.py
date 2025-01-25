@@ -2,7 +2,7 @@ import typing
 from collections.abc import Iterator
 
 from core.annotations import ModelType, SchemaType, StrOrNone
-from core.deps.settings import dependencies_settings
+from core.dependencies.settings import dependencies_settings
 from core.enums import FOps
 from core.exceptions import BackendError
 from core.schemas.requests import BaseRequestSchema

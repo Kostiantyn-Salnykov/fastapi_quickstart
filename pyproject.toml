@@ -10,6 +10,7 @@ readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
     "core",
+    "domain",
     "alembic>=1.14.1",
     "asyncpg>=0.30.0",
     "bcrypt>=4.2.1",
@@ -40,6 +41,7 @@ default-groups = ["servers"]
 
 [tool.uv.sources]
 core = { path = "libs/core", editable = true }
+domain = { path = "libs/domain", editable = true }
 
 [dependency-groups]
 servers = [

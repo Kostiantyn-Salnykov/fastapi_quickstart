@@ -5,6 +5,7 @@ import uuid_extensions
 from core.annotations import StrOrUUID
 from core.custom_logging import get_logger
 from core.deps.body.pagination import Pagination
+from core.domain.authorization.tables import Group, Permission, Role
 from core.exceptions import BackendError
 from core.helpers import to_db_encoder
 from fastapi import Request, status
@@ -21,7 +22,6 @@ from src.api.authorization.services import (
     role_permission_service,
     roles_service,
 )
-from src.api.tables import Group, Permission, Role
 
 if TYPE_CHECKING:
     from sqlalchemy.engine import CursorResult
