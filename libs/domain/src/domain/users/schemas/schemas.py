@@ -1,10 +1,10 @@
 from core.annotations import DatetimeOrNone, StrOrNone
 from core.custom_types import Email, StrUUID
-from core.schemas import TokenPayloadSchema
+from core.managers.schemas import TokenPayloadSchema
 from core.schemas.requests import BaseRequestSchema
 from pydantic import Field
 
-from src.api.users.enums import UserStatuses
+from domain.users.enums import UserStatuses
 
 
 class UserToDBBaseSchema(BaseRequestSchema):

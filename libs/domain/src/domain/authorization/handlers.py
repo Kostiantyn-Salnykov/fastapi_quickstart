@@ -4,24 +4,24 @@ from typing import TYPE_CHECKING
 import uuid_extensions
 from core.annotations import StrOrUUID
 from core.custom_logging import get_logger
-from core.deps.body.pagination import Pagination
-from core.domain.authorization.tables import Group, Permission, Role
+from core.dependencies.body.pagination import Pagination
 from core.exceptions import BackendError
 from core.helpers import to_db_encoder
 from fastapi import Request, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.sql.elements import BinaryExpression, UnaryExpression
 
-from src.api.authorization.schemas import GroupCreateToDBSchema, RoleCreateToDBSchema
-from src.api.authorization.schemas.requests import GroupCreateRequest, GroupUpdateRequest, RoleCreateRequest
-from src.api.authorization.schemas.responses import GroupResponse, PermissionResponse, RoleResponse
-from src.api.authorization.services import (
+from domain.authorization.schemas import GroupCreateToDBSchema, RoleCreateToDBSchema
+from domain.authorization.schemas.requests import GroupCreateRequest, GroupUpdateRequest, RoleCreateRequest
+from domain.authorization.schemas.responses import GroupResponse, PermissionResponse, RoleResponse
+from domain.authorization.services import (
     group_role_service,
     groups_service,
     permissions_service,
     role_permission_service,
     roles_service,
 )
+from domain.authorization.tables import Group, Permission, Role
 
 if TYPE_CHECKING:
     from sqlalchemy.engine import CursorResult

@@ -5,8 +5,8 @@ from core.enums import TokenAudience
 from core.exceptions import BackendError
 from core.helpers import utc_now
 from core.managers.passwords import PasswordsManager
+from core.managers.schemas import TokenOptionsSchema, TokenPayloadSchema
 from core.managers.tokens import TokensManager
-from core.schemas import TokenOptionsSchema, TokenPayloadSchema
 from faker import Faker
 
 
@@ -100,7 +100,7 @@ class TestTokensManager:
         assert isinstance(exception_context.value, BackendError)
         assert exception_context.value.message == "Invalid JWT."
 
-    def test_convert_to_success(self, faker: Faker) -> None:
+    def test_response_schema_success(self, faker: Faker) -> None:
         class Schema(TokenPayloadSchema):
             something: str
 
@@ -108,7 +108,7 @@ class TestTokensManager:
         data = {data_key: faker.pystr()}
         token = self.tokens_manager.create_code(data=data)
 
-        payload_schema = self.tokens_manager.read_code(code=token, convert_to=Schema)
+        payload_schema = self.tokens_manager.read_code(code=token, response_schema=Schema)
 
         assert isinstance(payload_schema, Schema)
         assert payload_schema.something == data[data_key]

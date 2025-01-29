@@ -2,17 +2,17 @@ __all__ = ("users_service",)
 import uuid
 from typing import TYPE_CHECKING
 
-from core.db.tables import User
 from core.helpers import to_db_encoder
 from core.repositories import BaseCoreRepository
-from domain.authorization.tables import Group, Permission, Role
 from sqlalchemy import select
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import contains_eager
 
-from src.api.users.enums import UserStatuses
-from src.api.users.schemas.requests import UserCreateSchema
+from domain.authorization.tables import Group, Permission, Role
+from domain.users.enums import UserStatuses
+from domain.users.schemas.requests import UserCreateSchema
+from domain.users.tables import User
 
 if TYPE_CHECKING:
     from sqlalchemy.engine import ChunkedIteratorResult, CursorResult
@@ -22,9 +22,10 @@ class UsersService(BaseCoreRepository):
     async def create(self, *, session: AsyncSession, obj: UserCreateSchema) -> User:
         obj.status = UserStatuses.CONFIRMED  # Automatically activates User!!!
         async with session.begin_nested():
-            statement = insert(self.model).values(**to_db_encoder(obj=obj))
+            statement = insert(self.model).values(**to_db_encoder(obj=obj)).returning(self.model)
             result: CursorResult = await session.execute(statement=statement)
-            return await self.get_with_grp(session=session, id=result.inserted_primary_key[0])
+            return result.scalar_one()
+            # return await self.get_with_grp(session=session, id=result.inserted_primary_key[0])
 
     async def get_with_grp(self, *, session: AsyncSession, id: uuid.UUID) -> User | None:
         statement = (

@@ -1,13 +1,10 @@
-__all__ = (
-    "get_async_session",
-    "get_redis",
-    "get_session",
-)
+__all__ = ("AsyncSessionDependency", "RedisDependency", "get_async_session", "get_redis")
 
 import typing
 
 from core.custom_logging import get_logger
 from core.db.bases import async_session_factory, redis_engine
+from fastapi import Depends
 from sqlalchemy.exc import IntegrityError, NoResultFound
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -45,3 +42,7 @@ async def get_redis() -> typing.AsyncGenerator[aioredis.Redis, None]:
             logger.warning(msg=error)
         finally:
             await conn.aclose()
+
+
+AsyncSessionDependency = typing.Annotated[AsyncSession, Depends(get_async_session)]
+RedisDependency = typing.Annotated[aioredis.Redis, Depends(get_redis)]

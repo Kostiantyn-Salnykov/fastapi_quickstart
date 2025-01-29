@@ -26,30 +26,27 @@ class BaseResponseSchema(BaseRequestSchema):
 class JSENDResponseSchema(BaseModel, Generic[SchemaInstance]):
     """JSEND schema with 'success' status."""
 
+    model_config = ConfigDict(
+        json_schema_extra={"examples": [{"status": JSENDStatus.SUCCESS, "data": {}, "code": 200}]},
+    )
+
     status: JSENDStatus = Field(default=JSENDStatus.SUCCESS)
     data: SchemaInstance | None = Field(default=None)
     message: str = Field(default=...)
     code: int = Field(default=http_status.HTTP_200_OK)
 
-    model_config = ConfigDict(
-        json_schema_extra={"examples": [{"status": JSENDStatus.SUCCESS, "data": {}, "code": 200}]},
-    )
-
 
 class JSENDFailResponseSchema(JSENDResponseSchema[SchemaInstance]):
     """JSEND schema with 'fail' status (validation errors, client errors)."""
 
+    model_config = ConfigDict(json_schema_extra={"examples": [{"status": JSENDStatus.FAIL, "data": {}, "code": 422}]})
+
     status: JSENDStatus = Field(default=JSENDStatus.FAIL)
     data: SchemaInstance = Field(default=None)
-
-    model_config = ConfigDict(json_schema_extra={"examples": [{"status": JSENDStatus.FAIL, "data": {}, "code": 422}]})
 
 
 class JSENDErrorResponseSchema(JSENDResponseSchema[SchemaInstance]):
     """JSEND schema with 'error' status (server errors)."""
-
-    status: JSENDStatus = Field(default=JSENDStatus.ERROR)
-    data: SchemaInstance = Field(default=None)
 
     model_config = ConfigDict(
         json_schema_extra={
@@ -57,14 +54,17 @@ class JSENDErrorResponseSchema(JSENDResponseSchema[SchemaInstance]):
         },
     )
 
+    status: JSENDStatus = Field(default=JSENDStatus.ERROR)
+    data: SchemaInstance = Field(default=None)
+
 
 class UnprocessableEntityResponseSchema(BaseResponseSchema):
     """Schema that uses in pydantic validation errors."""
 
-    location: list[str] = Field()
-    message: str = Field()
-    type: str = Field()
-    context: StrOrNone = Field(default=None)
+    location: list[str] = Field(description="Depth list of field that caused the error.")
+    message: str = Field(description="Message that describes the error.")
+    type: str = Field(description="Type of the error.")
+    context: StrOrNone = Field(default=None, description="Additional context for the error.")
 
     model_config = ConfigDict(
         json_schema_extra={

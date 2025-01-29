@@ -1,26 +1,20 @@
 import datetime
-from typing import Annotated
 
 from core.custom_logging import LOGGING_CONFIG, get_logger
 from core.db.bases import async_engine
-from core.dependencies import get_async_session, get_redis
 from core.enums import JSENDStatus
 from core.exceptions import BackendError, RateLimitError
 from core.managers.tokens import TokensManager
-from core.schemas.responses import JSENDResponseSchema
 from domain.authorization.managers import AuthorizationManager
 from domain.authorization.middlewares import JWTTokenBackend
-from fastapi import APIRouter, Depends, FastAPI, Request, status
+from fastapi import FastAPI, status
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import ORJSONResponse
-from sqlalchemy import text
-from sqlalchemy.ext.asyncio import AsyncSession
 from starlette.middleware.authentication import AuthenticationMiddleware
 from uvicorn.middleware.proxy_headers import ProxyHeadersMiddleware
 
-import redis.exceptions
 from src.api.exception_handlers import (
     backend_exception_handler,
     rate_limit_exception_handler,
@@ -28,7 +22,7 @@ from src.api.exception_handlers import (
 )
 from src.api.lifespan import lifespan
 from src.api.responses import Responses
-from src.api.users.routers import register_router, tokens_router, users_router
+from src.api.routers import register_routers
 from src.settings import PROJECT_SRC_DIR, Settings
 
 logger = get_logger(name=__name__)
@@ -83,52 +77,7 @@ app.add_middleware(
 )  # №2
 app.add_middleware(middleware_class=ProxyHeadersMiddleware, trusted_hosts=Settings.APP_TRUSTED_HOSTS)  # №1
 
-
-api_router = APIRouter()
-
-
-@api_router.get(
-    path="/",
-    response_model=JSENDResponseSchema,
-    status_code=status.HTTP_200_OK,
-    summary="Health check.",
-    description="Health check endpoint.",
-)
-async def healthcheck(
-    request: Request,
-    redis: Annotated[redis.Redis, Depends(get_redis)],
-    async_session: Annotated[AsyncSession, Depends(get_async_session)],
-) -> ORJSONResponse:
-    """Check that API endpoints work properly.
-
-    Returns:
-        ORJSONResponse: json object with JSENDResponseSchema body.
-    """
-    if Settings.APP_DEBUG:
-        async_result = await async_session.execute(statement=text("SELECT true;"))
-        data = {
-            "redis": await redis.ping(),
-            "postgresql_async": async_result.scalar_one(),
-        }
-    else:
-        data = None
-    return ORJSONResponse(
-        content={
-            "status": JSENDStatus.SUCCESS,
-            "data": data,
-            "message": "Health check.",
-            "code": status.HTTP_200_OK,
-        },
-        status_code=status.HTTP_200_OK,
-    )
-
-
-API_PREFIX = "/api/v1"
-# Include routers:
-app.include_router(router=api_router, prefix=API_PREFIX)
-app.include_router(router=register_router, prefix=API_PREFIX)
-app.include_router(router=users_router, prefix=API_PREFIX)
-app.include_router(router=tokens_router, prefix=API_PREFIX)
+register_routers(app=app)
 
 
 if __name__ == "__main__":  # pragma: no cover
@@ -141,7 +90,7 @@ if __name__ == "__main__":  # pragma: no cover
         port=Settings.SERVER_PORT,
         workers=Settings.SERVER_WORKERS_COUNT,
         # loop="uvloop",
-        reload=True,
+        # reload=True,
         reload_delay=3,
         reload_dirs=[PROJECT_SRC_DIR],
         reload_includes=[".env"],

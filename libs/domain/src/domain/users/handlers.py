@@ -12,15 +12,15 @@ from core.managers.passwords import PasswordsManager
 from fastapi import Request
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.api.users.enums import UserStatuses
-from src.api.users.schemas import UserCreateToDBSchema, UserToDBBaseSchema, UserTokenPayloadSchema
-from src.api.users.schemas.requests import LoginSchema, TokenRefreshSchema, UserCreateSchema, UserUpdateSchema
-from src.api.users.schemas.responses import LoginOutSchema, UserResponseSchema
-from src.api.users.services import users_service
+from domain.users.enums import UserStatuses
+from domain.users.schemas import UserCreateToDBSchema, UserToDBBaseSchema, UserTokenPayloadSchema
+from domain.users.schemas.requests import LoginSchema, TokenRefreshSchema, UserCreateSchema, UserUpdateSchema
+from domain.users.schemas.responses import LoginOutSchema, UserResponseSchema
+from domain.users.services import users_service
 from src.settings import Settings
 
 if TYPE_CHECKING:
-    from core.db.tables import User
+    from domain.users.tables import User
 
 
 class UsersHandler:
@@ -115,7 +115,7 @@ class UsersHandler:
         payload_schema: UserTokenPayloadSchema = request.app.state.tokens_manager.read_code(
             aud=TokenAudience.REFRESH,
             code=data.refresh_token,
-            convert_to=UserTokenPayloadSchema,
+            response_schema=UserTokenPayloadSchema,
         )
         user: User | None = await users_service.retrieve_by_id(session=session, id=payload_schema.id)
         if user and user.status in (UserStatuses.CONFIRMED.value, UserStatuses.FORCE_CHANGE_PASSWORD.value):

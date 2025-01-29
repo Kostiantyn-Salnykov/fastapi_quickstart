@@ -5,7 +5,7 @@ from sqlalchemy.dialects.postgresql import JSONB, TEXT
 from sqlalchemy.orm import Mapped, mapped_column
 from starlette.authentication import BaseUser
 
-from src.api.users.enums import UserStatuses
+from domain.users.enums import UserStatuses
 
 
 class User(Base, UUIDMixin, CreatedUpdatedMixin, BaseUser):
@@ -25,7 +25,7 @@ class User(Base, UUIDMixin, CreatedUpdatedMixin, BaseUser):
 
     first_name: Mapped[str] = mapped_column(VARCHAR(length=128), nullable=False)
     last_name: Mapped[str] = mapped_column(VARCHAR(length=128), nullable=False)
-    email: Mapped[str] = mapped_column(VARCHAR(length=255), nullable=False, index=True, unique=True)
+    email: Mapped[str] = mapped_column(VARCHAR(length=320), nullable=False, index=True, unique=True)
     password_hash: Mapped[str] = mapped_column(VARCHAR(length=1024), nullable=False)
     status: Mapped[str] = mapped_column(VARCHAR(length=64), default=UserStatuses.UNCONFIRMED.value, nullable=False)
     settings: Mapped[dict] = mapped_column(

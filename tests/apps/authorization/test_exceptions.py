@@ -1,5 +1,5 @@
-from core.domain.authorization.exceptions import BackendPermissionError
 from core.enums import JSENDStatus
+from domain.authorization.exceptions import BackendPermissionError
 from fastapi import status
 
 

@@ -4,7 +4,6 @@ from collections.abc import Generator, Iterable
 import uuid_extensions
 from core.custom_logging import get_logger
 from core.db.bases import Base
-from core.db.tables import User
 from sqlalchemy import inspect, select
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.engine import ChunkedIteratorResult, Engine
@@ -12,6 +11,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from domain.authorization.enums import PermissionActions
 from domain.authorization.tables import Group, Permission, Role
+from domain.users.tables import User
 
 logger = get_logger(name=__name__)
 

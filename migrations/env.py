@@ -12,8 +12,8 @@ from sqlalchemy.ext.asyncio import AsyncEngine
 logger = get_logger(name=__name__)
 logger.info("You should import models explicitly to the `env.py` file to allow autogenerate migrations.")
 
-from core.db.tables import User  # noqa
-# from core.domain.authorization.tables import (
+from domain.users.tables import User  # noqa
+# from domain.authorization.tables import (
 #     Group,
 #     GroupRole,
 #     GroupUser,

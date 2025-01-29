@@ -4,8 +4,8 @@ from fastapi import status
 from starlette.authentication import AuthCredentials, AuthenticationBackend, AuthenticationError, BaseUser
 from starlette.requests import HTTPConnection
 
-from src.api.users.schemas import UserTokenPayloadSchema
-from src.api.users.services import users_service
+from domain.users.schemas import UserTokenPayloadSchema
+from domain.users.services import users_service
 
 
 class JWTTokenBackend(AuthenticationBackend):
@@ -73,7 +73,7 @@ class JWTTokenBackend(AuthenticationBackend):
         try:
             payload_schema: UserTokenPayloadSchema = conn.app.state.tokens_manager.read_code(
                 code=token,
-                convert_to=UserTokenPayloadSchema,
+                response_schema=UserTokenPayloadSchema,
             )
             async with async_session_factory() as session:
                 user = await users_service.get_with_grp(session=session, id=payload_schema.id)

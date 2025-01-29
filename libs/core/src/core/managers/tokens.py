@@ -6,8 +6,8 @@ from core.annotations import DatetimeOrNone
 from core.enums import TokenAudience
 from core.exceptions import BackendError
 from core.helpers import utc_now
+from core.managers.schemas import TokenOptionsSchema
 from core.managers.settings import managers_settings
-from core.schemas import TokenOptionsSchema
 from pydantic import BaseModel
 
 
@@ -100,7 +100,7 @@ class TokensManager:
         aud: TokenAudience | Sequence[TokenAudience] = TokenAudience.ACCESS,  # Audience
         iss: str = managers_settings.TOKENS_ISSUER,  # Issuer
         leeway: int = 0,  # provide extra time in seconds to validate (iat, exp, nbf)
-        convert_to: type[BaseModel] | None = None,
+        response_schema: type[BaseModel] | None = None,
         options: TokenOptionsSchema | None = None,
     ) -> BaseModel | dict[str, str | int | float | dict | list | bool]:
         """Method for parse and validate JWT token.
@@ -111,7 +111,7 @@ class TokensManager:
                 audiences.
             iss (str): Issuer `iss` of token.
             leeway (int): Extra seconds for validate token, applies to `iat`, `exp`, `nbf`.
-            convert_to (Type[BaseModel]): You can provide Schema that you need after parsing a token. It should be
+            response_schema (Type[BaseModel]): You can provide Schema that you need after parsing a token. It should be
                 based on `Pydantic.BaseModel`.
             options (TokenOptionsSchema): Extra options for PyJWT parsing & validation.
 
@@ -122,7 +122,7 @@ class TokensManager:
 
         Returns:
             dict[str, str | int | float | dict | list | bool]: Payload with python's dict format.
-            BaseModel: `Pydantic.BaseModel` instance from `convert_to` keyword argument.
+            BaseModel: `Pydantic.BaseModel` instance from `response_schema` keyword argument.
 
         Examples:
             >>> tm = TokensManager()
@@ -141,8 +141,8 @@ class TokensManager:
                 issuer=iss,
                 options=options.model_dump(),
             )
-            if convert_to:
-                payload = convert_to(**payload)
+            if response_schema:
+                payload = response_schema(**payload)
         except jwt.exceptions.InvalidIssuerError as error:
             raise BackendError(message="Invalid JWT issuer.") from error
         except jwt.exceptions.InvalidAudienceError as error:
