@@ -15,6 +15,7 @@ class BaseResponseSchema(BaseRequestSchema):
         from_attributes=True,
         strict=False,
         defer_build=True,
+        extra="ignore",
     )
 
     # TODO: Move to BaseService class.
@@ -27,7 +28,11 @@ class JSENDResponseSchema(BaseModel, Generic[SchemaInstance]):
     """JSEND schema with 'success' status."""
 
     model_config = ConfigDict(
-        json_schema_extra={"examples": [{"status": JSENDStatus.SUCCESS, "data": {}, "code": 200}]},
+        json_schema_extra={
+            "examples": [
+                {"status": JSENDStatus.SUCCESS, "data": {}, "code": 200},
+            ],
+        },
     )
 
     status: JSENDStatus = Field(default=JSENDStatus.SUCCESS)
@@ -39,7 +44,13 @@ class JSENDResponseSchema(BaseModel, Generic[SchemaInstance]):
 class JSENDFailResponseSchema(JSENDResponseSchema[SchemaInstance]):
     """JSEND schema with 'fail' status (validation errors, client errors)."""
 
-    model_config = ConfigDict(json_schema_extra={"examples": [{"status": JSENDStatus.FAIL, "data": {}, "code": 422}]})
+    model_config = ConfigDict(
+        json_schema_extra={
+            "examples": [
+                {"status": JSENDStatus.FAIL, "data": {}, "code": 422},
+            ],
+        },
+    )
 
     status: JSENDStatus = Field(default=JSENDStatus.FAIL)
     data: SchemaInstance = Field(default=None)
@@ -50,7 +61,9 @@ class JSENDErrorResponseSchema(JSENDResponseSchema[SchemaInstance]):
 
     model_config = ConfigDict(
         json_schema_extra={
-            "examples": [{"status": JSENDStatus.ERROR, "data": None, "message": "Internal server error.", "code": 500}],
+            "examples": [
+                {"status": JSENDStatus.ERROR, "data": None, "message": "Internal server error.", "code": 500},
+            ],
         },
     )
 
@@ -60,11 +73,6 @@ class JSENDErrorResponseSchema(JSENDResponseSchema[SchemaInstance]):
 
 class UnprocessableEntityResponseSchema(BaseResponseSchema):
     """Schema that uses in pydantic validation errors."""
-
-    location: list[str] = Field(description="Depth list of field that caused the error.")
-    message: str = Field(description="Message that describes the error.")
-    type: str = Field(description="Type of the error.")
-    context: StrOrNone = Field(default=None, description="Additional context for the error.")
 
     model_config = ConfigDict(
         json_schema_extra={
@@ -83,6 +91,11 @@ class UnprocessableEntityResponseSchema(BaseResponseSchema):
             ],
         },
     )
+
+    location: list[str] = Field(description="Depth list of field that caused the error.")
+    message: str = Field(description="Message that describes the error.")
+    type: str = Field(description="Type of the error.")
+    context: StrOrNone = Field(default=None, description="Additional context for the error.")
 
 
 class PaginationResponseSchema(BaseModel, Generic[ResultObject]):

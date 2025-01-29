@@ -4,7 +4,7 @@ __all__ = (
 )
 from typing import Annotated
 
-from core.dependencies import get_async_session
+from core.dependencies import AsyncSessionDependency
 from core.dependencies.limiters import Rate, SlidingWindowRateLimiter
 from core.enums import RatePeriod
 from core.schemas.responses import JSENDResponseSchema
@@ -12,7 +12,6 @@ from domain.users.handlers import users_handler
 from domain.users.schemas.requests import LoginSchema, TokenRefreshSchema
 from domain.users.schemas.responses import LoginOutSchema
 from fastapi import Body, Depends, Request
-from sqlalchemy.ext.asyncio import AsyncSession
 
 
 async def login(
@@ -31,7 +30,7 @@ async def login(
         ),
     ],
     _limiter: Annotated[None, (Depends(SlidingWindowRateLimiter(rate=Rate(number=3, period=RatePeriod.MINUTE))))],
-    session: Annotated[AsyncSession, Depends(get_async_session)],
+    session: AsyncSessionDependency,
 ) -> JSENDResponseSchema[LoginOutSchema]:
     return JSENDResponseSchema[LoginOutSchema](
         data=await users_handler.login(request=request, session=session, data=data),
@@ -42,7 +41,7 @@ async def login(
 async def refresh(
     request: Request,
     data: TokenRefreshSchema,
-    session: Annotated[AsyncSession, Depends(get_async_session)],
+    session: AsyncSessionDependency,
 ) -> JSENDResponseSchema[LoginOutSchema]:
     return JSENDResponseSchema[LoginOutSchema](
         data=await users_handler.refresh(request=request, session=session, data=data),

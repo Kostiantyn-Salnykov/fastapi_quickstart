@@ -4,13 +4,12 @@ __all__ = (
 )
 from typing import Annotated
 
-from core.dependencies import get_async_session
+from core.dependencies import AsyncSessionDependency
 from core.schemas.responses import JSENDResponseSchema
 from domain.users.handlers import users_handler
 from domain.users.schemas.requests import UserCreateSchema
 from domain.users.schemas.responses import UserResponseSchema
-from fastapi import Body, Depends, Request, status
-from sqlalchemy.ext.asyncio import AsyncSession
+from fastapi import Body, Request, status
 
 
 async def registration(
@@ -36,7 +35,7 @@ async def registration(
             },
         ),
     ],
-    session: Annotated[AsyncSession, Depends(get_async_session)],
+    session: AsyncSessionDependency,
 ) -> JSENDResponseSchema[UserResponseSchema]:
     """Creates new user."""
     return JSENDResponseSchema[UserResponseSchema](
