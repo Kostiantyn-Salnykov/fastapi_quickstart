@@ -9,7 +9,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 import redis.asyncio as aioredis
 from core.custom_logging import get_logger
 from core.db.bases import async_session_factory, redis_engine
-from src.api.exception_handlers import integrity_error_handler, no_result_found_error_handler
 
 logger = get_logger(name=__name__)
 
@@ -26,10 +25,10 @@ async def get_async_session() -> typing.AsyncGenerator[AsyncSession, None]:  # p
             await session.commit()
         except IntegrityError as error:
             await session.rollback()
-            integrity_error_handler(error=error)
+            raise error
         except NoResultFound as error:
             await session.rollback()
-            no_result_found_error_handler(error=error)
+            raise error
         finally:
             await session.close()
 

@@ -116,7 +116,7 @@ tasks:
   run:fastapi:
     desc: "Start web server via 'FastAPI' CLI (development mode)"
     cmd: >
-      {{.RUNNER}} fastapi dev apps/__main__.py --app app
+      {{.RUNNER}} fastapi dev src/api/__main__.py --app app
       --host {{.SERVER_HOST}}
       --port {{.SERVER_PORT}}
       --reload
@@ -127,10 +127,10 @@ tasks:
     desc: "Run migrations and then start web."
     cmds:
       - task: mig:head
-      - task: run:gu
+      - task: run:granian
 
   req:
     desc: "Generate main `requirements.txt` file from Poetry."
     vars:
-      FORMAT: "requirements.txt"
-    cmd: "poetry export --without-hashes --only main -f {{.FORMAT}} -o requirements.txt"
+      format: "requirements.txt"
+    cmd: "uv pip compile pyproject.toml -o {{.format}}"

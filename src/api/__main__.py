@@ -12,11 +12,14 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import ORJSONResponse
+from sqlalchemy.exc import IntegrityError, NoResultFound
 from starlette.middleware.authentication import AuthenticationMiddleware
 from uvicorn.middleware.proxy_headers import ProxyHeadersMiddleware
 
 from src.api.exception_handlers import (
     backend_exception_handler,
+    integrity_error_handler,
+    no_result_found_error_handler,
     rate_limit_exception_handler,
     validation_exception_handler,
 )
@@ -56,6 +59,8 @@ app.state.authorization_manager = AuthorizationManager(engine=async_engine)
 app.add_exception_handler(BackendError, backend_exception_handler)
 app.add_exception_handler(RequestValidationError, validation_exception_handler)
 app.add_exception_handler(RateLimitError, rate_limit_exception_handler)
+app.add_exception_handler(NoResultFound, no_result_found_error_handler)
+app.add_exception_handler(IntegrityError, integrity_error_handler)
 
 # Add middlewares stack (FIRST IN => LATER EXECUTION)
 app.add_middleware(middleware_class=GZipMiddleware, minimum_size=512)  # №5
