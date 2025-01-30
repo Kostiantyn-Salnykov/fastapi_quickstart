@@ -7,8 +7,6 @@ __all__ = (
     "redis_engine",
 )
 
-from core.db.mixins import BaseTableModelMixin
-from core.db.settings import db_settings
 from sqlalchemy import MetaData
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.orm import (
@@ -16,6 +14,8 @@ from sqlalchemy.orm import (
 )
 
 import redis.asyncio as aioredis
+from core.db.mixins import BaseTableModelMixin
+from core.db.settings import db_settings
 
 NAMING_CONVENTION = {
     "ix": "ix_%(column_0_label)s",  # Index

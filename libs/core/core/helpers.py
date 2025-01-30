@@ -7,8 +7,9 @@ import zoneinfo
 
 import orjson
 import uuid_extensions
-from core.annotations import StrOrUUID
 from fastapi.encoders import jsonable_encoder
+
+from core.annotations import StrOrUUID
 
 
 @functools.lru_cache

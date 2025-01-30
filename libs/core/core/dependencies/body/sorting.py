@@ -1,9 +1,10 @@
 import typing
 
-from core.annotations import ModelColumnInstance, ModelType, SchemaType
-from core.custom_logging import get_logger
 from fastapi import Body, Request
 from sqlalchemy import UnaryExpression
+
+from core.annotations import ModelColumnInstance, ModelType, SchemaType
+from core.custom_logging import get_logger
 
 _logger = get_logger(name=__name__)
 

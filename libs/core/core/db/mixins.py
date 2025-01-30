@@ -10,8 +10,6 @@ import re
 import uuid
 
 import uuid_extensions
-from core.annotations import SchemaType
-from core.helpers import get_utc_timezone
 from sqlalchemy import TIMESTAMP
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import (
@@ -22,6 +20,9 @@ from sqlalchemy.orm import (
     validates,
 )
 from sqlalchemy.sql import func
+
+from core.annotations import SchemaType
+from core.helpers import get_utc_timezone
 
 
 @declarative_mixin

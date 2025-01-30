@@ -1,12 +1,13 @@
 import enum
 import typing
 
-from core.annotations import ModelColumnInstance, ModelType, SchemaType
-from core.custom_logging import get_logger
-from core.schemas.requests import BaseRequestSchema
 from fastapi import Body, Request
 from pydantic import Field
 from sqlalchemy import TextClause, text
+
+from core.annotations import ModelColumnInstance, ModelType, SchemaType
+from core.custom_logging import get_logger
+from core.schemas.requests import BaseRequestSchema
 
 _logger = get_logger(name=__name__)
 

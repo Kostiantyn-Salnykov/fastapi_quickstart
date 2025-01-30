@@ -4,9 +4,10 @@ import typing
 import uuid
 
 import phonenumbers
+from pydantic import AfterValidator, BeforeValidator, EmailStr, PlainSerializer, WithJsonSchema
+
 from core.annotations import StrOrUUID
 from core.helpers import as_utc, get_timestamp, get_utc_timezone
-from pydantic import AfterValidator, BeforeValidator, EmailStr, PlainSerializer, WithJsonSchema
 
 
 def validate_uuid(v: StrOrUUID) -> str:

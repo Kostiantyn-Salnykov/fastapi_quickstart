@@ -2,13 +2,14 @@ import datetime
 from collections.abc import Sequence
 
 import jwt
+from pydantic import BaseModel
+
 from core.annotations import DatetimeOrNone
 from core.enums import TokenAudience
 from core.exceptions import BackendError
 from core.helpers import utc_now
 from core.managers.schemas import TokenOptionsSchema
 from core.managers.settings import managers_settings
-from pydantic import BaseModel
 
 
 class TokensManager:

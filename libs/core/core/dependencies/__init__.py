@@ -2,13 +2,13 @@ __all__ = ("AsyncSessionDependency", "RedisDependency", "get_async_session", "ge
 
 import typing
 
-from core.custom_logging import get_logger
-from core.db.bases import async_session_factory, redis_engine
 from fastapi import Depends
 from sqlalchemy.exc import IntegrityError, NoResultFound
 from sqlalchemy.ext.asyncio import AsyncSession
 
 import redis.asyncio as aioredis
+from core.custom_logging import get_logger
+from core.db.bases import async_session_factory, redis_engine
 from src.api.exception_handlers import integrity_error_handler, no_result_found_error_handler
 
 logger = get_logger(name=__name__)

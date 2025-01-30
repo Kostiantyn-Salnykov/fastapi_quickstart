@@ -1,10 +1,11 @@
 from typing import Generic
 
+from fastapi import status as http_status
+from pydantic import BaseModel, ConfigDict, Field
+
 from core.annotations import ModelInstance, ResultObject, SchemaInstance, StrOrNone
 from core.enums import JSENDStatus
 from core.schemas.requests import BaseRequestSchema
-from fastapi import status as http_status
-from pydantic import BaseModel, ConfigDict, Field
 
 
 class BaseResponseSchema(BaseRequestSchema):

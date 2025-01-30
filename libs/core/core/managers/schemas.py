@@ -2,8 +2,9 @@ __all__ = (
     "TokenOptionsSchema",
     "TokenPayloadSchema",
 )
-from core.schemas.responses import BaseResponseSchema
 from pydantic import AwareDatetime, Field
+
+from core.schemas.responses import BaseResponseSchema
 
 
 class TokenPayloadSchema(BaseResponseSchema):

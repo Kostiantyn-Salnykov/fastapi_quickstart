@@ -4,14 +4,14 @@ import functools
 import typing
 
 import pendulum
+from fastapi import Depends, Request, Response
+
+import redis.asyncio as aioredis
 from core.custom_logging import get_logger
 from core.dependencies import get_redis
 from core.enums import RatePeriod
 from core.exceptions import RateLimitError
 from core.helpers import utc_now
-from fastapi import Depends, Request, Response
-
-import redis.asyncio as aioredis
 
 __all__ = (
     "BaseRedisRateLimiter",

@@ -1,8 +1,9 @@
 import typing
 
+from fastapi import status as http_status
+
 from core.annotations import DictStrOfAny, ListOfAny
 from core.enums import JSENDStatus
-from fastapi import status as http_status
 
 
 class BackendError(Exception):

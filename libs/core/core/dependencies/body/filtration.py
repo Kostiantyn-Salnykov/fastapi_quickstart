@@ -1,15 +1,16 @@
 import typing
 from collections.abc import Iterator
 
+from fastapi import Body, Request
+from pydantic import BaseModel, ConfigDict, Field, TypeAdapter, ValidationError, model_validator
+from sqlalchemy import BinaryExpression
+from sqlalchemy.orm import ColumnProperty, InstrumentedAttribute
+
 from core.annotations import ModelType, SchemaType, StrOrNone
 from core.dependencies.settings import dependencies_settings
 from core.enums import FOps
 from core.exceptions import BackendError
 from core.schemas.requests import BaseRequestSchema
-from fastapi import Body, Request
-from pydantic import BaseModel, ConfigDict, Field, TypeAdapter, ValidationError, model_validator
-from sqlalchemy import BinaryExpression
-from sqlalchemy.orm import ColumnProperty, InstrumentedAttribute
 
 TypeA = typing.TypeVar("TypeA")
 FilterValue = list[int | float | bool | StrOrNone] | int | float | bool | StrOrNone

@@ -10,24 +10,25 @@ tasks:
     desc: "Autogenerate migration"
     requires:
       vars:
-        - ID
-        - MSG
-    cmd: "{{.RUNNER}} alembic revision --autogenerate --rev-id {{.ID}} -m {{.MSG}}"
+        - id
+        - msg
+    cmd: "{{.RUNNER}} alembic revision --autogenerate --rev-id {{.id}} -m {{.msg}}"
 
   sql:
     desc: "Generate .sql migration for specified revision"
     summary: |
-      Generates .sql migration for specified revision by `ID`.
-      You can also merge multiple migrations in one file, just provide `END_ID` variable.
-      Example: task mig:sql ID=0001 END_ID=0002
+      Generates .sql migration for specified revision by `id`.
+      You can also merge multiple migrations in one file, just provide `end_id` variable.
+      Example: task mig:sql id=0001 end_id=0002
     requires:
-      vars: [ID]
+      vars:
+        - id
     cmd: >
       {{.RUNNER}} alembic upgrade
-      {{if and .END_ID .ID }}
-      {{.ID}}:{{.END_ID}}
+      {{if and .end_id .id }}
+      {{.id}}:{{.end_id}}
       {{else}}
-      {{.ID}}
+      {{.id}}
       {{end}}
       --sql
 
@@ -55,20 +56,20 @@ tasks:
     cmd: "{{.RUNNER}} alembic check"
 
   show:
-    desc: "Get details about migration by revision ID."
-    cmd: "{{.RUNNER}} alembic show {{.ID}}"
+    desc: "Get details about migration by revision `id`."
     requires:
       vars:
-        - ID
+        - id
     ignore_error: true
+    cmd: "{{.RUNNER}} alembic show {{.id}}"
 
   move:
-    desc: "Move migration to revision ID (but doesn't apply it)."
-    cmd: "{{.RUNNER}} alembic stamp {{.ID}}"
+    desc: "Move migration to revision `id` (but doesn't apply it)."
     requires:
       vars:
-        - ID
+        - id
     ignore_error: true
+    cmd: "{{.RUNNER}} alembic stamp {{.id}}"
 
   history:
     desc: "Draw all migration's history output."
