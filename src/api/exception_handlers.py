@@ -52,10 +52,11 @@ def validation_exception_handler(request: Request, exc: RequestValidationError) 
     )
 
 
-def integrity_error_handler(error: IntegrityError) -> None:
+def integrity_error_handler(request: Request, error: IntegrityError) -> None:
     """Handler for IntegrityError (SQLAlchemy error).
 
     Args:
+        request (Request): FastAPI Request instance.
         error (IntegrityError): Error that SQLAlchemy raises (in case of SQL query error).
 
     Raises:
@@ -74,17 +75,18 @@ def integrity_error_handler(error: IntegrityError) -> None:
     )
 
 
-def no_result_found_error_handler(error: NoResultFound) -> None:
+def no_result_found_error_handler(request: Request, error: NoResultFound) -> None:
     """Handler for NoResultFound (SQLAlchemy error).
 
     Args:
+        request (Request): FastAPI Request instance.
         error (NoResultFound): Error that SQLAlchemy raises (in case of scalar_one() error).
 
     Raises:
         BackendException: Actually proxies these errors to `backend_exception_handler`.
     """
     raise BackendError(
-        message="Not found.",
+        message=str(error) if Settings.APP_DEBUG else "Not found.",
         code=status.HTTP_404_NOT_FOUND,
         status=JSENDStatus.FAIL,
     )

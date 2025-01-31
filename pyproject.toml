@@ -52,7 +52,7 @@ servers = [
 ]
 lint = [
     "mypy>=1.14.1",
-    "ruff>=0.9.2",
+    "ruff>=0.9.4",
     "xenon>=0.9.3",
     "interrogate>=1.7.0",
 ]
@@ -61,7 +61,7 @@ test = [
     "Faker>=33.3.1",
     "pytest>=8.3.4",
     "pytest-alembic>=0.11.1",
-    "pytest-asyncio>=0.25.2",
+    "pytest-asyncio>=0.25.3",
     "pytest-clarity>=1.0.1",
     "pytest-cov>=6.0.0",
     "pytest-mock>=3.14.0",
