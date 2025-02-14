@@ -17,6 +17,7 @@ class User(Base, UUIDMixin, CreatedUpdatedMixin, BaseUser):
         email (str): User's email.
         password_hash (str): Hashed value of password.
         status (str): Current status of user.
+        settings (dict[str, Any]): Settings for the user.
 
         groups (list[Group]): Groups that are assigned to user.
         roles (list[Role]): Roles that assigned to user.

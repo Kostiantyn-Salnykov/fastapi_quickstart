@@ -1,5 +1,5 @@
 from core.custom_logging import get_logger
-from core.repositories import BaseCoreRepository
+from core.db.repositories import BaseCoreRepository
 from core.tables import Group, GroupRole, Permission, Role, RolePermission
 
 logger = get_logger(name=__name__)

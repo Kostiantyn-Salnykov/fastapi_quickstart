@@ -2,8 +2,8 @@ __all__ = ("users_service",)
 import uuid
 from typing import TYPE_CHECKING
 
+from core.db.repositories import BaseRepository
 from core.helpers import to_db_encoder
-from core.repositories import BaseCoreRepository
 from sqlalchemy import select
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -18,7 +18,7 @@ if TYPE_CHECKING:
     from sqlalchemy.engine import ChunkedIteratorResult, CursorResult
 
 
-class UsersService(BaseCoreRepository):
+class UsersService(BaseRepository):
     async def create(self, *, session: AsyncSession, obj: UserCreateSchema) -> User:
         obj.status = UserStatuses.CONFIRMED  # Automatically activates User!!!
         async with session.begin_nested():

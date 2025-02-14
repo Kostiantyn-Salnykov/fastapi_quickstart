@@ -91,8 +91,10 @@ testpaths = ["tests",]
 python_files = ["test*.py", "*test.py"]
 python_functions = ["*_test", "test_*"]
 console_output_style = "progress"
-asyncio_mode = "auto"
 log_cli = true
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "session"
+asyncio_default_test_loop_scope = "session"
 
 [tool.coverage.run]
 parallel = true
